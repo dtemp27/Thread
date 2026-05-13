@@ -1,14 +1,34 @@
+'use strict';
+
+/* ─── Load checkout data ──────────────────────────────────────────────────── */
 const checkoutData = JSON.parse(localStorage.getItem('thread_checkout') || 'null');
 const refCode      = localStorage.getItem('thread_ref') || null;
 
-// Check for Stripe success return
 const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('stripe_success') === '1') {
+const isStripeReturn = urlParams.get('stripe_success') === '1';
+
+// Handle Stripe return first
+if (isStripeReturn) {
   handleStripeReturn();
 }
 
-if (!checkoutData || !checkoutData.items?.length) {
+// Redirect to store if cart is empty (but NOT when returning from Stripe)
+if (!isStripeReturn && (!checkoutData || !checkoutData.items?.length)) {
   window.location.href = 'index.html';
+}
+
+// Require login — redirect to sign in if not logged in
+if (!isStripeReturn) {
+  (async function() {
+    try {
+      if (window.DB && window.DB.isLive()) {
+        const user = await window.DB.auth.getUser();
+        if (!user) {
+          window.location.href = 'auth.html?tab=signin&next=checkout.html';
+        }
+      }
+    } catch(e) {}
+  })();
 }
 
 /* ─── Hoodie color map ────────────────────────────────────────────────────── */
