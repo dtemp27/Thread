@@ -23,7 +23,7 @@ window.THREAD_CONFIG = {
   // After deploying the Supabase Edge Function (see edge-function.js),
   // paste the function URL here.
   // Format: https://[YOUR_PROJECT_REF].supabase.co/functions/v1/create-checkout
-  stripeFunctionUrl: 'YOUR_EDGE_FUNCTION_URL',
+  stripeFunctionUrl: 'https://ermatmianwpfzvhmpdgn.supabase.co/functions/v1/create-checkout',
 
   // ─── Admin ──────────────────────────────────────────────────────────────────
   // Password to access /admin.html  — change this to something secure!
