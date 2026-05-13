@@ -1,10 +1,14 @@
 'use strict';
 
+console.log('[auth.js v2] loaded — direct Supabase mode');
+
 /* ─── Supabase direct client (bypasses db.js entirely) ───────────────────── */
 function getSB() {
   const cfg = window.THREAD_CONFIG;
-  if (!cfg || !window.supabase) return null;
-  return window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+  if (!cfg || !window.supabase) { console.warn('[auth.js] getSB: missing cfg or supabase'); return null; }
+  const client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+  console.log('[auth.js] getSB client:', typeof client, 'auth:', typeof client?.auth);
+  return client;
 }
 
 function generateReferralCode(name) {
