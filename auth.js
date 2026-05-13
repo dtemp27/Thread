@@ -2,8 +2,12 @@
 
 /* ─── REDIRECT IF ALREADY SIGNED IN ─────────────────────────────────────── */
 (async function () {
-  const user = await DB.auth.getUser();
-  if (user) window.location.href = 'dashboard.html';
+  try {
+    if (window.DB) {
+      const user = await window.DB.auth.getUser();
+      if (user) window.location.href = 'dashboard.html';
+    }
+  } catch(e) {}
 })();
 
 /* ─── CHECK URL TAB PARAM ────────────────────────────────────────────────── */
@@ -75,7 +79,14 @@ async function handleSignUp(event) {
 
   setLoading('signup', true);
 
-  const { data, error } = await DB.auth.signUp(email, password, name);
+  let data, error;
+  try {
+    ({ data, error } = await window.DB.auth.signUp(email, password, name));
+  } catch(e) {
+    setLoading('signup', false);
+    showFormError('signupError', 'Sign up failed: ' + e.message);
+    return;
+  }
 
   setLoading('signup', false);
 
@@ -103,7 +114,14 @@ async function handleSignIn(event) {
 
   setLoading('signin', true);
 
-  const { data, error } = await DB.auth.signIn(email, password);
+  let data, error;
+  try {
+    ({ data, error } = await window.DB.auth.signIn(email, password));
+  } catch(e) {
+    setLoading('signin', false);
+    showFormError('signinError', 'Sign in failed: ' + e.message);
+    return;
+  }
 
   setLoading('signin', false);
 
@@ -112,7 +130,8 @@ async function handleSignIn(event) {
     return;
   }
 
-  window.location.href = 'dashboard.html';
+  const next = new URLSearchParams(window.location.search).get('next');
+  window.location.href = next || 'dashboard.html';
 }
 
 /* ─── SUCCESS OVERLAY ────────────────────────────────────────────────────── */
@@ -150,7 +169,8 @@ function showSuccessOverlay(name, code) {
     document.body.appendChild(el);
     setTimeout(() => { const bar = document.getElementById('successBar'); if (bar) bar.style.width = '100%'; }, 50);
   }
-  setTimeout(() => window.location.href = 'dashboard.html', 3200);
+  const next = new URLSearchParams(window.location.search).get('next');
+  setTimeout(() => window.location.href = next || 'dashboard.html', 3200);
 }
 
 /* ─── PASSWORD TOGGLE ────────────────────────────────────────────────────── */
