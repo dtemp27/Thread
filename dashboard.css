@@ -462,4 +462,35 @@ a { color: var(--accent2); text-decoration: none; cursor: pointer; }
   .pot-calc { flex-direction: column; }
   .payout-grid { grid-template-columns: repeat(2,1fr); }
   .em-row { grid-template-columns: repeat(2,1fr); }
+  .overview-qr-card { flex-direction: column; }
+  .oqc-qr { width: 100%; flex-direction: row; justify-content: flex-start; }
+  .welcome-banner { flex-direction: column; align-items: flex-start; gap: 14px; padding: 18px; }
+  .wb-actions { width: 100%; display: flex; gap: 8px; }
+  .wb-cta, .wb-demo { flex: 1; text-align: center; }
+  .activity-toolbar { flex-direction: column; align-items: flex-start; }
+  .activity-search input { width: 100%; }
+  .activity-filters { flex-wrap: wrap; }
+}
+
+@media (max-width: 480px) {
+  .stats-grid { gap: 10px; }
+  .sc-value { font-size: 28px; }
+  .sc-card { padding: 16px; }
+  .dash-section { padding: 12px; }
+  .topbar { padding: 0 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-date { display: none; }
+  .topbar-avatar { width: 32px; height: 32px; font-size: 11px; }
+  .qr-page { gap: 20px; }
+  .qr-stat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .earn-hero { padding: 20px; }
+  .eh-amount { font-size: 36px; }
+  .payout-grid { grid-template-columns: repeat(2, 1fr); }
+  .ht-cols, .ht-row { grid-template-columns: 90px 1fr auto; padding: 10px 14px; font-size: 12px; }
+  .scan-notification { min-width: auto; left: 12px; right: 12px; bottom: 12px; }
+  .purchases-grid { grid-template-columns: 1fr; }
+  .section-h2 { font-size: 22px; }
+  .chart-card, .activity-card { padding: 16px; }
+  .qr-actions-row { flex-wrap: wrap; }
+  .btn-qr-download, .copy-btn-lg, .share-btn-lg { flex: 1; text-align: center; }
 }
