@@ -19,16 +19,13 @@ if (!isStripeReturn && (!checkoutData || !checkoutData.items?.length)) {
 
 // Require login — redirect to sign in if not logged in
 if (!isStripeReturn) {
-  (async function() {
-    try {
-      if (window.DB && window.DB.isLive()) {
-        const user = await window.DB.auth.getUser();
-        if (!user) {
-          window.location.href = 'auth.html?tab=signin&next=checkout.html';
-        }
-      }
-    } catch(e) {}
-  })();
+  const cfg = window.THREAD_CONFIG;
+  const ref = cfg?.supabaseUrl?.replace('https://', '').split('.')[0] || '';
+  const hasSupabaseSession = ref && localStorage.getItem('sb-' + ref + '-auth-token');
+  const hasLocalSession    = localStorage.getItem('thread_session');
+  if (!hasSupabaseSession && !hasLocalSession) {
+    window.location.href = 'auth.html?tab=signin&next=checkout.html';
+  }
 }
 
 /* ─── Hoodie color map ────────────────────────────────────────────────────── */
