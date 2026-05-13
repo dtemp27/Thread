@@ -379,8 +379,26 @@ a:hover { text-decoration: underline; }
 /* ─── RESPONSIVE ─── */
 @media (max-width: 768px) {
   .auth-wrap { flex-direction: column; }
-  .auth-left { padding: 32px 24px 48px; border-right: none; border-bottom: 1px solid var(--border); }
-  .auth-left-content { padding: 32px 0 0; }
-  .auth-perks { gap: 16px; }
+  .auth-left { padding: 28px 24px 36px; border-right: none; border-bottom: 1px solid var(--border); }
+  .auth-left-content { padding: 24px 0 0; }
+  .auth-left-content h2 { font-size: 24px; }
+  .auth-left-content > p { font-size: 14px; margin-bottom: 28px; }
+  .auth-perks { gap: 16px; margin-bottom: 28px; }
   .auth-right { padding: 32px 20px 48px; }
+}
+
+@media (max-width: 480px) {
+  .auth-left { padding: 20px 16px 28px; }
+  .auth-left-content { padding: 16px 0 0; }
+  .auth-left-content h2 { font-size: 20px; }
+  .auth-perks { display: none; } /* hide perks on tiny screens — form is priority */
+  .auth-left-content > p { margin-bottom: 0; }
+  .auth-social-proof { display: none; }
+  .auth-right { padding: 24px 16px 40px; }
+  .auth-card { max-width: 100%; }
+  .form-group input { padding: 13px 14px; font-size: 14px; }
+  .btn-submit { padding: 15px; font-size: 14px; }
+  .success-box { padding: 32px 24px; }
+  .success-box h3 { font-size: 22px; }
+  .success-code { font-size: 18px; letter-spacing: 2px; }
 }
