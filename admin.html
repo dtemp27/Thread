@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>THREAD Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+  <!-- ─── LOGIN GATE ─────────────────────────────────────────────────────── -->
+  <div id="adminGate" class="admin-gate">
+    <div class="gate-card">
+      <div class="gate-logo">THREAD<span>.</span></div>
+      <h2>Admin Access</h2>
+      <p>Enter your admin password to continue.</p>
+      <input type="password" id="gatePassword" placeholder="Admin password"
+        onkeydown="if(event.key==='Enter') checkGate()">
+      <button onclick="checkGate()">Enter Dashboard</button>
+      <div class="gate-error" id="gateError"></div>
+    </div>
+  </div>
+
+  <!-- ─── MAIN ADMIN UI ─────────────────────────────────────────────────── -->
+  <div id="adminApp" style="display:none">
+
+    <!-- Sidebar -->
+    <aside class="ad-sidebar">
+      <div class="ad-logo">THREAD<span>.</span></div>
+      <nav class="ad-nav">
+        <button class="ad-nav-item active" data-section="overview" onclick="showSection('overview')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Overview
+        </button>
+        <button class="ad-nav-item" data-section="orders" onclick="showSection('orders')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          Orders
+          <span class="ad-badge" id="pendingBadge">0</span>
+        </button>
+        <button class="ad-nav-item" data-section="customers" onclick="showSection('customers')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Customers
+        </button>
+        <button class="ad-nav-item" data-section="referrals" onclick="showSection('referrals')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          Referrals
+        </button>
+      </nav>
+      <div class="ad-sidebar-foot">
+        <div class="ad-mode-badge" id="adModeBadge">LOCAL MODE</div>
+        <a href="index.html" class="ad-store-link">← Back to Store</a>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="ad-main">
+
+      <!-- Top bar -->
+      <header class="ad-topbar">
+        <div class="ad-topbar-left">
+          <h1 id="adPageTitle">Overview</h1>
+          <span class="ad-last-refresh" id="adLastRefresh"></span>
+        </div>
+        <div class="ad-topbar-right">
+          <button class="ad-refresh-btn" onclick="loadAllData()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Refresh
+          </button>
+          <button class="ad-signout-btn" onclick="adminSignOut()">Sign Out</button>
+        </div>
+      </header>
+
+      <!-- ═══ OVERVIEW ════════════════════════════════════════════════════ -->
+      <section id="sec-overview" class="ad-section">
+
+        <div class="ad-stats-row">
+          <div class="ad-stat-card">
+            <div class="asc-label">Total Revenue</div>
+            <div class="asc-value" id="ovRevenue">$0.00</div>
+            <div class="asc-sub" id="ovRevSub">from 0 paid orders</div>
+          </div>
+          <div class="ad-stat-card">
+            <div class="asc-label">Total Orders</div>
+            <div class="asc-value" id="ovOrders">0</div>
+            <div class="asc-sub" id="ovOrdSub">0 pending</div>
+          </div>
+          <div class="ad-stat-card">
+            <div class="asc-label">Customers</div>
+            <div class="asc-value" id="ovCustomers">0</div>
+            <div class="asc-sub">registered accounts</div>
+          </div>
+          <div class="ad-stat-card">
+            <div class="asc-label">Referral Commissions</div>
+            <div class="asc-value" id="ovCommissions">$0.00</div>
+            <div class="asc-sub">total paid to wearers</div>
+          </div>
+        </div>
+
+        <!-- Recent orders preview -->
+        <div class="ad-card">
+          <div class="ad-card-header">
+            <h3>Recent Orders</h3>
+            <button class="ad-link-btn" onclick="showSection('orders')">View all →</button>
+          </div>
+          <table class="ad-table" id="recentOrdersTable">
+            <thead><tr>
+              <th>Order ID</th><th>Customer</th><th>Items</th>
+              <th>Total</th><th>Status</th><th>Date</th>
+            </tr></thead>
+            <tbody id="recentOrdersBody">
+              <tr><td colspan="6" class="ad-empty">No orders yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Revenue chart -->
+        <div class="ad-card">
+          <div class="ad-card-header">
+            <h3>Revenue — Last 30 Days</h3>
+          </div>
+          <div class="ad-chart-wrap">
+            <canvas id="revenueChart" height="160"></canvas>
+            <div class="ad-chart-bars" id="revenueChartBars"></div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ═══ ORDERS ══════════════════════════════════════════════════════ -->
+      <section id="sec-orders" class="ad-section" style="display:none">
+
+        <div class="ad-toolbar">
+          <div class="ad-filters">
+            <button class="ad-filter active" data-filter="all" onclick="filterOrders('all',this)">All</button>
+            <button class="ad-filter" data-filter="pending"   onclick="filterOrders('pending',this)">Pending</button>
+            <button class="ad-filter" data-filter="paid"      onclick="filterOrders('paid',this)">Paid</button>
+            <button class="ad-filter" data-filter="shipped"   onclick="filterOrders('shipped',this)">Shipped</button>
+            <button class="ad-filter" data-filter="delivered" onclick="filterOrders('delivered',this)">Delivered</button>
+          </div>
+          <input type="text" class="ad-search" id="orderSearch"
+            placeholder="Search by email, order ID…" oninput="filterOrders(currentOrderFilter, null)">
+        </div>
+
+        <div class="ad-card">
+          <table class="ad-table ad-table-orders" id="ordersTable">
+            <thead><tr>
+              <th>Order ID</th><th>Customer</th><th>Items</th>
+              <th>Total</th><th>Referral</th><th>Status</th><th>Date</th><th>Action</th>
+            </tr></thead>
+            <tbody id="ordersBody">
+              <tr><td colspan="8" class="ad-empty">Loading orders…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </section>
+
+      <!-- ═══ CUSTOMERS ═══════════════════════════════════════════════════ -->
+      <section id="sec-customers" class="ad-section" style="display:none">
+
+        <div class="ad-toolbar">
+          <input type="text" class="ad-search" id="customerSearch"
+            placeholder="Search by name or email…" oninput="renderCustomers()">
+        </div>
+
+        <div class="ad-card">
+          <table class="ad-table">
+            <thead><tr>
+              <th>Name</th><th>Email</th><th>Referral Code</th>
+              <th>Orders</th><th>Spent</th><th>Joined</th>
+            </tr></thead>
+            <tbody id="customersBody">
+              <tr><td colspan="6" class="ad-empty">Loading customers…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </section>
+
+      <!-- ═══ REFERRALS ══════════════════════════════════════════════════ -->
+      <section id="sec-referrals" class="ad-section" style="display:none">
+
+        <div class="ad-stats-row">
+          <div class="ad-stat-card">
+            <div class="asc-label">Total Scans</div>
+            <div class="asc-value" id="refTotalScans">0</div>
+            <div class="asc-sub">QR scans across all wearers</div>
+          </div>
+          <div class="ad-stat-card">
+            <div class="asc-label">Conversions</div>
+            <div class="asc-value" id="refConversions">0</div>
+            <div class="asc-sub" id="refConvRate">0% conversion rate</div>
+          </div>
+          <div class="ad-stat-card">
+            <div class="asc-label">Commissions Paid</div>
+            <div class="asc-value" id="refCommPaid">$0.00</div>
+            <div class="asc-sub">to referrers</div>
+          </div>
+          <div class="ad-stat-card">
+            <div class="asc-label">Top Earner</div>
+            <div class="asc-value" id="refTopEarner">—</div>
+            <div class="asc-sub" id="refTopEarnerSub">this month</div>
+          </div>
+        </div>
+
+        <div class="ad-card">
+          <div class="ad-card-header">
+            <h3>Top Referrers</h3>
+          </div>
+          <table class="ad-table">
+            <thead><tr>
+              <th>Name</th><th>Referral Code</th><th>Scans</th>
+              <th>Conversions</th><th>Earned</th><th>Pending</th>
+            </tr></thead>
+            <tbody id="topReferrersBody">
+              <tr><td colspan="6" class="ad-empty">No referral data yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="ad-card">
+          <div class="ad-card-header">
+            <h3>Recent Scan Events</h3>
+          </div>
+          <table class="ad-table">
+            <thead><tr>
+              <th>Time</th><th>Referrer</th><th>Code</th>
+              <th>City</th><th>Converted</th><th>Commission</th>
+            </tr></thead>
+            <tbody id="recentScansBody">
+              <tr><td colspan="6" class="ad-empty">No scan data</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Order status modal -->
+  <div class="ad-modal-overlay" id="statusModal" style="display:none" onclick="if(event.target===this)closeStatusModal()">
+    <div class="ad-modal">
+      <h3>Update Order Status</h3>
+      <p>Order <strong id="modalOrderId"></strong></p>
+      <div class="status-btns">
+        <button onclick="setStatus('pending')">Pending</button>
+        <button onclick="setStatus('paid')">Paid</button>
+        <button onclick="setStatus('shipped')">Shipped</button>
+        <button onclick="setStatus('delivered')">Delivered</button>
+        <button onclick="setStatus('refunded')" class="refund-btn">Refunded</button>
+      </div>
+      <button class="ad-modal-close" onclick="closeStatusModal()">Cancel</button>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="db.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+-- ═══════════════════════════════════════════════════════════════════════════
+--  THREAD Store — Supabase Database Schema
+--  Run this in: Supabase Dashboard → SQL Editor → New Query → Run
+-- ═══════════════════════════════════════════════════════════════════════════
+
+-- ─── PROFILES ────────────────────────────────────────────────────────────────
+-- Extends Supabase's built-in auth.users table with THREAD-specific fields.
+create table if not exists public.profiles (
+  id             uuid  references auth.users(id) on delete cascade primary key,
+  email          text  not null unique,
+  name           text  not null,
+  referral_code  text  not null unique,
+  payout_method  text  default 'cash',
+  payout_handle  text,
+  created_at     timestamptz default now()
+);
+
+alter table public.profiles enable row level security;
+
+-- Users can only read/write their own profile
+create policy "Users can view own profile"
+  on public.profiles for select using (auth.uid() = id);
+
+create policy "Users can update own profile"
+  on public.profiles for update using (auth.uid() = id);
+
+create policy "Users can insert own profile"
+  on public.profiles for insert with check (auth.uid() = id);
+
+-- Admin can read all profiles (used by admin dashboard)
+create policy "Service role can read all profiles"
+  on public.profiles for select using (auth.role() = 'service_role');
+
+
+-- ─── ORDERS ──────────────────────────────────────────────────────────────────
+create table if not exists public.orders (
+  id                 uuid  default gen_random_uuid() primary key,
+  user_id            uuid  references auth.users(id),
+  stripe_session_id  text,
+  items              jsonb not null default '[]',
+  subtotal           numeric(10,2) not null default 0,
+  discount           numeric(10,2) default 0,
+  total              numeric(10,2) not null default 0,
+  promo_code         text,
+  referral_code      text,
+  status             text  default 'pending',  -- pending | paid | shipped | delivered | refunded
+  customer_email     text,
+  created_at         timestamptz default now()
+);
+
+alter table public.orders enable row level security;
+
+-- Users can read their own orders
+create policy "Users can view own orders"
+  on public.orders for select using (auth.uid() = user_id);
+
+-- Users can insert orders (the checkout page creates the order)
+create policy "Users can create orders"
+  on public.orders for insert with check (true);
+
+-- Service role (admin) can do everything
+create policy "Service role full access to orders"
+  on public.orders for all using (auth.role() = 'service_role');
+
+
+-- ─── REFERRAL SCANS ──────────────────────────────────────────────────────────
+create table if not exists public.referral_scans (
+  id             uuid  default gen_random_uuid() primary key,
+  referral_code  text  not null,
+  referrer_id    uuid  references auth.users(id),
+  converted      boolean default false,
+  order_id       uuid  references public.orders(id),
+  commission     numeric(10,2) default 0,
+  status         text  default 'pending',  -- pending | paid
+  city           text,
+  country        text,
+  created_at     timestamptz default now()
+);
+
+alter table public.referral_scans enable row level security;
+
+-- Users can see their own scans
+create policy "Users can view own scans"
+  on public.referral_scans for select using (auth.uid() = referrer_id);
+
+-- Anyone can insert a scan (triggered when QR is scanned)
+create policy "Anyone can log a scan"
+  on public.referral_scans for insert with check (true);
+
+-- Service role (admin) can do everything
+create policy "Service role full access to scans"
+  on public.referral_scans for all using (auth.role() = 'service_role');
+
+
+-- ─── REAL-TIME ───────────────────────────────────────────────────────────────
+-- Enable real-time replication for the dashboard's live scan feed
+alter publication supabase_realtime add table public.referral_scans;
+alter publication supabase_realtime add table public.orders;
+
+
+-- ─── INDEXES ─────────────────────────────────────────────────────────────────
+create index if not exists idx_profiles_referral_code on public.profiles(referral_code);
+create index if not exists idx_orders_user_id         on public.orders(user_id);
+create index if not exists idx_orders_referral_code   on public.orders(referral_code);
+create index if not exists idx_scans_referrer_id      on public.referral_scans(referrer_id);
+create index if not exists idx_scans_referral_code    on public.referral_scans(referral_code);
+
+
+-- ─── HELPER FUNCTION: auto-create profile after signup ───────────────────────
+-- This trigger fires after a user signs up via Supabase Auth and creates a
+-- minimal profile row. The app overwrites it with the full name + referral code.
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer as $$
+begin
+  insert into public.profiles (id, email, name, referral_code)
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
+    upper(substring(md5(new.id::text), 1, 8))  -- temp code; overwritten by app
+  )
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+create or replace trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();

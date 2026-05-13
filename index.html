@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>THREAD — Wear. Share. Earn.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ─── NAV ─── -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="#" class="logo">THREAD<span class="dot">.</span></a>
+      <ul class="nav-links">
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#shop">Shop</a></li>
+        <li><a href="#rewards">Rewards</a></li>
+        <li><a href="#leaderboard">Top Earners</a></li>
+      </ul>
+      <div class="nav-actions" id="navActions">
+        <a href="auth.html?tab=signin" class="btn-ghost" id="navLogin">Log In</a>
+        <a href="auth.html" class="btn-primary" id="navJoin">Join Free</a>
+      </div>
+      <button class="cart-nav-btn" id="cartNavBtn" onclick="toggleCart()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span class="cart-count" id="cartCount" style="display:none">0</span>
+      </button>
+      <button class="hamburger" id="hamburger">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ─── CART DRAWER ─── -->
+  <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="cd-header">
+      <h3>Your Cart <span class="cd-count" id="cdCount"></span></h3>
+      <button class="cd-close" onclick="toggleCart()">✕</button>
+    </div>
+    <div class="cd-items" id="cdItems">
+      <div class="cd-empty">
+        <span>🛍️</span>
+        <p>Your cart is empty</p>
+        <p style="font-size:12px;color:#555">Add a hoodie to get started</p>
+      </div>
+    </div>
+    <div class="cd-footer" id="cdFooter" style="display:none">
+      <div class="cd-promo">
+        <input type="text" id="promoInput" placeholder="Promo code" class="cd-promo-input" />
+        <button onclick="applyPromo()" class="cd-promo-btn">Apply</button>
+      </div>
+      <div class="cd-totals">
+        <div class="cd-row"><span>Subtotal</span><span id="cdSubtotal">$0.00</span></div>
+        <div class="cd-row"><span>Shipping</span><span class="cd-free">FREE</span></div>
+        <div class="cd-row cd-discount" id="cdDiscountRow" style="display:none"><span>Discount</span><span id="cdDiscount" class="cd-free"></span></div>
+        <div class="cd-row cd-total-row"><span>Total</span><span id="cdTotal">$0.00</span></div>
+      </div>
+      <a href="checkout.html" class="cd-checkout-btn" id="cdCheckoutBtn">Checkout →</a>
+      <div class="cd-payments-hint">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 20'%3E%3Crect width='50' height='20' rx='3' fill='%23000'/%3E%3Ctext x='25' y='14' text-anchor='middle' fill='white' font-size='8' font-family='sans-serif'%3EApple Pay%3C/text%3E%3C/svg%3E" alt="Apple Pay" class="pay-hint-logo" />
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 20'%3E%3Crect width='50' height='20' rx='3' fill='%23fff' stroke='%23ddd'/%3E%3Ctext x='25' y='14' text-anchor='middle' fill='%23333' font-size='8' font-family='sans-serif'%3EGoogle Pay%3C/text%3E%3C/svg%3E" alt="Google Pay" class="pay-hint-logo" />
+        <span>Visa</span><span>MC</span><span>Amex</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── HERO ─── -->
+  <section class="hero" id="hero">
+    <div class="hero-bg" id="heroBg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        <span>Your shirt is your storefront</span>
+      </div>
+      <h1 class="hero-title">
+        Wear It.<br />
+        <span class="gradient-text">Share It.</span><br />
+        Get Paid.
+      </h1>
+      <p class="hero-sub">Every THREAD piece comes with a unique QR code. When someone scans yours and buys — you earn real rewards. No selling. No effort. Just wear it.</p>
+      <div class="hero-cta">
+        <a href="#shop" class="btn-hero-primary">Shop & Start Earning</a>
+        <a href="#how-it-works" class="btn-hero-ghost">
+          <span class="play-icon">▶</span> See How It Works
+        </a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-num" data-target="48200">0</span>
+          <span class="stat-label">Active Wearers</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num" data-target="312000" data-prefix="$">0</span>
+          <span class="stat-label">Paid Out</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num" data-target="97">0</span><span class="stat-num-suffix">%</span>
+          <span class="stat-label">Would Recommend</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="shirt-mockup" id="shirtMockup">
+        <div class="shirt-body">
+          <div class="shirt-inner">
+            <div class="qr-badge">
+              <div class="qr-grid" id="qrGrid"></div>
+              <p class="qr-label">YOUR CODE</p>
+            </div>
+          </div>
+        </div>
+        <div class="shirt-tag">
+          <span>scan me</span>
+          <svg viewBox="0 0 24 24" width="14"><path d="M12 4l0 16M4 12l16 0" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+        </div>
+      </div>
+      <div class="orbit orbit-1"></div>
+      <div class="orbit orbit-2"></div>
+      <div class="floating-reward fr-1">+$25 earned</div>
+      <div class="floating-reward fr-2">New scan 🔥</div>
+      <div class="floating-reward fr-3">$10 gift card!</div>
+    </div>
+    <div class="scroll-hint">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- ─── SOCIAL PROOF TICKER ─── -->
+  <div class="ticker-wrap">
+    <div class="ticker">
+      <div class="ticker-track" id="tickerTrack">
+        <span>🔥 @jordan_w just earned $25 — Atlanta, GA</span>
+        <span>👕 New drop: The Obsidian Hoodie</span>
+        <span>💰 @maya.threads hit $300 this month</span>
+        <span>📍 94 scans in NYC today</span>
+        <span>🎁 @chris_refs redeemed a $50 gift card</span>
+        <span>🔥 @taylormade22 earned $40 — Chicago, IL</span>
+        <span>👕 Limited: Ivory Tee – only 28 left</span>
+        <span>💰 Top earner this week: $780 total</span>
+        <span>📍 Viral scan in Miami – 200+ clicks</span>
+        <span>🎁 @sneaker_kev redeemed $100 cash payout</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── HOW IT WORKS ─── -->
+  <section class="section how-section" id="how-it-works">
+    <div class="container">
+      <div class="section-tag">THE PROCESS</div>
+      <h2 class="section-title">Three steps.<br /><span class="gradient-text">Unlimited upside.</span></h2>
+      <p class="section-sub">No referral links to share. No awkward DMs. Just wear the clothes and let the QR do the work.</p>
+
+      <div class="steps-grid">
+
+        <div class="step-card" data-step="01">
+          <div class="step-icon-wrap">
+            <div class="step-icon">
+              <svg viewBox="0 0 64 64" width="40" height="40" fill="none">
+                <rect x="8" y="4" width="48" height="56" rx="6" stroke="white" stroke-width="2.5"/>
+                <path d="M20 20h24M20 30h24M20 40h14" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="46" cy="48" r="10" fill="#6C63FF" stroke="white" stroke-width="2"/>
+                <path d="M42 48l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="step-number">01</div>
+          </div>
+          <h3>Buy Any Piece</h3>
+          <p>Every item in the THREAD store comes with a permanent, personalized QR code on the back. It's yours forever — tied to your account.</p>
+          <div class="step-arrow">→</div>
+        </div>
+
+        <div class="step-card" data-step="02">
+          <div class="step-icon-wrap">
+            <div class="step-icon">
+              <svg viewBox="0 0 64 64" width="40" height="40" fill="none">
+                <rect x="4" y="4" width="24" height="24" rx="3" stroke="white" stroke-width="2.5"/>
+                <rect x="36" y="4" width="24" height="24" rx="3" stroke="white" stroke-width="2.5"/>
+                <rect x="4" y="36" width="24" height="24" rx="3" stroke="white" stroke-width="2.5"/>
+                <rect x="10" y="10" width="12" height="12" rx="1" fill="#6C63FF"/>
+                <rect x="42" y="10" width="12" height="12" rx="1" fill="#6C63FF"/>
+                <rect x="10" y="42" width="12" height="12" rx="1" fill="#6C63FF"/>
+                <path d="M44 36h4v4h-4zM52 36h4v4h-4zM44 44h4v4h-4zM52 44h4v4h-4zM44 52h4v4h-4zM52 52h4v4h-4z" fill="white"/>
+              </svg>
+            </div>
+            <div class="step-number">02</div>
+          </div>
+          <h3>Wear It Out</h3>
+          <p>Put it on. Go live your life. Curious people naturally scan the code on the back — no pitching, no convincing, no nothing from you.</p>
+          <div class="step-arrow">→</div>
+        </div>
+
+        <div class="step-card" data-step="03">
+          <div class="step-icon-wrap">
+            <div class="step-icon">
+              <svg viewBox="0 0 64 64" width="40" height="40" fill="none">
+                <circle cx="32" cy="32" r="26" stroke="white" stroke-width="2.5"/>
+                <path d="M32 18v14l8 8" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M20 48s4-6 12-6 12 6 12 6" stroke="#6C63FF" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="step-number">03</div>
+          </div>
+          <h3>Earn Rewards</h3>
+          <p>Every time someone scans your code and completes a purchase, cash or gift cards hit your wallet automatically. Stack it up — no cap.</p>
+        </div>
+
+      </div>
+
+      <!-- FLOW DIAGRAM -->
+      <div class="flow-diagram">
+        <div class="flow-node fn-you">
+          <div class="fn-avatar">YOU</div>
+          <span>Wear it</span>
+        </div>
+        <div class="flow-line">
+          <div class="flow-dot"></div>
+          <div class="flow-dot"></div>
+          <div class="flow-dot"></div>
+        </div>
+        <div class="flow-node fn-scan">
+          <div class="fn-avatar">📱</div>
+          <span>They scan</span>
+        </div>
+        <div class="flow-line">
+          <div class="flow-dot"></div>
+          <div class="flow-dot"></div>
+          <div class="flow-dot"></div>
+        </div>
+        <div class="flow-node fn-buy">
+          <div class="fn-avatar">🛍️</div>
+          <span>They buy</span>
+        </div>
+        <div class="flow-line">
+          <div class="flow-dot"></div>
+          <div class="flow-dot"></div>
+          <div class="flow-dot"></div>
+        </div>
+        <div class="flow-node fn-earn active">
+          <div class="fn-avatar">💰</div>
+          <span>You earn</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── PARALLAX FEATURE STRIP ─── -->
+  <section class="parallax-strip" id="parallaxStrip">
+    <div class="parallax-bg" id="parallaxBg"></div>
+    <div class="parallax-content">
+      <h2>"I made $480 last month just wearing my hoodie to the gym."</h2>
+      <p>— Marcus T., Dallas TX · 38 referrals</p>
+    </div>
+  </section>
+
+  <!-- ─── SHOP ─── -->
+  <section class="section shop-section" id="shop">
+    <div class="container">
+      <div class="section-tag">THE COLLECTION</div>
+      <h2 class="section-title">Pieces that <span class="gradient-text">pay you back.</span></h2>
+      <p class="section-sub">Every item ships with your permanent referral QR code stitched or printed on the back.</p>
+
+      <div class="filter-tabs">
+        <button class="filter-btn active" data-filter="all">All Hoodies</button>
+        <button class="filter-btn" data-filter="dark">Dark Tones</button>
+        <button class="filter-btn" data-filter="color">Color</button>
+        <button class="filter-btn" data-filter="limited">Limited</button>
+      </div>
+
+      <div class="products-grid" id="productsGrid">
+
+        <!-- PHANTOM BLACK -->
+        <div class="product-card" data-category="dark" data-name="Phantom Black">
+          <div class="product-img hoodie-bg-black">
+            <svg class="hoodie-svg" viewBox="0 0 300 340" xmlns="http://www.w3.org/2000/svg">
+              <defs><linearGradient id="shB" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="rgba(0,0,0,0.45)"/><stop offset="45%" stop-color="rgba(255,255,255,0.05)"/><stop offset="100%" stop-color="rgba(0,0,0,0.45)"/></linearGradient></defs>
+              <path d="M73,82 L12,112 L6,208 L50,214 L60,128 Z" fill="#1c1c1c"/>
+              <path d="M227,82 L288,112 L294,208 L250,214 L240,128 Z" fill="#1c1c1c"/>
+              <path d="M60,128 L53,308 L247,308 L240,128 L227,82 Q200,70 150,65 Q100,70 73,82 Z" fill="#1c1c1c"/>
+              <path d="M73,82 Q68,12 113,7 Q128,38 150,65 Q100,70 73,82 Z" fill="#111"/>
+              <path d="M227,82 Q232,12 187,7 Q172,38 150,65 Q200,70 227,82 Z" fill="#111"/>
+              <path d="M113,7 Q150,1 187,7 Q170,48 150,65 Q130,48 113,7 Z" fill="#0d0d0d"/>
+              <path d="M60,128 L53,308 L247,308 L240,128 L227,82 Q200,70 150,65 Q100,70 73,82 Z" fill="url(#shB)"/>
+              <path d="M73,82 Q150,72 227,82" stroke="rgba(255,255,255,0.08)" stroke-width="2.5" fill="none"/>
+              <path d="M6,205 Q28,213 50,211 L50,225 Q28,228 6,219 Z" fill="#111"/>
+              <path d="M294,205 Q272,213 250,211 L250,225 Q272,228 294,219 Z" fill="#111"/>
+              <path d="M53,305 L247,305 L247,320 Q150,326 53,320 Z" fill="#111"/>
+              <path d="M103,205 Q150,198 197,205 L195,250 Q150,257 105,250 Z" fill="rgba(0,0,0,0.4)" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+              <line x1="150" y1="198" x2="150" y2="257" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+              <path d="M132,63 C128,85 123,105 117,124" stroke="#555" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <path d="M168,63 C172,85 177,105 183,124" stroke="#555" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <ellipse cx="117" cy="127" rx="4.5" ry="5.5" fill="#444"/>
+              <ellipse cx="183" cy="127" rx="4.5" ry="5.5" fill="#444"/>
+              <line x1="60" y1="128" x2="12" y2="112" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+              <line x1="240" y1="128" x2="288" y2="112" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            </svg>
+            <div class="product-badge hot">🔥 BEST SELLER</div>
+            <div class="qr-back-hint">QR code on back</div>
+            <div class="product-overlay"><button class="btn-add-cart" data-product="Phantom Black" data-price="89">Add to Cart — $89</button></div>
+          </div>
+          <div class="product-info">
+            <div class="product-top"><h3>Phantom Black</h3><span class="earn-tag">Earn $22/sale</span></div>
+            <div class="product-bottom"><span class="price">$89</span><div class="stars">★★★★★ <span>4.9 (312)</span></div></div>
+          </div>
+        </div>
+
+        <!-- MIDNIGHT NAVY -->
+        <div class="product-card" data-category="dark" data-name="Midnight Navy">
+          <div class="product-img hoodie-bg-navy">
+            <svg class="hoodie-svg" viewBox="0 0 300 340" xmlns="http://www.w3.org/2000/svg">
+              <defs><linearGradient id="shN" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="rgba(0,0,20,0.5)"/><stop offset="45%" stop-color="rgba(100,140,255,0.07)"/><stop offset="100%" stop-color="rgba(0,0,20,0.5)"/></linearGradient></defs>
+              <path d="M73,82 L12,112 L6,208 L50,214 L60,128 Z" fill="#0d1b35"/>
+              <path d="M227,82 L288,112 L294,208 L250,214 L240,128 Z" fill="#0d1b35"/>
+              <path d="M60,128 L53,308 L247,308 L240,128 L227,82 Q200,70 150,65 Q100,70 73,82 Z" fill="#0d1b35"/>
+              <path d="M73,82 Q68,12 113,7 Q128,38 150,65 Q100,70 73,82 Z" fill="#091428"/>
+              <path d="M227,82 Q232,12 187,7 Q172,38 150,65 Q200,70 227,82 Z" fill="#091428"/>
+              <path d="M113,7 Q150,1 187,7 Q170,48 150,65 Q130,48 113,7 Z" fill="#07101f"/>
+              <path d="M60,128 L53,308 L247,308 L240,128 L227,82 Q200,70 150,65 Q100,70 73,82 Z" fill="url(#shN)"/>
+              <path d="M73,82 Q150,72 227,82" stroke="rgba(100,160,255,0.12)" stroke-width="2.5" fill="none"/>
+              <path d="M6,205 Q28,213 50,211 L50,225 Q28,228 6,219 Z" fill="#091428"/>
+              <path d="M294,205 Q272,213 250,211 L250,225 Q272,228 294,219 Z" fill="#091428"/>
+              <path d="M53,305 L247,305 L247,320 Q150,326 53,320 Z" fill="#091428"/>
+              <path d="M103,205 Q150,198 197,205 L195,250 Q150,257 105,250 Z" fill="rgba(0,0,30,0.5)" stroke="rgba(100,160,255,0.06)" stroke-width="1"/>
+              <line x1="150" y1="198" x2="150" y2="257" stroke="rgba(100,160,255,0.06)" stroke-width="1"/>
+              <path d="M132,63 C128,85 123,105 117,124" stroke="#4a7dc4" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <path d="M168,63 C172,85 177,105 183,124" stroke="#4a7dc4" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <ellipse cx="117" cy="127" rx="4.5" ry="5.5" fill="#3a6db4"/>
+              <ellipse cx="183" cy="127" rx="4.5" ry="5.5" fill="#3a6db4"/>
+              <line x1="60" y1="128" x2="12" y2="112" stroke="rgba(100,160,255,0.07)" stroke-width="1"/>
+              <line x1="240" y1="128" x2="288" y2="112" stroke="rgba(100,160,255,0.07)" stroke-width="1"/>
+            </svg>
+            <div class="product-badge new">NEW DROP</div>
+            <div class="qr-back-hint">QR code on back</div>
+            <div class="product-overlay"><button class="btn-add-cart" data-product="Midnight Navy" data-price="89">Add to Cart — $89</button></div>
+          </div>
+          <div class="product-info">
+            <div class="product-top"><h3>Midnight Navy</h3><span class="earn-tag">Earn $22/sale</span></div>
+            <div class="product-bottom"><span class="price">$89</span><div class="stars">★★★★★ <span>4.8 (198)</span></div></div>
+          </div>
+        </div>
+
+        <!-- EMBER CRIMSON -->
+        <div class="product-card" data-category="limited" data-name="Ember Crimson">
+          <div class="product-img hoodie-bg-crimson">
+            <svg class="hoodie-svg" viewBox="0 0 300 340" xmlns="http://www.w3.org/2000/svg">
+              <defs><linearGradient id="shC" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="rgba(20,0,0,0.5)"/><stop offset="45%" stop-color="rgba(255,80,80,0.06)"/><stop offset="100%" stop-color="rgba(20,0,0,0.5)"/></linearGradient></defs>
+              <path d="M73,82 L12,112 L6,208 L50,214 L60,128 Z" fill="#2a0a0a"/>
+              <path d="M227,82 L288,112 L294,208 L250,214 L240,128 Z" fill="#2a0a0a"/>
+              <path d="M60,128 L53,308 L247,308 L240,128 L227,82 Q200,70 150,65 Q100,70 73,82 Z" fill="#2a0a0a"/>
+              <path d="M73,82 Q68,12 113,7 Q128,38 150,65 Q100,70 73,82 Z" fill="#1a0505"/>
+              <path d="M227,82 Q232,12 187,7 Q172,38 150,65 Q200,70 227,82 Z" fill="#1a0505"/>
+              <path d="M113,7 Q150,1 187,7 Q170,48 150,65 Q130,48 113,7 Z" fill="#130404"/>
+              <path d="M60,128 L53,308 L247,308 L240,128 L227,82 Q200,70 150,65 Q100,70 73,82 Z" fill="url(#shC)"/>
+              <path d="M73,82 Q150,72 227,82" stroke="rgba(255,80,80,0.1)" stroke-width="2.5" fill="none"/>
+              <path d="M6,205 Q28,213 50,211 L50,225 Q28,228 6,219 Z" fill="#1a0505"/>
+              <path d="M294,205 Q272,213 250,211 L250,225 Q272,228 294,219 Z" fill="#1a0505"/>
+              <path d="M53,305 L247,305 L247,320 Q150,326 53,320 Z" fill="#1a0505"/>
+              <path d="M103,205 Q150,198 197,205 L195,250 Q150,257 105,250 Z" fill="rgba(30,0,0,0.5)" stroke="rgba(255,80,80,0.07)" stroke-width="1"/>
+              <line x1="150" y1="198" x2="150" y2="257" stroke="rgba(255,80,80,0.07)" stroke-width="1"/>
+              <path d="M132,63 C128,85 123,105 117,124" stroke="#8b3030" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <path d="M168,63 C172,85 177,105 183,124" stroke="#8b3030" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <ellipse cx="117" cy="127" rx="4.5" ry="5.5" fill="#7a2828"/>
+              <ellipse cx="183" cy="127" rx="4.5" ry="5.5" fill="#7a2828"/>
+              <line x1="60" y1="128" x2="12" y2="112" stroke="rgba(255,80,80,0.06)" stroke-width="1"/>
+              <line x1="240" y1="128" x2="288" y2="112" stroke="rgba(255,80,80,0.06)" stroke-width="1"/>
+            </svg>
+            <div class="product-badge limited">LIMITED — 34 LEFT</div>
+            <div class="qr-back-hint">QR code on back</div>
+            <div class="product-overlay"><button class="btn-add-cart" data-product="Ember Crimson" data-price="95">Add to Cart — $95</button></div>
+          </div>
+          <div class="product-info">
+            <div class="product-top"><h3>Ember Crimson</h3><span class="earn-tag">Earn $24/sale</span></div>
+            <div class="product-bottom"><span class="price">$95</span><div class="stars">★★★★★ <span>5.0 (87)</span></div></div>
+          </div>
+        </div>
+
+        <!-- FOREST SHADOW -->
+        <div class="product-card" data-category="color" data-name="Forest Shadow">
+          <div class="product-img hoodie-bg-forest">
+            <svg class="hoodie-svg" viewBox="0 0 300 340" xmlns="http://www.w3.org/2000/svg">
+              <defs><linearGradient id="shF" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="rgba(0,10,0,0.45)"/><stop offset="45%" stop-color="rgba(80,180,80,0.05)"/><stop offset="100%" stop-color="rgba(0,10,0,0.45)"/></linearGradient></defs>
+              <path d="M73,82 L12,112 L6,208 L50,214 L60,128 Z" fill="#0b1a0d"/>
+              <path d="M227,82 L288,112 L294,208 L250,214 L240,128 Z" fill="#0b1a0d"/>
+              <path d="M60,128 L53,308 L247,308 L240,128 L227,82 Q200,70 150,65 Q100,70 73,82 Z" fill="#0b1a0d"/>
+              <path d="M73,82 Q68,12 113,7 Q128,38 150,65 Q100,70 73,82 Z" fill="#081208"/>
+              <path d="M227,82 Q232,12 187,7 Q172,38 150,65 Q200,70 227,82 Z" fill="#081208"/>
+              <path d="M113,7 Q150,1 187,7 Q170,48 150,65 Q130,48 113,7 Z" fill="#060e06"/>
+              <path d="M60,128 L53,308 L247,308 L240,128 L227,82 Q200,70 150,65 Q100,70 73,82 Z" fill="url(#shF)"/>
+              <path d="M73,82 Q150,72 227,82" stroke="rgba(80,180,80,0.1)" stroke-width="2.5" fill="none"/>
+              <path d="M6,205 Q28,213 50,211 L50,225 Q28,228 6,219 Z" fill="#081208"/>
+              <path d="M294,205 Q272,213 250,211 L250,225 Q272,228 294,219 Z" fill="#081208"/>
+              <path d="M53,305 L247,305 L247,320 Q150,326 53,320 Z" fill="#081208"/>
+              <path d="M103,205 Q150,198 197,205 L195,250 Q150,257 105,250 Z" fill="rgba(0,10,0,0.5)" stroke="rgba(80,180,80,0.06)" stroke-width="1"/>
+              <line x1="150" y1="198" x2="150" y2="257" stroke="rgba(80,180,80,0.06)" stroke-width="1"/>
+              <path d="M132,63 C128,85 123,105 117,124" stroke="#4a7850" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <path d="M168,63 C172,85 177,105 183,124" stroke="#4a7850" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <ellipse cx="117" cy="127" rx="4.5" ry="5.5" fill="#3a6840"/>
+              <ellipse cx="183" cy="127" rx="4.5" ry="5.5" fill="#3a6840"/>
+            </svg>
+            <div class="product-badge new">NEW DROP</div>
+            <div class="qr-back-hint">QR code on back</div>
+            <div class="product-overlay"><button class="btn-add-cart" data-product="Forest Shadow" data-price="89">Add to Cart — $89</button></div>
+          </div>
+          <div class="product-info">
+            <div class="product-top"><h3>Forest Shadow</h3><span class="earn-tag">Earn $22/sale</span></div>
+            <div class="product-bottom"><span class="price">$89</span><div class="stars">★★★★☆ <span>4.7 (143)</span></div></div>
+          </div>
+        </div>
+
+        <!-- ASH STONE -->
+        <div class="product-card" data-category="color" data-name="Ash Stone">
+          <div class="product-img hoodie-bg-ash">
+            <svg class="hoodie-svg" viewBox="0 0 300 340" xmlns="http://www.w3.org/2000/svg">
+              <defs><linearGradient id="shA" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="rgba(0,0,0,0.35)"/><stop offset="45%" stop-color="rgba(255,255,255,0.08)"/><stop offset="100%" stop-color="rgba(0,0,0,0.35)"/></linearGradient></defs>
+              <path d="M73,82 L12,112 L6,208 L50,214 L60,128 Z" fill="#3a3a3a"/>
+              <path d="M227,82 L288,112 L294,208 L250,214 L240,128 Z" fill="#3a3a3a"/>
+              <path d="M60,128 L53,308 L247,308 L240,128 L227,82 Q200,70 150,65 Q100,70 73,82 Z" fill="#3a3a3a"/>
+              <path d="M73,82 Q68,12 113,7 Q128,38 150,65 Q100,70 73,82 Z" fill="#2a2a2a"/>
+              <path d="M227,82 Q232,12 187,7 Q172,38 150,65 Q200,70 227,82 Z" fill="#2a2a2a"/>
+              <path d="M113,7 Q150,1 187,7 Q170,48 150,65 Q130,48 113,7 Z" fill="#222"/>
+              <path d="M60,128 L53,308 L247,308 L240,128 L227,82 Q200,70 150,65 Q100,70 73,82 Z" fill="url(#shA)"/>
+              <path d="M73,82 Q150,72 227,82" stroke="rgba(255,255,255,0.1)" stroke-width="2.5" fill="none"/>
+              <path d="M6,205 Q28,213 50,211 L50,225 Q28,228 6,219 Z" fill="#2a2a2a"/>
+              <path d="M294,205 Q272,213 250,211 L250,225 Q272,228 294,219 Z" fill="#2a2a2a"/>
+              <path d="M53,305 L247,305 L247,320 Q150,326 53,320 Z" fill="#2a2a2a"/>
+              <path d="M103,205 Q150,198 197,205 L195,250 Q150,257 105,250 Z" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+              <line x1="150" y1="198" x2="150" y2="257" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+              <path d="M132,63 C128,85 123,105 117,124" stroke="#888" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <path d="M168,63 C172,85 177,105 183,124" stroke="#888" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <ellipse cx="117" cy="127" rx="4.5" ry="5.5" fill="#777"/>
+              <ellipse cx="183" cy="127" rx="4.5" ry="5.5" fill="#777"/>
+            </svg>
+            <div class="qr-back-hint">QR code on back</div>
+            <div class="product-overlay"><button class="btn-add-cart" data-product="Ash Stone" data-price="85">Add to Cart — $85</button></div>
+          </div>
+          <div class="product-info">
+            <div class="product-top"><h3>Ash Stone</h3><span class="earn-tag">Earn $20/sale</span></div>
+            <div class="product-bottom"><span class="price">$85</span><div class="stars">★★★★☆ <span>4.6 (224)</span></div></div>
+          </div>
+        </div>
+
+        <!-- VOID PURPLE -->
+        <div class="product-card" data-category="limited" data-name="Void Purple">
+          <div class="product-img hoodie-bg-purple">
+            <svg class="hoodie-svg" viewBox="0 0 300 340" xmlns="http://www.w3.org/2000/svg">
+              <defs><linearGradient id="shP" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="rgba(10,0,20,0.5)"/><stop offset="45%" stop-color="rgba(160,100,255,0.07)"/><stop offset="100%" stop-color="rgba(10,0,20,0.5)"/></linearGradient></defs>
+              <path d="M73,82 L12,112 L6,208 L50,214 L60,128 Z" fill="#1a0d2e"/>
+              <path d="M227,82 L288,112 L294,208 L250,214 L240,128 Z" fill="#1a0d2e"/>
+              <path d="M60,128 L53,308 L247,308 L240,128 L227,82 Q200,70 150,65 Q100,70 73,82 Z" fill="#1a0d2e"/>
+              <path d="M73,82 Q68,12 113,7 Q128,38 150,65 Q100,70 73,82 Z" fill="#130924"/>
+              <path d="M227,82 Q232,12 187,7 Q172,38 150,65 Q200,70 227,82 Z" fill="#130924"/>
+              <path d="M113,7 Q150,1 187,7 Q170,48 150,65 Q130,48 113,7 Z" fill="#0e071a"/>
+              <path d="M60,128 L53,308 L247,308 L240,128 L227,82 Q200,70 150,65 Q100,70 73,82 Z" fill="url(#shP)"/>
+              <path d="M73,82 Q150,72 227,82" stroke="rgba(160,100,255,0.13)" stroke-width="2.5" fill="none"/>
+              <path d="M6,205 Q28,213 50,211 L50,225 Q28,228 6,219 Z" fill="#130924"/>
+              <path d="M294,205 Q272,213 250,211 L250,225 Q272,228 294,219 Z" fill="#130924"/>
+              <path d="M53,305 L247,305 L247,320 Q150,326 53,320 Z" fill="#130924"/>
+              <path d="M103,205 Q150,198 197,205 L195,250 Q150,257 105,250 Z" fill="rgba(10,0,20,0.5)" stroke="rgba(160,100,255,0.08)" stroke-width="1"/>
+              <line x1="150" y1="198" x2="150" y2="257" stroke="rgba(160,100,255,0.08)" stroke-width="1"/>
+              <path d="M132,63 C128,85 123,105 117,124" stroke="#7c4dbb" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <path d="M168,63 C172,85 177,105 183,124" stroke="#7c4dbb" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <ellipse cx="117" cy="127" rx="4.5" ry="5.5" fill="#6c3dab"/>
+              <ellipse cx="183" cy="127" rx="4.5" ry="5.5" fill="#6c3dab"/>
+              <line x1="60" y1="128" x2="12" y2="112" stroke="rgba(160,100,255,0.07)" stroke-width="1"/>
+              <line x1="240" y1="128" x2="288" y2="112" stroke="rgba(160,100,255,0.07)" stroke-width="1"/>
+            </svg>
+            <div class="product-badge limited">LIMITED — 19 LEFT</div>
+            <div class="qr-back-hint">QR code on back</div>
+            <div class="product-overlay"><button class="btn-add-cart" data-product="Void Purple" data-price="95">Add to Cart — $95</button></div>
+          </div>
+          <div class="product-info">
+            <div class="product-top"><h3>Void Purple</h3><span class="earn-tag">Earn $24/sale</span></div>
+            <div class="product-bottom"><span class="price">$95</span><div class="stars">★★★★★ <span>4.9 (56)</span></div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── REWARDS ─── -->
+  <section class="section rewards-section" id="rewards">
+    <div class="container">
+      <div class="section-tag">REWARDS PROGRAM</div>
+      <h2 class="section-title">Your earnings,<br /><span class="gradient-text">your choice.</span></h2>
+      <p class="section-sub">Cash out however you want. No minimums. Instant payouts.</p>
+
+      <div class="rewards-grid">
+
+        <div class="reward-card" data-reward="cash">
+          <div class="reward-icon">💵</div>
+          <h3>Cash Payout</h3>
+          <p>Direct deposit or Venmo/CashApp transfer. Available 48 hours after a confirmed purchase.</p>
+          <div class="reward-rate">15–30% per sale</div>
+        </div>
+
+        <div class="reward-card highlight" data-reward="giftcard">
+          <div class="reward-popular">Most Popular</div>
+          <div class="reward-icon">🎁</div>
+          <h3>Gift Cards</h3>
+          <p>Amazon, Nike, Apple, Visa, and 50+ more. Delivered to your email instantly once redeemed.</p>
+          <div class="reward-rate">+10% bonus value</div>
+        </div>
+
+        <div class="reward-card" data-reward="store">
+          <div class="reward-icon">👕</div>
+          <h3>Store Credit</h3>
+          <p>Stack credits toward your next THREAD drop. Get more gear, generate more referrals.</p>
+          <div class="reward-rate">+20% bonus value</div>
+        </div>
+
+        <div class="reward-card" data-reward="charity">
+          <div class="reward-icon">🌱</div>
+          <h3>Donate It</h3>
+          <p>Give your earnings to a partner charity. We match up to $50/month per member who donates.</p>
+          <div class="reward-rate">2x matched donations</div>
+        </div>
+
+      </div>
+
+      <!-- EARNINGS CALCULATOR -->
+      <div class="calculator">
+        <div class="calc-left">
+          <h3>Calculate Your Earnings</h3>
+          <p>How many people do you think would scan your QR code per week?</p>
+          <div class="slider-wrap">
+            <input type="range" id="scanSlider" min="1" max="50" value="10" class="slider" />
+            <div class="slider-labels">
+              <span>1</span><span>10</span><span>25</span><span>50</span>
+            </div>
+          </div>
+          <div class="calc-inputs">
+            <div class="calc-input-group">
+              <label>Avg. scans/week</label>
+              <span id="scanDisplay">10</span>
+            </div>
+            <div class="calc-input-group">
+              <label>Conversion rate</label>
+              <span>~18%</span>
+            </div>
+            <div class="calc-input-group">
+              <label>Avg. commission</label>
+              <span>$20</span>
+            </div>
+          </div>
+        </div>
+        <div class="calc-right">
+          <div class="calc-result">
+            <div class="calc-period">Monthly Earnings</div>
+            <div class="calc-amount" id="calcAmount">$144</div>
+            <div class="calc-detail" id="calcDetail">~3.6 purchases · 10 scans/wk</div>
+            <a href="#shop" class="btn-primary">Start Earning Now</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── PARALLAX 2 ─── -->
+  <section class="parallax-strip parallax-2" id="parallaxStrip2">
+    <div class="parallax-bg" id="parallaxBg2"></div>
+    <div class="parallax-content">
+      <div class="parallax-quote-row">
+        <div class="pq">
+          <div class="pq-avatar">JL</div>
+          <div>
+            <p>"Got $60 cash within my first week. My gym is literally a gold mine."</p>
+            <span>— Jasmine L., Houston</span>
+          </div>
+        </div>
+        <div class="pq">
+          <div class="pq-avatar">TR</div>
+          <div>
+            <p>"People ask about the QR code all the time. It's a conversation starter AND income."</p>
+            <span>— Tyler R., NYC</span>
+          </div>
+        </div>
+        <div class="pq">
+          <div class="pq-avatar">AM</div>
+          <div>
+            <p>"Redeemed 3 Amazon gift cards already. This is actually insane."</p>
+            <span>— Aaliyah M., LA</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── LEADERBOARD ─── -->
+  <section class="section leaderboard-section" id="leaderboard">
+    <div class="container">
+      <div class="section-tag">TOP EARNERS</div>
+      <h2 class="section-title">The <span class="gradient-text">leaderboard</span> hits different.</h2>
+      <p class="section-sub">Updated weekly. Top 3 earners get a mystery bonus drop.</p>
+
+      <div class="leaderboard-wrap">
+        <div class="lb-header">
+          <span>Rank</span>
+          <span>Wearer</span>
+          <span>Scans</span>
+          <span>Referrals</span>
+          <span>Earned</span>
+        </div>
+        <div class="lb-row gold">
+          <span class="lb-rank">🥇</span>
+          <span class="lb-user"><div class="lb-avatar">MK</div> @marcus.k</span>
+          <span>847</span>
+          <span>152</span>
+          <span class="lb-earn">$3,040</span>
+        </div>
+        <div class="lb-row silver">
+          <span class="lb-rank">🥈</span>
+          <span class="lb-user"><div class="lb-avatar">SR</div> @styledbysoph</span>
+          <span>611</span>
+          <span>118</span>
+          <span class="lb-earn">$2,360</span>
+        </div>
+        <div class="lb-row bronze">
+          <span class="lb-rank">🥉</span>
+          <span class="lb-user"><div class="lb-avatar">JD</div> @jd_fits</span>
+          <span>490</span>
+          <span>94</span>
+          <span class="lb-earn">$1,880</span>
+        </div>
+        <div class="lb-row">
+          <span class="lb-rank">4</span>
+          <span class="lb-user"><div class="lb-avatar">RW</div> @rw.threads</span>
+          <span>402</span>
+          <span>76</span>
+          <span class="lb-earn">$1,520</span>
+        </div>
+        <div class="lb-row">
+          <span class="lb-rank">5</span>
+          <span class="lb-user"><div class="lb-avatar">LM</div> @louie.m</span>
+          <span>381</span>
+          <span>71</span>
+          <span class="lb-earn">$1,420</span>
+        </div>
+        <div class="lb-row you-row">
+          <span class="lb-rank">?</span>
+          <span class="lb-user"><div class="lb-avatar">YOU</div> Your spot</span>
+          <span>—</span>
+          <span>—</span>
+          <span class="lb-earn lb-you">Start now</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── QR SECTION ─── -->
+  <section class="section qr-section">
+    <div class="container">
+      <div class="qr-feature">
+        <div class="qr-feature-left">
+          <div class="section-tag">THE TECHNOLOGY</div>
+          <h2 class="section-title">One code.<br /><span class="gradient-text">Infinite reach.</span></h2>
+          <ul class="qr-features-list">
+            <li>
+              <div class="qf-icon">🔒</div>
+              <div>
+                <strong>Permanently yours</strong>
+                <p>Your QR code is tied to your account and cannot be transferred or duplicated.</p>
+              </div>
+            </li>
+            <li>
+              <div class="qf-icon">📊</div>
+              <div>
+                <strong>Real-time analytics</strong>
+                <p>See scan locations, times, and conversion rates in your dashboard instantly.</p>
+              </div>
+            </li>
+            <li>
+              <div class="qf-icon">🎨</div>
+              <div>
+                <strong>Custom-designed</strong>
+                <p>Each QR code is styled to look like art, not a receipt. People want to scan it.</p>
+              </div>
+            </li>
+            <li>
+              <div class="qf-icon">♾️</div>
+              <div>
+                <strong>No expiry</strong>
+                <p>Buy once, earn forever. As long as you own the piece, the code works.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div class="qr-feature-right">
+          <div class="qr-demo">
+            <div class="qr-demo-inner" id="qrDemo">
+              <div class="qr-demo-grid" id="qrDemoGrid"></div>
+              <div class="qr-demo-center">
+                <span>T</span>
+              </div>
+            </div>
+            <div class="qr-demo-label">SCAN TO SHOP · EARN REWARDS</div>
+            <div class="qr-pulse-rings">
+              <div class="pr pr-1"></div>
+              <div class="pr pr-2"></div>
+              <div class="pr pr-3"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FINAL CTA ─── -->
+  <section class="cta-section">
+    <div class="cta-bg"></div>
+    <div class="container cta-content">
+      <h2>Your wardrobe should<br /><span class="gradient-text">work for you.</span></h2>
+      <p>Join 48,000+ wearers already earning from their closet. Free to join, no monthly fees, no limits.</p>
+      <div class="cta-actions">
+        <a href="#shop" class="btn-hero-primary">Start Earning Today</a>
+        <span class="cta-note">Free to join · Ships in 3–5 days · Earn forever</span>
+      </div>
+      <div class="cta-brands">
+        <span>As featured in</span>
+        <div class="brand-logos">
+          <span>Forbes</span>
+          <span>TechCrunch</span>
+          <span>Complex</span>
+          <span>Highsnobiety</span>
+          <span>Hypebeast</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ─── -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <a href="#" class="logo">THREAD<span class="dot">.</span></a>
+        <p>Wear it. Share it. Get paid.</p>
+        <div class="social-links">
+          <a href="#">TikTok</a>
+          <a href="#">Instagram</a>
+          <a href="#">Twitter/X</a>
+          <a href="#">YouTube</a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <div class="fl-col">
+          <strong>Shop</strong>
+          <a href="#">Hoodies</a>
+          <a href="#">Tees</a>
+          <a href="#">Sweaters</a>
+          <a href="#">New Arrivals</a>
+        </div>
+        <div class="fl-col">
+          <strong>Earn</strong>
+          <a href="#">How It Works</a>
+          <a href="#">Rewards</a>
+          <a href="#">Leaderboard</a>
+          <a href="#">Dashboard</a>
+        </div>
+        <div class="fl-col">
+          <strong>Company</strong>
+          <a href="#">About</a>
+          <a href="#">Blog</a>
+          <a href="#">Press</a>
+          <a href="#">Careers</a>
+        </div>
+        <div class="fl-col">
+          <strong>Support</strong>
+          <a href="#">FAQ</a>
+          <a href="#">Shipping</a>
+          <a href="#">Returns</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 THREAD. All rights reserved.</span>
+      <span>Privacy · Terms · Cookie Policy</span>
+    </div>
+  </footer>
+
+  <!-- ─── CART TOAST ─── -->
+  <div class="cart-toast" id="cartToast">
+    <span>✓</span> Added to cart!
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="config.js"></script>
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

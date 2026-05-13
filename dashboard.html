@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>THREAD — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <a href="index.html" class="sidebar-logo">THREAD<span class="dot">.</span></a>
+      <button class="sidebar-close" id="sidebarClose">✕</button>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item active" data-section="overview">
+        <span class="nav-icon">📊</span> Overview
+      </a>
+      <a class="nav-item" data-section="qrcode">
+        <span class="nav-icon">⬛</span> My QR Code
+        <span class="live-dot" title="Live tracking active"></span>
+      </a>
+      <a class="nav-item" data-section="earnings">
+        <span class="nav-icon">💰</span> Earnings
+      </a>
+      <a class="nav-item" data-section="activity">
+        <span class="nav-icon">🔔</span> Activity
+        <span class="nav-badge" id="activityBadge" style="display:none"></span>
+      </a>
+      <a class="nav-item" data-section="purchases">
+        <span class="nav-icon">👕</span> My Purchases
+      </a>
+      <a class="nav-item" href="index.html">
+        <span class="nav-icon">🛍️</span> Shop
+      </a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="sidebar-user">
+        <div class="su-avatar" id="suAvatar"></div>
+        <div class="su-info">
+          <strong id="suName"></strong>
+          <span id="suEmail"></span>
+        </div>
+      </div>
+      <button class="signout-btn" onclick="signOut()">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- ─── MAIN ─── -->
+  <main class="main" id="main">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle">☰</button>
+      <div class="topbar-left">
+        <h1 class="topbar-title" id="topbarTitle">Overview</h1>
+        <span class="topbar-date" id="topbarDate"></span>
+      </div>
+      <div class="topbar-right">
+        <div class="live-indicator" id="liveIndicator">
+          <span class="live-pulse"></span> LIVE
+        </div>
+        <div class="topbar-code">
+          <span class="tc-label">Your Code</span>
+          <span class="tc-value" id="tcValue"></span>
+        </div>
+        <div class="topbar-avatar" id="topbarAvatar"></div>
+      </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════
+         OVERVIEW
+    ═══════════════════════════════════════ -->
+    <section class="dash-section active" id="section-overview">
+
+      <div class="welcome-banner" id="welcomeBanner">
+        <div class="wb-text">
+          <h2 id="welcomeMsg">Welcome back! 👋</h2>
+          <p id="welcomeSub">Here's how your referrals are performing today.</p>
+        </div>
+        <div class="wb-actions">
+          <button class="wb-demo" id="demoBtn" onclick="loadDemoData()" style="display:none">🎬 Load Demo Data</button>
+          <a class="wb-cta" data-section="qrcode">View My QR Code →</a>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-grid">
+        <div class="stat-card" id="sc-scans">
+          <div class="sc-top"><span class="sc-label">Total Scans</span><span class="sc-trend" id="trendScans">+0%</span></div>
+          <div class="sc-value" id="statScans">0</div>
+          <div class="sc-bottom"><span class="sc-icon-sm">👁</span><span class="sc-sub" id="subScans">No scans yet</span></div>
+        </div>
+        <div class="stat-card accent" id="sc-conv">
+          <div class="sc-top"><span class="sc-label">Conversions</span><span class="sc-trend" id="trendConv">+0%</span></div>
+          <div class="sc-value green" id="statConv">0</div>
+          <div class="sc-bottom"><span class="sc-icon-sm">🛍️</span><span class="sc-sub" id="subConv">~0% rate</span></div>
+        </div>
+        <div class="stat-card" id="sc-pending">
+          <div class="sc-top"><span class="sc-label">Pending</span></div>
+          <div class="sc-value purple">$<span id="statPending">0.00</span></div>
+          <div class="sc-bottom"><span class="sc-icon-sm">⏳</span><span class="sc-sub">Clears in 3–5 days</span></div>
+        </div>
+        <div class="stat-card" id="sc-earned">
+          <div class="sc-top"><span class="sc-label">Total Earned</span></div>
+          <div class="sc-value gold">$<span id="statEarned">0.00</span></div>
+          <div class="sc-bottom"><span class="sc-icon-sm">💵</span><span class="sc-sub" id="subEarned">All time</span></div>
+        </div>
+      </div>
+
+      <!-- MID ROW -->
+      <div class="overview-mid">
+        <!-- QR CARD -->
+        <div class="overview-qr-card">
+          <div class="oqc-left">
+            <h3>Your Referral QR</h3>
+            <p>This unique code is on the back of every piece you own.</p>
+            <div class="ref-link-wrap">
+              <input type="text" id="refLinkInput" readonly class="ref-link-input" />
+              <button class="copy-btn" onclick="copyRefLink()">Copy</button>
+            </div>
+            <div class="share-row">
+              <button class="share-btn" onclick="shareLink('sms')">📱 Text</button>
+              <button class="share-btn" onclick="shareLink('twitter')">🐦 Tweet</button>
+              <button class="share-btn" onclick="shareLink('copy')">🔗 Copy</button>
+            </div>
+          </div>
+          <div class="oqc-qr">
+            <canvas id="miniQrCanvas"></canvas>
+            <div class="qr-mini-label" id="miniCodeLabel"></div>
+          </div>
+        </div>
+
+        <!-- CHART -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Scans This Week</h3>
+            <span class="chart-total" id="chartTotal">0 scans</span>
+          </div>
+          <div class="bar-chart" id="barChart"></div>
+          <div class="bar-days" id="barDays"></div>
+        </div>
+      </div>
+
+      <!-- ACTIVITY PREVIEW -->
+      <div class="activity-card">
+        <div class="ac-header">
+          <h3>Recent Activity <span class="live-chip" id="liveChip">● LIVE</span></h3>
+          <a class="ac-more" data-section="activity">View all →</a>
+        </div>
+        <div id="recentActivityList">
+          <div class="empty-state"><span>🔍</span><p>No activity yet. Wear your piece and let scans roll in!</p></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         MY QR CODE
+    ═══════════════════════════════════════ -->
+    <section class="dash-section" id="section-qrcode">
+
+      <div class="page-header">
+        <div>
+          <div class="section-tag-db">MY QR CODE</div>
+          <h2 class="section-h2">Scan to earn. It's that simple.</h2>
+          <p class="section-p">This QR code is permanently tied to your account. Every piece you own has it printed on the back.</p>
+        </div>
+        <div class="live-indicator-lg">
+          <span class="live-pulse"></span> Tracking live scans
+        </div>
+      </div>
+
+      <div class="qr-page">
+        <div class="qr-page-left">
+
+          <div class="qr-stat-grid">
+            <div class="qsr-card">
+              <span class="qsr-val" id="qrTotalScans">0</span>
+              <span class="qsr-label">Total Scans</span>
+              <span class="qsr-trend" id="qrScanTrend">+0 today</span>
+            </div>
+            <div class="qsr-card green">
+              <span class="qsr-val" id="qrConversions">0</span>
+              <span class="qsr-label">Purchases</span>
+              <span class="qsr-trend" id="qrConvTrend">+0 today</span>
+            </div>
+            <div class="qsr-card purple">
+              <span class="qsr-val" id="qrRate">0%</span>
+              <span class="qsr-label">Conv. Rate</span>
+              <span class="qsr-trend">Avg 18% industry</span>
+            </div>
+            <div class="qsr-card gold">
+              <span class="qsr-val" id="qrAvgEarn">$0</span>
+              <span class="qsr-label">Avg / Conversion</span>
+              <span class="qsr-trend">Commission based</span>
+            </div>
+          </div>
+
+          <div class="qr-actions-row">
+            <button class="btn-qr-download" onclick="downloadQR()">⬇ Download PNG</button>
+            <button class="copy-btn-lg" onclick="copyRefLink()">🔗 Copy Link</button>
+            <button class="share-btn-lg" onclick="shareLink('twitter')">🐦 Share</button>
+          </div>
+
+          <div class="qr-code-box">
+            <div class="qcb-label">REFERRAL CODE</div>
+            <div class="qcb-value" id="qcdValue"></div>
+            <div class="qcb-url" id="qcdUrl"></div>
+          </div>
+
+          <div class="qr-howto">
+            <h4>How your QR works</h4>
+            <div class="howto-steps">
+              <div class="hs"><span class="hs-num">1</span><p>Someone sees the QR code on your hoodie</p></div>
+              <div class="hs"><span class="hs-num">2</span><p>They scan with their phone camera</p></div>
+              <div class="hs"><span class="hs-num">3</span><p>They land on THREAD with your code</p></div>
+              <div class="hs"><span class="hs-num">4</span><p>If they buy → you earn 15–25% commission</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="qr-page-right">
+          <div class="qr-big-wrap">
+            <div class="qr-frame">
+              <div class="qr-frame-corner tl"></div>
+              <div class="qr-frame-corner tr"></div>
+              <div class="qr-frame-corner bl"></div>
+              <div class="qr-frame-corner br"></div>
+              <canvas id="bigQrCanvas"></canvas>
+              <div class="qr-scan-overlay">
+                <div class="qr-scan-line"></div>
+              </div>
+            </div>
+            <div class="qr-brand-label">THREAD<span class="dot">.</span> · Scan to shop</div>
+          </div>
+
+          <!-- LIVE SCAN FEED -->
+          <div class="live-scan-feed">
+            <div class="lsf-header">
+              <span class="live-chip">● LIVE</span>
+              <span>Recent scans</span>
+            </div>
+            <div id="liveFeedItems">
+              <div class="lsf-empty">Waiting for scans…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         EARNINGS
+    ═══════════════════════════════════════ -->
+    <section class="dash-section" id="section-earnings">
+
+      <div class="section-tag-db">EARNINGS</div>
+      <h2 class="section-h2">Your earnings breakdown</h2>
+
+      <div class="earnings-top">
+        <div class="earn-hero">
+          <div class="eh-label">Available to Cash Out</div>
+          <div class="eh-amount" id="availCashout">$0.00</div>
+          <button class="btn-cashout" id="cashoutBtn" onclick="triggerCashout()">Request Payout →</button>
+        </div>
+        <div class="earn-metrics">
+          <div class="em-row">
+            <div class="em-item">
+              <span class="em-val purple" id="ebPending">$0.00</span>
+              <span class="em-label">Pending (3–5 days)</span>
+            </div>
+            <div class="em-item">
+              <span class="em-val" id="ebMonth">$0.00</span>
+              <span class="em-label">This Month</span>
+            </div>
+            <div class="em-item">
+              <span class="em-val gold" id="ebAllTime">$0.00</span>
+              <span class="em-label">All Time</span>
+            </div>
+            <div class="em-item">
+              <span class="em-val green" id="ebAvgSale">$0.00</span>
+              <span class="em-label">Avg per Sale</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MONTHLY CHART -->
+      <div class="monthly-chart-card">
+        <div class="mcc-header">
+          <h3>Monthly Earnings</h3>
+          <span class="mcc-total" id="mccTotal">$0 this year</span>
+        </div>
+        <div class="monthly-bars" id="monthlyBars"></div>
+        <div class="monthly-labels" id="monthlyLabels"></div>
+      </div>
+
+      <!-- PAYOUT METHOD -->
+      <div class="payout-section">
+        <h3>Payout Method</h3>
+        <p>Choose how you want to receive your earnings.</p>
+        <div class="payout-grid">
+          <label class="payout-opt" data-method="cash">
+            <input type="radio" name="payout" value="cash" />
+            <div class="po-card">
+              <span class="po-icon">💵</span>
+              <strong>Cash</strong>
+              <p>Venmo · CashApp · PayPal</p>
+              <span class="po-rate">100% value</span>
+            </div>
+          </label>
+          <label class="payout-opt" data-method="giftcard">
+            <input type="radio" name="payout" value="giftcard" />
+            <div class="po-card">
+              <span class="po-icon">🎁</span>
+              <strong>Gift Card</strong>
+              <p>Amazon · Nike · Apple · Visa</p>
+              <span class="po-rate po-bonus">+10% bonus</span>
+            </div>
+          </label>
+          <label class="payout-opt" data-method="store">
+            <input type="radio" name="payout" value="store" />
+            <div class="po-card">
+              <span class="po-icon">👕</span>
+              <strong>Store Credit</strong>
+              <p>Use on next THREAD order</p>
+              <span class="po-rate po-bonus">+20% bonus</span>
+            </div>
+          </label>
+          <label class="payout-opt" data-method="charity">
+            <input type="radio" name="payout" value="charity" />
+            <div class="po-card">
+              <span class="po-icon">🌱</span>
+              <strong>Donate</strong>
+              <p>Partner charities</p>
+              <span class="po-rate po-bonus">2x matched</span>
+            </div>
+          </label>
+        </div>
+        <button class="btn-save-payout" onclick="savePayoutMethod()">Save Preference</button>
+      </div>
+
+      <!-- TRANSACTION HISTORY -->
+      <div class="history-table">
+        <div class="ht-header-row">
+          <h3>Transaction History</h3>
+          <span id="txCount" class="tx-count">0 transactions</span>
+        </div>
+        <div class="ht-cols"><span>Date</span><span>Event</span><span>Amount</span><span>Status</span></div>
+        <div id="transactionList">
+          <div class="empty-state"><span>💳</span><p>No transactions yet. Earnings appear here when someone buys through your QR code.</p></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         ACTIVITY (REAL-TIME)
+    ═══════════════════════════════════════ -->
+    <section class="dash-section" id="section-activity">
+
+      <div class="page-header">
+        <div>
+          <div class="section-tag-db">ACTIVITY FEED</div>
+          <h2 class="section-h2">Every scan, in real time.</h2>
+          <p class="section-p">This feed updates live as people interact with your QR code.</p>
+        </div>
+        <div class="activity-live-box">
+          <div class="alb-indicator"><span class="live-pulse"></span> LIVE</div>
+          <div class="alb-stats">
+            <span>Today: <strong id="todayScans">0 scans</strong></span>
+            <span>·</span>
+            <span><strong id="todayEarned">$0.00</strong> earned</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="activity-toolbar">
+        <div class="activity-filters">
+          <button class="af-btn active" data-filter="all">All Events</button>
+          <button class="af-btn" data-filter="scan">Scans Only</button>
+          <button class="af-btn" data-filter="conversion">Purchases Only</button>
+        </div>
+        <div class="activity-search">
+          <input type="text" id="activitySearch" placeholder="Search by city or date…" />
+        </div>
+      </div>
+
+      <div class="activity-grid">
+        <!-- FULL LIST -->
+        <div class="activity-feed-card">
+          <div class="afc-header">
+            <span>Events</span>
+            <span class="afc-count" id="activityCount">0 total</span>
+          </div>
+          <div class="activity-full-list" id="activityFullList">
+            <div class="empty-state"><span>📡</span><p>Waiting for first scan. Wear your THREAD piece — every interaction shows here.</p></div>
+          </div>
+        </div>
+
+        <!-- STATS SIDEBAR -->
+        <div class="activity-stats-col">
+          <div class="asc-card">
+            <h4>Top Scan Days</h4>
+            <div id="topDays" class="top-days-list">
+              <div class="td-empty">No data yet</div>
+            </div>
+          </div>
+          <div class="asc-card">
+            <h4>Top Locations</h4>
+            <div id="topLocations" class="top-loc-list">
+              <div class="td-empty">No data yet</div>
+            </div>
+          </div>
+          <div class="asc-card">
+            <h4>Conversion Breakdown</h4>
+            <div class="conv-donut-wrap">
+              <canvas id="donutChart" width="120" height="120"></canvas>
+              <div class="donut-legend">
+                <div><span class="dl-dot purple"></span> Scans only</div>
+                <div><span class="dl-dot green"></span> Converted</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         MY PURCHASES
+    ═══════════════════════════════════════ -->
+    <section class="dash-section" id="section-purchases">
+
+      <div class="page-header">
+        <div>
+          <div class="section-tag-db">MY WARDROBE</div>
+          <h2 class="section-h2">Your THREAD pieces</h2>
+          <p class="section-p">Every piece has your QR code built in. More pieces = more scan chances = more earnings.</p>
+        </div>
+        <a href="index.html" class="btn-add-piece">+ Add More Pieces</a>
+      </div>
+
+      <div class="purchases-grid" id="purchasesGrid">
+        <div class="empty-state" style="grid-column:1/-1">
+          <span>👕</span>
+          <p>No pieces yet. Every hoodie you buy comes with your permanent referral QR code on the back.</p>
+          <a href="index.html" class="btn-shop-now">Browse the Collection →</a>
+        </div>
+      </div>
+
+      <!-- POTENTIAL EARNINGS CALCULATOR -->
+      <div class="potential-card">
+        <h3>📈 Potential Earnings Calculator</h3>
+        <p>How much could you earn with more pieces?</p>
+        <div class="pot-calc">
+          <div class="pot-slider-wrap">
+            <label>Pieces owned: <strong id="pieceCount">1</strong></label>
+            <input type="range" id="pieceSlider" min="1" max="10" value="1" class="slider" />
+          </div>
+          <div class="pot-slider-wrap">
+            <label>Avg scans/week per piece: <strong id="scanPerPiece">10</strong></label>
+            <input type="range" id="scanSlider2" min="1" max="50" value="10" class="slider" />
+          </div>
+          <div class="pot-result">
+            <div class="pr-label">Monthly earnings potential</div>
+            <div class="pr-amount" id="potentialAmount">$144</div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ─── CASHOUT MODAL ─── -->
+  <div class="modal-overlay" id="cashoutModal">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('cashoutModal')">✕</button>
+      <h3>💸 Request Payout</h3>
+      <p>We'll send your earnings to your preferred payout method.</p>
+      <div class="modal-amount-display">
+        <span class="mad-label">Payout amount</span>
+        <span class="mad-value" id="cashoutAmt">$0.00</span>
+      </div>
+      <div class="form-group" style="margin-top:20px">
+        <label>Venmo / CashApp / PayPal handle</label>
+        <input type="text" id="cashoutHandle" placeholder="@yourhandle" />
+      </div>
+      <div class="modal-note">Payouts process within 1–3 business days after confirmation.</div>
+      <button class="btn-submit-modal" onclick="confirmCashout()">Confirm & Request Payout</button>
+    </div>
+  </div>
+
+  <!-- ─── NEW SCAN NOTIFICATION ─── -->
+  <div class="scan-notification" id="scanNotification">
+    <div class="sn-icon" id="snIcon">👁</div>
+    <div class="sn-content">
+      <div class="sn-title" id="snTitle">New scan</div>
+      <div class="sn-meta" id="snMeta"></div>
+    </div>
+    <div class="sn-close" onclick="document.getElementById('scanNotification').classList.remove('show')">✕</div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="db-toast" id="dbToast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="config.js"></script>
+  <script src="db.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>
