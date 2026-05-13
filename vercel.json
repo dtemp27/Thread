@@ -10,8 +10,4 @@
         { "key": "Referrer-Policy",        "value": "strict-origin-when-cross-origin" }
       ]
     }
-  ],
-  "rewrites": [
-    { "source": "/admin", "destination": "/admin.html" }
-  ]
-}
+    }
