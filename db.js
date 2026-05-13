@@ -1,4 +1,3 @@
-/**
  * THREAD Store — Unified Data Layer (db.js)
  *
  * When Supabase is configured → uses real cloud database + auth.
@@ -198,11 +197,11 @@
       return { data: order, error: null };
     },
 
-    /* Admin: get all orders with joined customer data */
+    /* Admin: get all orders */
     async getAll() {
       if (isLive()) {
         const { data } = await getSB().from('orders')
-          .select('*, profiles(name, email, referral_code)')
+          .select('*')
           .order('created_at', { ascending: false });
         return data || [];
       }
@@ -288,11 +287,11 @@
       return session?.stats?.history || [];
     },
 
-    /* Admin: all scans with referrer name */
+    /* Admin: all scans */
     async getAll() {
       if (isLive()) {
         const { data } = await getSB().from('referral_scans')
-          .select('*, profiles(name, email)').order('created_at', { ascending: false }).limit(200);
+          .select('*').order('created_at', { ascending: false }).limit(200);
         return data || [];
       }
       return [];
@@ -320,7 +319,7 @@
     async getAll() {
       if (isLive()) {
         const { data } = await getSB().from('profiles')
-          .select('*, orders(count)')
+          .select('*')
           .order('created_at', { ascending: false });
         return data || [];
       }
