@@ -1,11 +1,27 @@
 'use strict';
 
+/* ─── Supabase direct client (bypasses db.js entirely) ───────────────────── */
+function getSB() {
+  const cfg = window.THREAD_CONFIG;
+  if (!cfg || !window.supabase) return null;
+  return window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+}
+
+function generateReferralCode(name) {
+  const prefix = name.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4).padEnd(4, 'X');
+  const chars  = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let suffix   = '';
+  for (let i = 0; i < 4; i++) suffix += chars[Math.floor(Math.random() * chars.length)];
+  return prefix + suffix;
+}
+
 /* ─── REDIRECT IF ALREADY SIGNED IN ─────────────────────────────────────── */
 (async function () {
   try {
-    if (window.DB) {
-      const user = await window.DB.auth.getUser();
-      if (user) window.location.href = 'dashboard.html';
+    const sb = getSB();
+    if (sb) {
+      const { data } = await sb.auth.getUser();
+      if (data?.user) window.location.href = 'dashboard.html';
     }
   } catch(e) {}
 })();
@@ -79,26 +95,26 @@ async function handleSignUp(event) {
 
   setLoading('signup', true);
 
-  let data, error;
   try {
-    ({ data, error } = await window.DB.auth.signUp(email, password, name));
+    const sb = getSB();
+    if (!sb) throw new Error('Service unavailable. Please try again.');
+
+    const { data, error } = await sb.auth.signUp({ email, password });
+    if (error) throw new Error(error.message);
+
+    // Create profile with referral code
+    const referralCode = generateReferralCode(name);
+    await sb.from('profiles').upsert({
+      id: data.user.id, email, name, referral_code: referralCode
+    });
+
+    setLoading('signup', false);
+    showSuccessOverlay(name, referralCode);
+
   } catch(e) {
     setLoading('signup', false);
-    showFormError('signupError', 'Sign up failed: ' + e.message);
-    return;
+    showFormError('signupError', e.message || 'Something went wrong. Please try again.');
   }
-
-  setLoading('signup', false);
-
-  if (error) {
-    const msg = error.message || 'Something went wrong. Please try again.';
-    showFormError('signupError', msg);
-    return;
-  }
-
-  // Show success overlay then redirect
-  const code = data?.profile?.referralCode || data?.profile?.referral_code || '';
-  showSuccessOverlay(name, code);
 }
 
 /* ─── SIGN IN ────────────────────────────────────────────────────────────── */
@@ -114,29 +130,25 @@ async function handleSignIn(event) {
 
   setLoading('signin', true);
 
-  let data, error;
   try {
-    ({ data, error } = await window.DB.auth.signIn(email, password));
+    const sb = getSB();
+    if (!sb) throw new Error('Service unavailable. Please try again.');
+
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) throw new Error(error.message);
+
+    setLoading('signin', false);
+    const next = new URLSearchParams(window.location.search).get('next');
+    window.location.href = next || 'dashboard.html';
+
   } catch(e) {
     setLoading('signin', false);
-    showFormError('signinError', 'Sign in failed: ' + e.message);
-    return;
+    showFormError('signinError', e.message || 'Invalid email or password.');
   }
-
-  setLoading('signin', false);
-
-  if (error) {
-    showFormError('signinError', error.message || 'Invalid email or password.');
-    return;
-  }
-
-  const next = new URLSearchParams(window.location.search).get('next');
-  window.location.href = next || 'dashboard.html';
 }
 
 /* ─── SUCCESS OVERLAY ────────────────────────────────────────────────────── */
 function showSuccessOverlay(name, code) {
-  // Build and inject the overlay if it doesn't exist
   if (!document.getElementById('authSuccessOverlay')) {
     const el = document.createElement('div');
     el.id = 'authSuccessOverlay';
