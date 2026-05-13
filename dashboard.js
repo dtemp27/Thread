@@ -1,55 +1,231 @@
 /* ═══════════════════════════════════════════════
    THREAD DASHBOARD — dashboard.js
-   Self-contained QR generator + real-time scans
+   Supabase-aware + localStorage fallback
 ═══════════════════════════════════════════════ */
 
-/* ─── STORAGE ─── */
-const USERS_KEY = 'thread_users';
+/* ─── SUPABASE CLIENT ─── */
+function getSB() {
+  const cfg = window.THREAD_CONFIG;
+  if (!cfg || !window.supabase) return null;
+  return window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+}
+
+/* ─── STORAGE (localStorage fallback) ─── */
+const USERS_KEY   = 'thread_users';
 const SESSION_KEY = 'thread_session';
 function getUsers() { return JSON.parse(localStorage.getItem(USERS_KEY) || '[]'); }
 function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
-function getUser() {
-  const id = localStorage.getItem(SESSION_KEY);
-  if (!id) return null;
-  return getUsers().find(u => u.id === id) || null;
+function getLocalUser() {
+  try {
+    const stored = localStorage.getItem(SESSION_KEY);
+    if (!stored) return null;
+    const p = JSON.parse(stored);
+    return (p && p.id) ? p : null;
+  } catch(e) { return null; }
 }
 function updateUser(u) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(u));
   const users = getUsers();
   const i = users.findIndex(x => x.id === u.id);
   if (i !== -1) { users[i] = u; saveUsers(users); }
 }
-function signOut() { localStorage.removeItem(SESSION_KEY); window.location.href = 'index.html'; }
 
-/* ─── AUTH GUARD ─── */
-let user = getUser();
-if (!user) { window.location.href = 'auth.html'; }
+async function signOut() {
+  try { const sb = getSB(); if (sb) await sb.auth.signOut(); } catch(e) {}
+  localStorage.removeItem(SESSION_KEY);
+  window.location.href = 'index.html';
+}
 
-/* ensure stats object exists */
-user.stats = user.stats || { totalScans:0, conversions:0, pendingEarnings:0, totalEarned:0, scanHistory:[] };
-user.purchases = user.purchases || [];
+/* ─── GLOBAL USER STATE ─── */
+let user = null;
+let _sb  = null;
 
-/* ─── REFERRAL URL ─── */
-const baseURL = window.location.href.replace('dashboard.html','index.html').split('?')[0];
-const refURL = baseURL + '?ref=' + user.referralCode;
+/* ─── BOOT: load user then render ─── */
+(async function initDashboard() {
+  _sb = getSB();
 
-/* ─── INIT STATIC UI ─── */
-document.getElementById('suAvatar').textContent    = user.avatar;
-document.getElementById('suName').textContent      = user.name;
-document.getElementById('suEmail').textContent     = user.email;
-document.getElementById('topbarAvatar').textContent = user.avatar;
-document.getElementById('tcValue').textContent     = user.referralCode;
-document.getElementById('refLinkInput').value      = refURL;
-document.getElementById('qcdValue').textContent    = user.referralCode;
-document.getElementById('qcdUrl').textContent      = refURL;
-document.getElementById('miniCodeLabel').textContent = user.referralCode;
-document.getElementById('welcomeMsg').textContent  = `Welcome back, ${user.name.split(' ')[0]}! 👋`;
-document.getElementById('welcomeSub').textContent  = `Here's how your referrals are performing today.`;
-document.getElementById('topbarDate').textContent  = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  /* 1 — try Supabase */
+  if (_sb) {
+    try {
+      const { data } = await _sb.auth.getUser();
+      if (data?.user) {
+        const { data: profile } = await _sb.from('profiles')
+          .select('*').eq('id', data.user.id).single();
+        if (profile) {
+          user = {
+            id:           profile.id,
+            email:        profile.email,
+            name:         profile.name  || '',
+            referralCode: profile.referral_code || '',
+            avatar:       (profile.name || profile.email || 'U').slice(0, 2).toUpperCase(),
+            stats:        { totalScans: 0, conversions: 0, pendingEarnings: 0, totalEarned: 0, scanHistory: [] },
+            purchases:    []
+          };
 
-/* show demo button if no data */
-if (!user.stats.totalScans) {
-  const btn = document.getElementById('demoBtn');
-  if (btn) btn.style.display = 'inline-flex';
+          /* load referral scans */
+          const { data: scans } = await _sb.from('referral_scans')
+            .select('*').eq('referrer_id', data.user.id)
+            .order('created_at', { ascending: false });
+          if (scans?.length) {
+            const convs    = scans.filter(s => s.converted);
+            const earned   = convs.reduce((s, r) => s + parseFloat(r.commission || 0), 0);
+            const pending  = convs.filter(s => s.status === 'pending')
+                                  .reduce((s, r) => s + parseFloat(r.commission || 0), 0);
+            user.stats = {
+              totalScans:      scans.length,
+              conversions:     convs.length,
+              totalEarned:     parseFloat(earned.toFixed(2)),
+              pendingEarnings: parseFloat(pending.toFixed(2)),
+              scanHistory:     scans.map(s => ({
+                type:      s.converted ? 'conversion' : 'scan',
+                date:      s.created_at,
+                city:      s.city || 'Unknown',
+                converted: s.converted,
+                amount:    parseFloat(s.commission || 0),
+                status:    s.status || 'completed'
+              }))
+            };
+          }
+
+          /* load orders / purchases */
+          const { data: orders } = await _sb.from('orders')
+            .select('*').eq('customer_email', profile.email)
+            .order('created_at', { ascending: false });
+          if (orders?.length) {
+            user.purchases = orders.flatMap(o =>
+              (o.items || []).map(item => ({
+                name:  item.name,
+                price: item.price || 0,
+                date:  o.created_at || new Date().toISOString()
+              }))
+            );
+          }
+        }
+      }
+    } catch(e) {
+      console.warn('[dashboard] Supabase load error:', e);
+    }
+  }
+
+  /* 2 — fallback: localStorage session */
+  if (!user) user = getLocalUser();
+
+  /* 3 — not logged in → redirect */
+  if (!user) { window.location.href = 'auth.html'; return; }
+
+  /* 4 — ensure required fields */
+  user.stats        = user.stats    || { totalScans: 0, conversions: 0, pendingEarnings: 0, totalEarned: 0, scanHistory: [] };
+  user.purchases    = user.purchases || [];
+  user.avatar       = user.avatar   || (user.name || 'U').slice(0, 2).toUpperCase();
+  user.referralCode = user.referralCode || user.referral_code || '';
+
+  /* 5 — boot UI */
+  bootUI();
+})();
+
+/* ═══════════════════════════════════════════════
+   UI INIT (runs after user is loaded)
+═══════════════════════════════════════════════ */
+function bootUI() {
+
+  /* ─── REFERRAL URL ─── */
+  const baseURL = window.location.href.replace('dashboard.html','index.html').split('?')[0];
+  const refURL  = baseURL + '?ref=' + user.referralCode;
+
+  /* ─── INIT STATIC UI ─── */
+  document.getElementById('suAvatar').textContent      = user.avatar;
+  document.getElementById('suName').textContent        = user.name;
+  document.getElementById('suEmail').textContent       = user.email;
+  document.getElementById('topbarAvatar').textContent  = user.avatar;
+  document.getElementById('tcValue').textContent       = user.referralCode;
+  document.getElementById('refLinkInput').value        = refURL;
+  document.getElementById('qcdValue').textContent      = user.referralCode;
+  document.getElementById('qcdUrl').textContent        = refURL;
+  document.getElementById('miniCodeLabel').textContent = user.referralCode;
+  document.getElementById('welcomeMsg').textContent    = `Welcome back, ${(user.name||'').split(' ')[0] || 'there'}! 👋`;
+  document.getElementById('welcomeSub').textContent    = `Here's how your referrals are performing today.`;
+  document.getElementById('topbarDate').textContent    = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+
+  /* show demo button if no data */
+  if (!user.stats.totalScans) {
+    const btn = document.getElementById('demoBtn');
+    if (btn) btn.style.display = 'inline-flex';
+  }
+
+  /* ─── DRAW QR ─── */
+  drawQR('miniQrCanvas', refURL, 120);
+  drawQR('bigQrCanvas',  refURL, 220);
+
+  /* ─── NAVIGATION ─── */
+  document.querySelectorAll('.nav-item[data-section]').forEach(item => {
+    item.addEventListener('click', () => switchSection(item.dataset.section));
+  });
+  document.querySelectorAll('[data-section]').forEach(el => {
+    if (!el.classList.contains('nav-item')) {
+      el.addEventListener('click', () => switchSection(el.dataset.section));
+    }
+  });
+
+  /* hamburger */
+  document.getElementById('menuToggle')?.addEventListener('click',
+    () => document.getElementById('sidebar').classList.toggle('open'));
+  document.getElementById('sidebarClose')?.addEventListener('click',
+    () => document.getElementById('sidebar').classList.remove('open'));
+
+  /* ─── ACTIVITY FILTERS ─── */
+  document.querySelectorAll('.af-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.af-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activityFilter = btn.dataset.filter;
+      renderActivity();
+    });
+  });
+  document.getElementById('activitySearch')?.addEventListener('input', e => {
+    activitySearch = e.target.value;
+    renderActivity();
+  });
+
+  /* ─── SLIDERS ─── */
+  const pieceSlider = document.getElementById('pieceSlider');
+  const scanSlider2 = document.getElementById('scanSlider2');
+  pieceSlider?.addEventListener('input', updatePotential);
+  scanSlider2?.addEventListener('input', updatePotential);
+  updatePotential();
+
+  /* ─── CROSS-TAB REAL-TIME ─── */
+  window.addEventListener('storage', e => {
+    if (e.key === USERS_KEY) {
+      const fresh = getLocalUser();
+      if (fresh) {
+        const prevScans = user.stats.totalScans;
+        user = fresh;
+        if (fresh.stats.totalScans > prevScans) {
+          renderStats(); renderChart(); renderActivity(); renderTransactions();
+          showToast('🔔 New scan from store!', 'success');
+        }
+      }
+    }
+  });
+
+  /* ─── RENDER ALL ─── */
+  renderAll();
+  scheduleNextScan();
+}
+
+/* ═══════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════ */
+function switchSection(name) {
+  document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const sec = document.getElementById('section-' + name);
+  const nav = document.querySelector(`.nav-item[data-section="${name}"]`);
+  if (sec) sec.classList.add('active');
+  if (nav) nav.classList.add('active');
+  const titles = { overview:'Overview', qrcode:'My QR Code', earnings:'Earnings', activity:'Activity', purchases:'My Purchases' };
+  document.getElementById('topbarTitle').textContent = titles[name] || 'Dashboard';
+  document.getElementById('sidebar').classList.remove('open');
 }
 
 /* ═══════════════════════════════════════════════
@@ -64,7 +240,6 @@ function drawQR(canvasId, text, size) {
   const CELLS = 25;
   const cell  = size / CELLS;
 
-  /* deterministic fill based on text hash */
   let h = 5381;
   for (let i = 0; i < text.length; i++) h = ((h << 5) + h) ^ text.charCodeAt(i);
   h = h >>> 0;
@@ -76,38 +251,28 @@ function drawQR(canvasId, text, size) {
   function fillCell(r, c) {
     ctx.fillRect(c * cell + 0.5, r * cell + 0.5, cell - 0.5, cell - 0.5);
   }
-
-  /* finder pattern at corner */
   function drawFinder(or, oc) {
-    /* outer 7x7 */
     for (let r = 0; r < 7; r++)
-      for (let c = 0; c < 7; c++) {
-        if (r === 0||r===6||c===0||c===6) fillCell(or+r, oc+c);
-      }
-    /* inner 3x3 */
+      for (let c = 0; c < 7; c++)
+        if (r===0||r===6||c===0||c===6) fillCell(or+r, oc+c);
     for (let r = 2; r <= 4; r++)
       for (let c = 2; c <= 4; c++) fillCell(or+r, oc+c);
   }
+  drawFinder(0, 0);
+  drawFinder(0, CELLS - 7);
+  drawFinder(CELLS - 7, 0);
 
-  drawFinder(0, 0);                     /* top-left  */
-  drawFinder(0, CELLS - 7);            /* top-right */
-  drawFinder(CELLS - 7, 0);            /* bot-left  */
-
-  /* alignment pattern */
   function drawAlign(or, oc) {
     for (let r = -2; r <= 2; r++)
-      for (let c = -2; c <= 2; c++) {
+      for (let c = -2; c <= 2; c++)
         if (Math.abs(r)===2||Math.abs(c)===2||(!r&&!c)) fillCell(or+r, oc+c);
-      }
   }
   drawAlign(16, 16);
 
-  /* timing strips */
   for (let i = 8; i < CELLS - 8; i++) {
     if (i % 2 === 0) { fillCell(6, i); fillCell(i, 6); }
   }
 
-  /* data modules — skip finder/timing zones */
   function isReserved(r, c) {
     if (r < 9 && c < 9) return true;
     if (r < 9 && c >= CELLS - 8) return true;
@@ -116,7 +281,6 @@ function drawQR(canvasId, text, size) {
     if (r >= 14 && r <= 18 && c >= 14 && c <= 18) return true;
     return false;
   }
-
   for (let r = 0; r < CELLS; r++) {
     for (let c = 0; c < CELLS; c++) {
       if (isReserved(r, c)) continue;
@@ -127,72 +291,38 @@ function drawQR(canvasId, text, size) {
   }
 }
 
-drawQR('miniQrCanvas', refURL, 120);
-drawQR('bigQrCanvas',  refURL, 220);
-
-/* ═══════════════════════════════════════════════
-   NAVIGATION
-═══════════════════════════════════════════════ */
-document.querySelectorAll('.nav-item[data-section]').forEach(item => {
-  item.addEventListener('click', () => switchSection(item.dataset.section));
-});
-document.querySelectorAll('[data-section]').forEach(el => {
-  if (!el.classList.contains('nav-item')) {
-    el.addEventListener('click', () => switchSection(el.dataset.section));
-  }
-});
-
-function switchSection(name) {
-  document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const sec = document.getElementById('section-' + name);
-  const nav = document.querySelector(`.nav-item[data-section="${name}"]`);
-  if (sec) sec.classList.add('active');
-  if (nav) nav.classList.add('active');
-  const titles = { overview:'Overview', qrcode:'My QR Code', earnings:'Earnings', activity:'Activity', purchases:'My Purchases' };
-  document.getElementById('topbarTitle').textContent = titles[name] || 'Dashboard';
-  // close sidebar on mobile
-  document.getElementById('sidebar').classList.remove('open');
-}
-
-/* hamburger */
-document.getElementById('menuToggle')?.addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
-document.getElementById('sidebarClose')?.addEventListener('click', () => document.getElementById('sidebar').classList.remove('open'));
-
 /* ═══════════════════════════════════════════════
    STATS RENDERING
 ═══════════════════════════════════════════════ */
 function renderStats() {
-  user = getUser(); /* reload fresh */
-  const s = user.stats;
-  const scans = s.totalScans || 0;
+  const s     = user.stats;
+  const scans = s.totalScans  || 0;
   const conv  = s.conversions || 0;
   const rate  = scans > 0 ? ((conv / scans) * 100).toFixed(1) : 0;
   const avail = Math.max(0, (s.totalEarned||0) - (s.withdrawn||0));
 
-  setNum('statScans',   scans);
-  setNum('statConv',    conv);
+  setNum('statScans', scans);
+  setNum('statConv',  conv);
   document.getElementById('statPending').textContent = (s.pendingEarnings||0).toFixed(2);
   document.getElementById('statEarned').textContent  = (s.totalEarned||0).toFixed(2);
   document.getElementById('subConv').textContent     = `~${rate}% conv. rate`;
   document.getElementById('subScans').textContent    = scans ? `${scans} total scans` : 'No scans yet';
-  document.getElementById('subEarned').textContent   = conv ? `${conv} conversions` : 'All time';
+  document.getElementById('subEarned').textContent   = conv  ? `${conv} conversions`  : 'All time';
 
-  /* QR page */
-  document.getElementById('qrTotalScans').textContent = scans;
+  document.getElementById('qrTotalScans').textContent  = scans;
   document.getElementById('qrConversions').textContent = conv;
-  document.getElementById('qrRate').textContent = rate + '%';
+  document.getElementById('qrRate').textContent        = rate + '%';
   const avgEarn = conv > 0 ? ((s.totalEarned||0) / conv).toFixed(0) : 0;
   document.getElementById('qrAvgEarn').textContent = '$' + avgEarn;
 
-  const todayScans = (s.scanHistory||[]).filter(h => isToday(h.date)).length;
-  const todayEarned= (s.scanHistory||[]).filter(h => isToday(h.date) && h.converted).reduce((a,b)=>a+(b.amount||0),0);
-  document.getElementById('qrScanTrend').textContent = `+${todayScans} today`;
-  document.getElementById('qrConvTrend').textContent = `+${(s.scanHistory||[]).filter(h=>isToday(h.date)&&h.converted).length} today`;
+  const todayScans  = (s.scanHistory||[]).filter(h => isToday(h.date)).length;
+  const todayEarned = (s.scanHistory||[]).filter(h => isToday(h.date) && h.converted)
+                       .reduce((a, b) => a + (b.amount||0), 0);
+  document.getElementById('qrScanTrend').textContent  = `+${todayScans} today`;
+  document.getElementById('qrConvTrend').textContent  = `+${(s.scanHistory||[]).filter(h=>isToday(h.date)&&h.converted).length} today`;
   document.getElementById('todayScans').textContent   = todayScans + ' scans';
   document.getElementById('todayEarned').textContent  = '$' + todayEarned.toFixed(2);
 
-  /* earnings */
   document.getElementById('availCashout').textContent = '$' + avail.toFixed(2);
   document.getElementById('ebPending').textContent    = '$' + (s.pendingEarnings||0).toFixed(2);
   document.getElementById('ebAllTime').textContent    = '$' + (s.totalEarned||0).toFixed(2);
@@ -202,8 +332,8 @@ function renderStats() {
   const monthEarned = (s.scanHistory||[])
     .filter(h => h.converted && new Date(h.date).getMonth() === new Date().getMonth())
     .reduce((a,b) => a+(b.amount||0), 0);
-  document.getElementById('ebMonth').textContent = '$' + monthEarned.toFixed(2);
-  document.getElementById('txCount').textContent = (s.scanHistory||[]).filter(h=>h.converted).length + ' transactions';
+  document.getElementById('ebMonth').textContent  = '$' + monthEarned.toFixed(2);
+  document.getElementById('txCount').textContent  = (s.scanHistory||[]).filter(h=>h.converted).length + ' transactions';
 }
 
 function setNum(id, target) {
@@ -221,26 +351,26 @@ function setNum(id, target) {
 }
 
 function isToday(dateStr) {
-  const d = new Date(dateStr);
-  const n = new Date();
-  return d.getDate() === n.getDate() && d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
+  const d = new Date(dateStr), n = new Date();
+  return d.getDate()===n.getDate() && d.getMonth()===n.getMonth() && d.getFullYear()===n.getFullYear();
 }
 
 /* ═══════════════════════════════════════════════
    WEEKLY CHART
 ═══════════════════════════════════════════════ */
 function renderChart() {
-  const history = (user.stats.scanHistory || []);
+  const history  = (user.stats.scanHistory || []);
   const weekDays = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date(); d.setDate(d.getDate() - i); weekDays.push(d);
   }
-  const counts = weekDays.map(d => history.filter(h => new Date(h.date).toDateString() === d.toDateString()).length);
-  const max = Math.max(...counts, 1);
+  const counts = weekDays.map(d =>
+    history.filter(h => new Date(h.date).toDateString() === d.toDateString()).length);
+  const max   = Math.max(...counts, 1);
   const total = counts.reduce((a,b)=>a+b,0);
   document.getElementById('chartTotal').textContent = total + ' scan' + (total!==1?'s':'');
 
-  const chart = document.getElementById('barChart');
+  const chart  = document.getElementById('barChart');
   const daysEl = document.getElementById('barDays');
   chart.innerHTML = ''; daysEl.innerHTML = '';
 
@@ -258,17 +388,16 @@ function renderChart() {
 }
 
 /* ═══════════════════════════════════════════════
-   MONTHLY CHART (earnings)
+   MONTHLY CHART
 ═══════════════════════════════════════════════ */
 function renderMonthlyChart() {
   const history = (user.stats.scanHistory || []);
   const months  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const now = new Date();
-  const data = months.map((_, mi) =>
-    history.filter(h => h.converted && new Date(h.date).getMonth() === mi && new Date(h.date).getFullYear() === now.getFullYear())
-           .reduce((a,b) => a+(b.amount||0), 0)
-  );
-  const max = Math.max(...data, 1);
+  const now     = new Date();
+  const data    = months.map((_, mi) =>
+    history.filter(h => h.converted && new Date(h.date).getMonth()===mi && new Date(h.date).getFullYear()===now.getFullYear())
+           .reduce((a,b) => a+(b.amount||0), 0));
+  const max       = Math.max(...data, 1);
   const yearTotal = data.reduce((a,b)=>a+b,0);
   document.getElementById('mccTotal').textContent = '$' + yearTotal.toFixed(0) + ' this year';
 
@@ -303,7 +432,7 @@ function renderActivity() {
   document.getElementById('activityCount').textContent = count + ' total';
   if (count > 0) {
     const badge = document.getElementById('activityBadge');
-    badge.textContent = Math.min(count, 9);
+    badge.textContent  = Math.min(count, 9);
     badge.style.display = 'inline-flex';
   }
   renderTopLocations(history);
@@ -319,13 +448,13 @@ function renderActivityList(containerId, items, filter, search) {
     const q = search.toLowerCase();
     filtered = filtered.filter(i => (i.city||'').toLowerCase().includes(q) || i.date.includes(q));
   }
-  if (filtered.length === 0) {
+  if (!filtered.length) {
     container.innerHTML = `<div class="empty-state"><span>${filter==='conversion'?'🛍️':'📡'}</span><p>${filter==='all'?'No activity yet. Wear your piece — every scan shows here instantly.':'No '+filter+'s yet.'}</p></div>`;
     return;
   }
   container.innerHTML = filtered.map(item => {
-    const isConv = item.type === 'conversion';
-    const d = new Date(item.date);
+    const isConv  = item.type === 'conversion';
+    const d       = new Date(item.date);
     const timeStr = d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' · ' + d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
     return `<div class="activity-item">
       <div class="ai-dot ${item.type}"></div>
@@ -340,16 +469,14 @@ function renderActivityList(containerId, items, filter, search) {
 
 function renderTopLocations(history) {
   const counts = {};
-  history.forEach(h => { if (h.city) counts[h.city] = (counts[h.city]||0) + 1; });
+  history.forEach(h => { if (h.city) counts[h.city] = (counts[h.city]||0)+1; });
   const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const max = sorted[0]?.[1] || 1;
-  const el = document.getElementById('topLocations');
+  const max    = sorted[0]?.[1] || 1;
+  const el     = document.getElementById('topLocations');
   if (!el) return;
   if (!sorted.length) { el.innerHTML = '<div class="td-empty">No location data yet</div>'; return; }
-  el.innerHTML = sorted.map(([city, n]) => `
-    <div class="tl-item">
-      <span>${city.split(',')[0]}</span><span>${n}</span>
-    </div>
+  el.innerHTML = sorted.map(([city,n]) => `
+    <div class="tl-item"><span>${city.split(',')[0]}</span><span>${n}</span></div>
     <div class="tl-bar"><div class="tl-bar-fill" style="width:${(n/max*100)}%"></div></div>`).join('');
 }
 
@@ -369,12 +496,11 @@ function renderTopDays(history) {
 function renderDonut() {
   const canvas = document.getElementById('donutChart');
   if (!canvas) return;
-  const ctx = canvas.getContext('2d');
+  const ctx   = canvas.getContext('2d');
   const conv  = user.stats.conversions || 0;
   const total = user.stats.totalScans  || 0;
-  const scansOnly = total - conv;
   ctx.clearRect(0,0,120,120);
-  if (total === 0) {
+  if (!total) {
     ctx.beginPath(); ctx.arc(60,60,44,0,Math.PI*2);
     ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=14; ctx.stroke(); return;
   }
@@ -384,7 +510,7 @@ function renderDonut() {
   }
   const convAngle = (conv/total)*Math.PI*2;
   arc(-Math.PI/2, -Math.PI/2+convAngle, '#22c55e');
-  if (scansOnly > 0) arc(-Math.PI/2+convAngle, -Math.PI/2+Math.PI*2, '#6C63FF');
+  if (total-conv > 0) arc(-Math.PI/2+convAngle, -Math.PI/2+Math.PI*2, '#6C63FF');
   ctx.fillStyle='#f0f0f0'; ctx.font='bold 16px Space Grotesk,sans-serif';
   ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillText(Math.round((conv/total)*100)+'%', 60, 60);
@@ -414,7 +540,7 @@ function renderTransactions() {
    PURCHASES / WARDROBE
 ═══════════════════════════════════════════════ */
 const HOODIE_COLORS = {
-  'Phantom Black':{ body:'#1c1c1c', hood:'#111', cord:'#555' },
+  'Phantom Black':{ body:'#1c1c1c', hood:'#111',    cord:'#555' },
   'Midnight Navy':{ body:'#0d1b35', hood:'#091428', cord:'#4a7dc4' },
   'Ember Crimson':{ body:'#2a0a0a', hood:'#1a0505', cord:'#8b3030' },
   'Forest Shadow':{ body:'#0b1a0d', hood:'#081208', cord:'#4a7850' },
@@ -423,13 +549,13 @@ const HOODIE_COLORS = {
 };
 
 function hoodieSVG(name) {
-  const c = HOODIE_COLORS[name] || HOODIE_COLORS['Phantom Black'];
+  const c  = HOODIE_COLORS[name] || HOODIE_COLORS['Phantom Black'];
   const id = name.replace(/\s/g,'');
   return `<svg viewBox="0 0 300 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
     <defs>
       <linearGradient id="g_${id}" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="rgba(0,0,0,0.4)"/>
-        <stop offset="45%" stop-color="rgba(255,255,255,0.05)"/>
+        <stop offset="0%"   stop-color="rgba(0,0,0,0.4)"/>
+        <stop offset="45%"  stop-color="rgba(255,255,255,0.05)"/>
         <stop offset="100%" stop-color="rgba(0,0,0,0.4)"/>
       </linearGradient>
     </defs>
@@ -463,7 +589,6 @@ function renderPurchases() {
     </div>`;
     return;
   }
-  const scansByPiece = {}; // future: per-piece scan tracking
   grid.innerHTML = user.purchases.map(p => `
     <div class="purchase-card">
       <div class="pc-img">${hoodieSVG(p.name)}</div>
@@ -520,26 +645,24 @@ function closeModal(id) { document.getElementById(id).classList.remove('show'); 
    COPY / SHARE
 ═══════════════════════════════════════════════ */
 function copyRefLink() {
+  const refURL = document.getElementById('refLinkInput').value;
   navigator.clipboard.writeText(refURL).catch(() => {
     const i = document.getElementById('refLinkInput'); i.select(); document.execCommand('copy');
   });
   showToast('✓ Referral link copied!', 'success');
 }
 function shareLink(type) {
+  const refURL = document.getElementById('refLinkInput').value;
   if (type === 'copy') return copyRefLink();
-  if (type === 'twitter') {
-    window.open('https://twitter.com/intent/tweet?text=I+earn+cash+just+by+wearing+this+hoodie+🔥+Scan+my+QR+code:+' + encodeURIComponent(refURL), '_blank');
-  }
-  if (type === 'sms') {
-    window.open('sms:?body=' + encodeURIComponent('Check out THREAD — I earn when you buy through my link: ' + refURL));
-  }
+  if (type === 'twitter') window.open('https://twitter.com/intent/tweet?text=I+earn+cash+just+by+wearing+this+hoodie+🔥+Scan+my+QR+code:+' + encodeURIComponent(refURL), '_blank');
+  if (type === 'sms')     window.open('sms:?body=' + encodeURIComponent('Check out THREAD — I earn when you buy through my link: ' + refURL));
 }
 
 /* ═══════════════════════════════════════════════
    DOWNLOAD QR
 ═══════════════════════════════════════════════ */
 function downloadQR() {
-  const c = document.getElementById('bigQrCanvas');
+  const c   = document.getElementById('bigQrCanvas');
   const tmp = document.createElement('canvas');
   tmp.width = 300; tmp.height = 340;
   const ctx = tmp.getContext('2d');
@@ -558,35 +681,16 @@ function downloadQR() {
 /* ═══════════════════════════════════════════════
    POTENTIAL EARNINGS CALC
 ═══════════════════════════════════════════════ */
-const pieceSlider = document.getElementById('pieceSlider');
-const scanSlider2 = document.getElementById('scanSlider2');
 function updatePotential() {
-  const pieces = parseInt(pieceSlider?.value||1);
-  const scans  = parseInt(scanSlider2?.value||10);
-  document.getElementById('pieceCount').textContent = pieces;
-  document.getElementById('scanPerPiece').textContent = scans;
+  const pieceSlider = document.getElementById('pieceSlider');
+  const scanSlider2 = document.getElementById('scanSlider2');
+  const pieces  = parseInt(pieceSlider?.value||1);
+  const scans   = parseInt(scanSlider2?.value||10);
+  document.getElementById('pieceCount').textContent    = pieces;
+  document.getElementById('scanPerPiece').textContent  = scans;
   const monthly = pieces * scans * 4.33 * 0.18 * 20;
   document.getElementById('potentialAmount').textContent = '$' + Math.round(monthly/5)*5;
 }
-pieceSlider?.addEventListener('input', updatePotential);
-scanSlider2?.addEventListener('input', updatePotential);
-updatePotential();
-
-/* ═══════════════════════════════════════════════
-   ACTIVITY FILTERS / SEARCH
-═══════════════════════════════════════════════ */
-document.querySelectorAll('.af-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.af-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    activityFilter = btn.dataset.filter;
-    renderActivity();
-  });
-});
-document.getElementById('activitySearch')?.addEventListener('input', e => {
-  activitySearch = e.target.value;
-  renderActivity();
-});
 
 /* ═══════════════════════════════════════════════
    REAL-TIME SCAN SIMULATION
@@ -596,7 +700,6 @@ const CITIES = ['New York, NY','Los Angeles, CA','Chicago, IL','Houston, TX','At
   'Brooklyn, NY','Portland, OR','Phoenix, AZ','Charlotte, NC','San Diego, CA'];
 
 function addRealTimeScan(converted) {
-  user = getUser();
   const city   = CITIES[Math.floor(Math.random() * CITIES.length)];
   const amount = converted ? parseFloat((Math.random() * 14 + 10).toFixed(2)) : 0;
   const scan   = {
@@ -606,34 +709,30 @@ function addRealTimeScan(converted) {
   };
 
   user.stats.totalScans++;
-  if (converted) { user.stats.conversions++; user.stats.pendingEarnings = parseFloat(((user.stats.pendingEarnings||0)+amount).toFixed(2)); }
+  if (converted) {
+    user.stats.conversions++;
+    user.stats.pendingEarnings = parseFloat(((user.stats.pendingEarnings||0)+amount).toFixed(2));
+  }
   user.stats.scanHistory.push(scan);
   updateUser(user);
 
-  /* update all panels */
-  renderStats(); renderChart(); renderActivity(); renderTransactions();
-  renderDonut();
-
-  /* add to live feed on QR page */
+  renderStats(); renderChart(); renderActivity(); renderTransactions(); renderDonut();
   addToLiveFeed(scan);
 
-  /* flash the stats card */
   const cardId = converted ? 'sc-conv' : 'sc-scans';
   const card   = document.getElementById(cardId);
   if (card) { card.style.borderColor = converted ? 'rgba(34,197,94,0.6)' : 'rgba(108,99,255,0.5)'; setTimeout(()=>card.style.borderColor='',1500); }
 
-  /* show notification */
   const notif = document.getElementById('scanNotification');
-  const notifClass = converted ? 'conversion' : '';
-  notif.className = 'scan-notification show ' + notifClass;
+  notif.className = 'scan-notification show ' + (converted ? 'conversion' : '');
   document.getElementById('snIcon').textContent  = converted ? '🛍️' : '👁';
   document.getElementById('snTitle').textContent = converted ? `New purchase! +$${amount.toFixed(2)} pending` : 'QR Code Scanned';
   document.getElementById('snMeta').textContent  = city + ' · just now';
   clearTimeout(notif._timer);
   notif._timer = setTimeout(() => notif.classList.remove('show'), 4500);
 
-  /* hide demo button */
-  document.getElementById('demoBtn')?.style && (document.getElementById('demoBtn').style.display='none');
+  const demoBtn = document.getElementById('demoBtn');
+  if (demoBtn) demoBtn.style.display = 'none';
 }
 
 function addToLiveFeed(scan) {
@@ -641,7 +740,6 @@ function addToLiveFeed(scan) {
   if (!feed) return;
   const empty = feed.querySelector('.lsf-empty');
   if (empty) empty.remove();
-
   const item = document.createElement('div');
   item.className = 'lsf-item';
   item.innerHTML = `
@@ -650,36 +748,13 @@ function addToLiveFeed(scan) {
     <span class="lsf-time">just now</span>
     ${scan.converted ? `<span class="lsf-amt">+$${scan.amount.toFixed(2)}</span>` : ''}`;
   feed.insertBefore(item, feed.firstChild);
-
-  /* keep max 10 items */
   while (feed.children.length > 10) feed.removeChild(feed.lastChild);
 }
 
-/* schedule next scan — 12–40 second intervals */
 function scheduleNextScan() {
   const delay = 12000 + Math.random() * 28000;
-  setTimeout(() => {
-    addRealTimeScan(Math.random() < 0.18);
-    scheduleNextScan();
-  }, delay);
+  setTimeout(() => { addRealTimeScan(Math.random() < 0.18); scheduleNextScan(); }, delay);
 }
-
-/* ═══════════════════════════════════════════════
-   CROSS-TAB REAL-TIME (someone buys in store tab)
-═══════════════════════════════════════════════ */
-window.addEventListener('storage', e => {
-  if (e.key === USERS_KEY) {
-    const fresh = getUser();
-    if (fresh) {
-      const prevScans = user.stats.totalScans;
-      user = fresh;
-      if (fresh.stats.totalScans > prevScans) {
-        renderStats(); renderChart(); renderActivity(); renderTransactions();
-        showToast('🔔 New scan from store!', 'success');
-      }
-    }
-  }
-});
 
 /* ═══════════════════════════════════════════════
    DEMO DATA LOADER
@@ -690,12 +765,11 @@ function loadDemoData() {
   for (let i = 29; i >= 0; i--) {
     const n = Math.floor(Math.random() * 9);
     for (let j = 0; j < n; j++) {
-      const d = new Date(now - i*86400000 - Math.random()*50000000);
+      const d    = new Date(now - i*86400000 - Math.random()*50000000);
       const conv = Math.random() < 0.18;
       history.push({ type:conv?'conversion':'scan', date:d.toISOString(), city:CITIES[Math.floor(Math.random()*CITIES.length)], converted:conv, amount:conv?parseFloat((Math.random()*14+10).toFixed(2)):0, status:conv&&i<4?'pending':'completed' });
     }
   }
-  /* add a couple of demo purchases */
   user.purchases = [
     { name:'Phantom Black', price:89, date:new Date(now-25*86400000).toISOString() },
     { name:'Midnight Navy', price:89, date:new Date(now-10*86400000).toISOString() }
@@ -703,11 +777,11 @@ function loadDemoData() {
   const convItems = history.filter(h=>h.converted&&h.status==='completed');
   const pending   = history.filter(h=>h.converted&&h.status==='pending');
   user.stats = {
-    totalScans:       history.length,
-    conversions:      history.filter(h=>h.converted).length,
-    pendingEarnings:  parseFloat(pending.reduce((a,b)=>a+(b.amount||0),0).toFixed(2)),
-    totalEarned:      parseFloat(convItems.reduce((a,b)=>a+(b.amount||0),0).toFixed(2)),
-    scanHistory:      history
+    totalScans:      history.length,
+    conversions:     history.filter(h=>h.converted).length,
+    pendingEarnings: parseFloat(pending.reduce((a,b)=>a+(b.amount||0),0).toFixed(2)),
+    totalEarned:     parseFloat(convItems.reduce((a,b)=>a+(b.amount||0),0).toFixed(2)),
+    scanHistory:     history
   };
   updateUser(user);
   document.getElementById('demoBtn').style.display = 'none';
@@ -722,9 +796,9 @@ let _toastTimer;
 function showToast(msg, type='') {
   const t = document.getElementById('dbToast');
   t.textContent = msg;
-  t.className = 'db-toast show' + (type?' '+type:'');
+  t.className   = 'db-toast show' + (type?' '+type:'');
   clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(()=>t.classList.remove('show'), 3200);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
 }
 
 /* ═══════════════════════════════════════════════
@@ -739,7 +813,3 @@ function renderAll() {
   renderPurchases();
   loadPayoutMethod();
 }
-
-/* ─── BOOT ─── */
-renderAll();
-scheduleNextScan();  /* start real-time simulation */
