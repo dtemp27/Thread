@@ -226,15 +226,16 @@
 
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
   <script src="qr-print-generator.js"></script>
   <script>
-    function regen() {
+    async function regen() {
       const code = document.getElementById('refCode').value.trim().toUpperCase() || 'DYLA3X7N';
       const hoodieColor = document.getElementById('colorPick').value;
 
-      // 1. Generate the print file
-      const { dataUrl, canvas } = window.ThreadPrint.generate({ referralCode: code });
+      // 1. Generate the print file (async — styled QR fetch)
+      const { dataUrl } = await window.ThreadPrint.generate({ referralCode: code });
 
       // 2. Show raw print file
       const rawWrap = document.getElementById('rawWrap');

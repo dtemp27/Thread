@@ -207,7 +207,7 @@ async function finalizeOrder(orderId, customerEmail = '') {
     }
 
     if (buyerReferralCode && window.ThreadPrint) {
-      const { dataUrl } = window.ThreadPrint.generate({
+      const { dataUrl } = await window.ThreadPrint.generate({
         referralCode: buyerReferralCode
       });
       // Upload to Supabase Storage so POD service can hotlink (returns null

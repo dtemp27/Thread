@@ -32,34 +32,66 @@
   const LOGO_TEXT           = 'THREAD';
   const TAGLINE             = 'SCAN TO SHOP · EARN REWARDS';
 
-  /* ── QR generation (uses qrious if loaded; else stub) ───────────────── */
-  function generateQRCanvas(text, pixelSize) {
-    // Real QR via qrious — high error correction so the logo overlay is safe
+  /* ── QR generation — styled with rounded dots, dot corners ─────────── */
+  async function generateStyledQR(text, pixelSize) {
+    // Prefer qr-code-styling for premium look (rounded dots + dot finders)
+    if (window.QRCodeStyling) {
+      const qr = new QRCodeStyling({
+        width:  pixelSize,
+        height: pixelSize,
+        type:   'canvas',
+        data:   text,
+        margin: 0,
+        qrOptions: { errorCorrectionLevel: 'H' },     // ~30% error correction
+        dotsOptions: {
+          color: '#000000',
+          type:  'extra-rounded'                       // soft pill-shaped dots
+        },
+        cornersSquareOptions: {
+          color: '#000000',
+          type:  'extra-rounded'                       // rounded outer finder squares
+        },
+        cornersDotOptions: {
+          color: '#000000',
+          type:  'dot'                                 // perfect circles inside finders
+        },
+        backgroundOptions: { color: '#ffffff' }
+      });
+
+      try {
+        const blob = await qr.getRawData('png');
+        const url  = URL.createObjectURL(blob);
+        const img  = await new Promise((resolve, reject) => {
+          const i = new Image();
+          i.onload  = () => { URL.revokeObjectURL(url); resolve(i); };
+          i.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+          i.src = url;
+        });
+        return img;
+      } catch (e) {
+        console.warn('[ThreadPrint] qr-code-styling failed, falling back:', e);
+      }
+    }
+
+    // Fallback to qrious (plain black squares) if styled lib not available
     if (window.QRious) {
       const tmp = document.createElement('canvas');
       new QRious({
-        element: tmp,
-        value:   text,
-        size:    pixelSize,
-        level:   'H',           // ~30% error correction → safe to overlay logo
-        padding: 0,
-        foreground: '#000',
-        background: '#fff'
+        element: tmp, value: text, size: pixelSize,
+        level: 'H', padding: 0, foreground: '#000', background: '#fff'
       });
       return tmp;
     }
 
-    // Fallback stub (visual placeholder) if qrious failed to load.
-    // NOT scannable — only used so the UI/preview doesn't break.
-    console.warn('[ThreadPrint] qrious not loaded — using placeholder pattern');
+    // Last-resort stub (non-scannable, prevents UI break)
+    console.warn('[ThreadPrint] No QR library available — placeholder only');
     const c = document.createElement('canvas');
     c.width = c.height = pixelSize;
     const ctx = c.getContext('2d');
     ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, pixelSize, pixelSize);
     ctx.fillStyle = '#000';
-    const cells = 25;
-    const cs    = pixelSize / cells;
-    let seed    = 0;
+    const cells = 25, cs = pixelSize / cells;
+    let seed = 0;
     for (let i = 0; i < text.length; i++) seed = (seed * 31 + text.charCodeAt(i)) >>> 0;
     function rnd() { seed = (seed * 1103515245 + 12345) >>> 0; return (seed >>> 16) / 65535; }
     for (let r = 0; r < cells; r++)
@@ -69,7 +101,7 @@
   }
 
   /* ── Compose the full print file (logo + QR + tagline) ──────────────── */
-  function generate({ referralCode, size = DEFAULT_SIZE } = {}) {
+  async function generate({ referralCode, size = DEFAULT_SIZE } = {}) {
     if (!referralCode) throw new Error('referralCode required');
 
     const W = size.w, H = size.h;
@@ -96,14 +128,14 @@
     const qrX  = (W - qrPx) / 2;
     const qrY  = 720;
 
-    // White card behind QR (so it's scannable on dark hoodies)
+    // White card behind QR with extra-rounded corners (premium card look)
     const pad = 60;
     ctx.fillStyle = '#fff';
-    roundRect(ctx, qrX - pad, qrY - pad, qrPx + pad * 2, qrPx + pad * 2, 40);
+    roundRect(ctx, qrX - pad, qrY - pad, qrPx + pad * 2, qrPx + pad * 2, 60);
     ctx.fill();
 
-    const qrCanvas = generateQRCanvas(REFERRAL_URL_BASE + referralCode, qrPx);
-    ctx.drawImage(qrCanvas, qrX, qrY);
+    const qrSource = await generateStyledQR(REFERRAL_URL_BASE + referralCode, qrPx);
+    ctx.drawImage(qrSource, qrX, qrY, qrPx, qrPx);
 
     /* — 3. Tagline + referral code beneath QR — */
     ctx.fillStyle    = '#fff';
