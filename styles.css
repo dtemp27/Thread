@@ -1183,24 +1183,25 @@ img { display: block; max-width: 100%; }
 .pay-hint-logo { height: 20px; border-radius: 3px; }
 .cd-payments-hint span { font-size: 11px; color: var(--text3); padding: 3px 8px; border: 1px solid var(--border); border-radius: 4px; }
 
-/* ─── HOODIE PRODUCT IMAGES ─── */
-.hoodie-bg-black  { background: radial-gradient(ellipse at 60% 40%, #2a2a2a, #0a0a0a); }
-.hoodie-bg-navy   { background: radial-gradient(ellipse at 60% 40%, #142240, #060e1a); }
-.hoodie-bg-crimson{ background: radial-gradient(ellipse at 60% 40%, #3a1010, #100303); }
-.hoodie-bg-forest { background: radial-gradient(ellipse at 60% 40%, #162818, #050d06); }
-.hoodie-bg-ash    { background: radial-gradient(ellipse at 60% 40%, #505050, #1e1e1e); }
-.hoodie-bg-purple { background: radial-gradient(ellipse at 60% 40%, #2a1548, #0a0415); }
-
-.hoodie-svg {
+/* ─── HOODIE PRODUCT IMAGES (real photos with front/back swap) ─── */
+.product-img {
+  background: radial-gradient(ellipse at 60% 40%, #1a1a1a, #050505);
+  overflow: hidden;
+}
+.hoodie-photo {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  padding: 16px 20px 8px;
-  filter: drop-shadow(0 16px 32px rgba(0,0,0,0.6));
-  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+  object-fit: cover;
+  object-position: center top;
+  transition: opacity 0.45s ease, transform 0.5s cubic-bezier(0.4,0,0.2,1);
 }
-.product-card:hover .hoodie-svg { transform: scale(1.06) translateY(-4px); }
+.hoodie-front { opacity: 1; z-index: 1; }
+.hoodie-back  { opacity: 0; z-index: 2; }
+
+.product-card:hover .hoodie-front { opacity: 0; transform: scale(1.02); }
+.product-card:hover .hoodie-back  { opacity: 1; transform: scale(1.02); }
 
 .qr-back-hint {
   position: absolute;

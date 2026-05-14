@@ -192,24 +192,24 @@ const HOODIE_COLORS_INDEX = {
   'Ember Crimson': { body:'#2a0a0a', hood:'#1a0505', cord:'#8b3030', bg:'#100303' },
   'Forest Shadow': { body:'#0b1a0d', hood:'#081208', cord:'#4a7850', bg:'#050d06' },
   'Ash Stone':     { body:'#3a3a3a', hood:'#2a2a2a', cord:'#888',    bg:'#1e1e1e' },
-  'Void Purple':   { body:'#1a0d2e', hood:'#130924', cord:'#7c4dbb', bg:'#0a0415' },
 };
 
-function miniHoodieSVG(name) {
-  const c = HOODIE_COLORS_INDEX[name] || HOODIE_COLORS_INDEX['Phantom Black'];
-  return `<svg viewBox="0 0 300 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;background:${c.bg}">
-    <path d="M73,82 L12,112 L6,208 L50,214 L60,128 Z" fill="${c.body}"/>
-    <path d="M227,82 L288,112 L294,208 L250,214 L240,128 Z" fill="${c.body}"/>
-    <path d="M60,128 L53,308 L247,308 L240,128 L227,82 Q200,70 150,65 Q100,70 73,82 Z" fill="${c.body}"/>
-    <path d="M73,82 Q68,12 113,7 Q128,38 150,65 Q100,70 73,82 Z" fill="${c.hood}"/>
-    <path d="M227,82 Q232,12 187,7 Q172,38 150,65 Q200,70 227,82 Z" fill="${c.hood}"/>
-    <path d="M113,7 Q150,1 187,7 Q170,48 150,65 Q130,48 113,7 Z" fill="${c.hood}" opacity="0.7"/>
-    <path d="M132,63 C128,85 123,105 117,124" stroke="${c.cord}" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <path d="M168,63 C172,85 177,105 183,124" stroke="${c.cord}" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <ellipse cx="117" cy="127" rx="5" ry="6" fill="${c.cord}"/>
-    <ellipse cx="183" cy="127" rx="5" ry="6" fill="${c.cord}"/>
-  </svg>`;
+// Map THREAD product names → image file slugs (in images/ folder)
+const HOODIE_PHOTO_SLUG = {
+  'Phantom Black': 'phantom-black',
+  'Midnight Navy': 'midnight-navy',
+  'Ember Crimson': 'ember-crimson',
+  'Forest Shadow': 'forest-shadow',
+  'Ash Stone':     'ash-stone',
+};
+
+function hoodieThumb(name) {
+  const slug = HOODIE_PHOTO_SLUG[name] || 'phantom-black';
+  return `<img src="images/${slug}-front.jpg" alt="${name}" style="width:100%;height:100%;object-fit:cover;object-position:center top;background:#0a0a0a;border-radius:8px">`;
 }
+
+// Kept for backward compatibility — same call signature, real photo now
+function miniHoodieSVG(name) { return hoodieThumb(name); }
 
 function cartTotal(cart) {
   const sub = cart.items.reduce((s, i) => s + i.price * i.qty, 0);
@@ -243,7 +243,7 @@ function renderCartDrawer() {
 
   itemsEl.innerHTML = cart.items.map((item, idx) => `
     <div class="cd-item">
-      <div class="cd-item-img">${miniHoodieSVG(item.name)}</div>
+      <div class="cd-item-img">${hoodieThumb(item.name)}</div>
       <div class="cd-item-info">
         <div class="cd-item-name">${item.name}</div>
         <div class="cd-item-size">Size: ${item.size || 'M'}</div>

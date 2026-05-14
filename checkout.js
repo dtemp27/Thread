@@ -28,24 +28,18 @@ if (!isStripeReturn) {
   }
 }
 
-/* ─── Hoodie color map ────────────────────────────────────────────────────── */
-const HOODIE_COLORS = {
-  'Phantom Black':  { bg: '#111',    body: '#1a1a1a', hood: '#0d0d0d' },
-  'Midnight Navy':  { bg: '#0a1628', body: '#0d2245', hood: '#081a36' },
-  'Ember Crimson':  { bg: '#1a0000', body: '#8b0000', hood: '#6d0000' },
-  'Forest Shadow':  { bg: '#0a1a0a', body: '#1a3a1a', hood: '#0d2a0d' },
-  'Ash Stone':      { bg: '#1a1a1a', body: '#8a8a8a', hood: '#6a6a6a' },
-  'Void Purple':    { bg: '#0d0015', body: '#2d0060', hood: '#1a0040' },
+/* ─── Hoodie photo thumbnail ──────────────────────────────────────────────── */
+const HOODIE_SLUGS = {
+  'Phantom Black': 'phantom-black',
+  'Midnight Navy': 'midnight-navy',
+  'Ember Crimson': 'ember-crimson',
+  'Forest Shadow': 'forest-shadow',
+  'Ash Stone':     'ash-stone',
 };
 
 function miniHoodieSVG(name) {
-  const c = HOODIE_COLORS[name] || HOODIE_COLORS['Phantom Black'];
-  return `<svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
-    <rect width="56" height="56" rx="8" fill="${c.bg}"/>
-    <path d="M28 8 C24 8 20 10 18 14 L10 20 L14 24 L18 20 L18 46 L38 46 L38 20 L42 24 L46 20 L38 14 C36 10 32 8 28 8 Z" fill="${c.body}"/>
-    <path d="M28 8 C24 8 20 10 18 14 L22 18 C23 13 25 11 28 11 C31 11 33 13 34 18 L38 14 C36 10 32 8 28 8 Z" fill="${c.hood}"/>
-    <ellipse cx="28" cy="13" rx="4" ry="3" fill="${c.hood}"/>
-  </svg>`;
+  const slug = HOODIE_SLUGS[name] || 'phantom-black';
+  return `<img src="images/${slug}-front.jpg" alt="${name}" style="width:56px;height:56px;object-fit:cover;object-position:center top;border-radius:8px;background:#111">`;
 }
 
 /* ─── Render order summary ────────────────────────────────────────────────── */
