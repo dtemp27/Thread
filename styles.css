@@ -640,33 +640,28 @@ img { display: block; max-width: 100%; }
 .product-badge.limited { background: var(--gold); color: #111; }
 
 .product-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: var(--transition);
-  backdrop-filter: blur(4px);
-  z-index: 10;
+  /* No longer used — button moved into .product-info. Kept for any orphan markup. */
+  display: none;
 }
-.product-card:hover .product-overlay { opacity: 1; }
 .btn-add-cart {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
   padding: 12px 24px;
-  background: white;
+  background: var(--text);
   color: #111;
   border: none;
   border-radius: 50px;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 700;
+  letter-spacing: 0.02em;
   cursor: pointer;
-  transition: var(--transition);
+  transition: background 0.2s ease, transform 0.15s ease, color 0.2s ease;
   transform: translateY(10px);
 }
-.product-card:hover .btn-add-cart { transform: translateY(0); }
-.btn-add-cart:hover { background: var(--accent); color: white; transform: scale(1.05) !important; }
+.btn-add-cart:hover { background: var(--accent); color: #fff; transform: translateY(-2px); }
+.btn-add-cart:active { transform: translateY(0); }
 
 .product-info { padding: 20px; }
 .product-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
