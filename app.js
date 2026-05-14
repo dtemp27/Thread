@@ -246,6 +246,7 @@ function renderCartDrawer() {
       <div class="cd-item-img">${miniHoodieSVG(item.name)}</div>
       <div class="cd-item-info">
         <div class="cd-item-name">${item.name}</div>
+        <div class="cd-item-size">Size: ${item.size || 'M'}</div>
         <div class="cd-item-price">$${item.price}</div>
         <div class="cd-item-earn">Earns referrer $${Math.round(item.price * 0.22)}</div>
       </div>
@@ -271,11 +272,12 @@ function renderCartDrawer() {
   localStorage.setItem('thread_checkout', JSON.stringify({ items: cart.items, subtotal, discount, total, ref: localStorage.getItem('thread_ref') }));
 }
 
-function addToCart(name, price) {
+function addToCart(name, price, size = 'M') {
   const cart = getCart();
-  const existing = cart.items.find(i => i.name === name);
+  // Same product + same size = stack qty; different size = new line
+  const existing = cart.items.find(i => i.name === name && i.size === size);
   if (existing) { existing.qty++; }
-  else { cart.items.push({ name, price: parseFloat(price), qty: 1 }); }
+  else { cart.items.push({ name, price: parseFloat(price), qty: 1, size }); }
   saveCart(cart);
   renderCartDrawer();
   openCart();
@@ -318,7 +320,7 @@ function openCart() {
   document.getElementById('cartOverlay')?.classList.add('open');
 }
 
-/* ─── ADD TO CART (product buttons) ─── */
+/* ─── ADD TO CART (product buttons → opens size picker) ─── */
 const cartToast = document.getElementById('cartToast');
 let toastTimer = null;
 
@@ -328,15 +330,56 @@ document.querySelectorAll('.btn-add-cart').forEach(btn => {
     const card = btn.closest('.product-card');
     const name  = btn.dataset.product || card?.querySelector('h3')?.textContent || 'Item';
     const price = btn.dataset.price   || '89';
+    openSizeModal(name, price);
+  });
+});
 
-    addToCart(name, price);
+/* ─── SIZE PICKER MODAL ─── */
+let _pendingProduct = null;
+function openSizeModal(name, price) {
+  _pendingProduct = { name, price };
+  const productEl  = document.getElementById('sizeModalProduct');
+  const overlay    = document.getElementById('sizeModalOverlay');
+  const modal      = document.getElementById('sizeModal');
+  const confirmBtn = document.getElementById('sizeModalConfirm');
+  if (productEl) productEl.textContent = name + ' Hoodie';
+  document.querySelectorAll('.size-pill').forEach(p => p.classList.remove('selected'));
+  if (confirmBtn) confirmBtn.disabled = true;
+  overlay?.classList.add('open');
+  modal?.classList.add('open');
+}
+function closeSizeModal() {
+  document.getElementById('sizeModalOverlay')?.classList.remove('open');
+  document.getElementById('sizeModal')?.classList.remove('open');
+  _pendingProduct = null;
+}
+document.querySelectorAll('.size-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.size-pill').forEach(p => p.classList.remove('selected'));
+    pill.classList.add('selected');
+    const btn = document.getElementById('sizeModalConfirm');
+    if (btn) btn.disabled = false;
+  });
+});
+document.getElementById('sizeModalConfirm')?.addEventListener('click', () => {
+  const selected = document.querySelector('.size-pill.selected');
+  if (!selected || !_pendingProduct) return;
+  const size = selected.dataset.size;
+  addToCart(_pendingProduct.name, _pendingProduct.price, size);
+  const productName = _pendingProduct.name;
+  closeSizeModal();
 
-    // toast
-    cartToast.innerHTML = `<span>✓</span> ${name} added!`;
+  // Toast
+  if (cartToast) {
+    cartToast.innerHTML = `<span>✓</span> ${productName} (${size}) added!`;
     cartToast.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => cartToast.classList.remove('show'), 2200);
-  });
+  }
+});
+// ESC closes the modal
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeSizeModal();
 });
 
 function showStoreToast(msg, type = '') {

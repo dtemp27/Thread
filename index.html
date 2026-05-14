@@ -791,6 +791,24 @@
     <span>✓</span> Added to cart!
   </div>
 
+  <!-- ─── SIZE PICKER MODAL ─── -->
+  <div class="size-modal-overlay" id="sizeModalOverlay" onclick="closeSizeModal()"></div>
+  <div class="size-modal" id="sizeModal" role="dialog" aria-modal="true">
+    <button class="size-modal-close" onclick="closeSizeModal()" aria-label="Close">✕</button>
+    <div class="size-modal-product" id="sizeModalProduct">Phantom Black</div>
+    <div class="size-modal-label">Choose your size</div>
+    <div class="size-pills">
+      <button class="size-pill" data-size="S">S</button>
+      <button class="size-pill" data-size="M">M</button>
+      <button class="size-pill" data-size="L">L</button>
+      <button class="size-pill" data-size="XL">XL</button>
+      <button class="size-pill" data-size="2XL">2XL</button>
+      <button class="size-pill" data-size="3XL">3XL</button>
+    </div>
+    <button class="size-modal-confirm" id="sizeModalConfirm" disabled>Add to Cart</button>
+    <div class="size-modal-hint">Unisex fit · Heavyweight cotton</div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
   <script src="db.js"></script>

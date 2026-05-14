@@ -25,6 +25,15 @@ window.THREAD_CONFIG = {
   // Format: https://[YOUR_PROJECT_REF].supabase.co/functions/v1/create-checkout
   stripeFunctionUrl: 'https://ermatmianwpfzvhmpdgn.supabase.co/functions/v1/create-checkout',
 
+  // ─── POD (Print-on-Demand) Edge Function ───────────────────────────────────
+  // After deploying pod-edge-function.js, paste the URL below.
+  // Until set, POD submission falls back to the local stub (logs only).
+  // Format: https://[YOUR_PROJECT_REF].supabase.co/functions/v1/submit-pod-order
+  podFunctionUrl: 'https://ermatmianwpfzvhmpdgn.supabase.co/functions/v1/rapid-processor',
+
+  // Which POD service to use. Must also match POD_SERVICE in Supabase secrets.
+  podService: 'printful',   // 'apliiq' | 'printful' | 'printify'
+
   // ─── Admin ──────────────────────────────────────────────────────────────────
   // Password to access /admin.html  — change this to something secure!
   adminPassword: 'thread_admin_2024',

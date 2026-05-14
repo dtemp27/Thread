@@ -58,7 +58,7 @@ function renderSummary() {
       <div class="co-item-thumb">${miniHoodieSVG(item.name)}</div>
       <div class="co-item-info">
         <div class="co-item-name">${item.name} Hoodie</div>
-        <div class="co-item-meta">THREAD Classic — Size M</div>
+        <div class="co-item-meta">THREAD Classic — Size ${item.size || 'M'}</div>
       </div>
       <div class="co-item-right">
         <div class="co-item-price">$${(item.price * item.qty).toFixed(2)}</div>
@@ -189,22 +189,83 @@ async function handleStripeReturn() {
 async function finalizeOrder(orderId, customerEmail = '') {
   if (!checkoutData) return;
 
-  // Save order to database
+  // ─── Generate the buyer's unique QR print file ────────────────────────
+  // The QR encodes THIS buyer's own referral code so the hoodie they're
+  // about to receive will earn them commissions when others scan it.
+  let printFileUrl = null;
+  let buyerReferralCode = null;
+  try {
+    const buyer = await window.DB.auth.getUser();
+    // Pull the referral code from either Supabase profile or local session
+    if (buyer) {
+      const profile = await window.DB.profiles.get(buyer.id);
+      buyerReferralCode =
+        profile?.referralCode ||
+        profile?.referral_code ||
+        JSON.parse(localStorage.getItem('thread_session') || '{}').referralCode ||
+        null;
+    }
+
+    if (buyerReferralCode && window.ThreadPrint) {
+      const { dataUrl } = window.ThreadPrint.generate({
+        referralCode: buyerReferralCode
+      });
+      // Upload to Supabase Storage so POD service can hotlink (returns null
+      // when Supabase isn't configured — fine for local dev).
+      printFileUrl = await window.ThreadPrint.uploadToStorage(
+        dataUrl, orderId, buyerReferralCode
+      );
+      console.log('[checkout] Print file generated for code', buyerReferralCode,
+                  printFileUrl ? '(uploaded)' : '(local only)');
+    }
+  } catch(e) {
+    console.warn('Print file generation error:', e);
+  }
+
+  // Save order to database (now includes the print-file reference)
   try {
     await window.DB.orders.create({
-      id:             orderId,
-      items:          checkoutData.items,
-      subtotal:       checkoutData.subtotal,
-      discount:       checkoutData.discount || 0,
-      total:          checkoutData.total,
-      promo_code:     checkoutData.promoCode || null,
-      referral_code:  refCode || null,
-      customer_email: customerEmail,
-      status:         'paid'
+      id:               orderId,
+      items:            checkoutData.items,
+      subtotal:         checkoutData.subtotal,
+      discount:         checkoutData.discount || 0,
+      total:            checkoutData.total,
+      promo_code:       checkoutData.promoCode || null,
+      referral_code:    refCode || null,
+      customer_email:   customerEmail,
+      status:           'paid',
+      print_file_url:   printFileUrl,
+      buyer_qr_code:    buyerReferralCode
     });
   } catch(e) {
     console.warn('Order save error:', e);
   }
+
+  // Submit to POD service (uses podFunctionUrl from config; falls back to stub
+  // if the edge function isn't deployed yet)
+  try {
+    if (window.ThreadPrint && buyerReferralCode) {
+      const podResult = await window.ThreadPrint.sendToPOD({
+        orderId,
+        referralCode:  buyerReferralCode,
+        items:         checkoutData.items,
+        customerEmail,
+        printFileUrl
+      });
+      // Save the POD service's order ID back onto our order row for tracking
+      if (podResult?.podOrderId && window.DB?.orders?.updateStatus) {
+        try {
+          const sb = window.DB.getSB && window.DB.getSB();
+          if (sb) {
+            await sb.from('orders').update({
+              pod_service:  podResult.service || 'apliiq',
+              pod_order_id: podResult.podOrderId
+            }).eq('id', orderId);
+          }
+        } catch(_) {}
+      }
+    }
+  } catch(e) { console.warn('POD submission error:', e); }
 
   // Credit referrer commission (10%)
   let refResult = null;
