@@ -35,6 +35,7 @@ const HOODIE_SLUGS = {
   'Ember Crimson': 'ember-crimson',
   'Forest Shadow': 'forest-shadow',
   'Ash Stone':     'ash-stone',
+  'Ivory Pure':    'ivory-pure',
 };
 
 function miniHoodieSVG(name) {
