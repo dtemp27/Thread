@@ -479,8 +479,13 @@ img { display: block; max-width: 100%; }
   justify-content: center;
   gap: 0;
   margin-top: 70px;
-  padding: 40px;
-  background: var(--surface);
+  padding: 48px 40px;
+  background:
+    radial-gradient(ellipse at 15% 50%, rgba(108,99,255,0.10), transparent 55%),
+    radial-gradient(ellipse at 40% 50%, rgba(34,211,238,0.10), transparent 55%),
+    radial-gradient(ellipse at 65% 50%, rgba(244,114,182,0.10), transparent 55%),
+    radial-gradient(ellipse at 90% 50%, rgba(250,204,21,0.10), transparent 55%),
+    var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
@@ -488,31 +493,83 @@ img { display: block; max-width: 100%; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  transition: transform 0.3s ease;
 }
+.flow-node:hover { transform: translateY(-4px); }
 .fn-avatar {
-  width: 60px; height: 60px;
+  width: 76px; height: 76px;
   border-radius: 50%;
   background: var(--surface2);
   border: 2px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   font-weight: 700;
   font-size: 16px;
   color: var(--text2);
   transition: var(--transition);
 }
-.flow-node span { font-size: 13px; color: var(--text2); font-weight: 500; }
-.flow-node.active .fn-avatar { background: rgba(108,99,255,0.2); border-color: var(--accent); color: var(--accent); box-shadow: 0 0 20px rgba(108,99,255,0.3); }
-.flow-node.active span { color: var(--accent); }
+.flow-node span {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
 
-.flow-line { display: flex; align-items: center; gap: 6px; padding: 0 20px; }
-.flow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: 0.3; animation: flowPulse 1.5s ease-in-out infinite; }
-.flow-dot:nth-child(2) { animation-delay: 0.3s; }
-.flow-dot:nth-child(3) { animation-delay: 0.6s; }
-@keyframes flowPulse { 0%,100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+/* Per-step colored avatars */
+.fn-you   .fn-avatar { background: linear-gradient(135deg, #8b7cff, #6C63FF); border-color: rgba(139,124,255,0.5); box-shadow: 0 0 28px rgba(108,99,255,0.45); color: #fff; }
+.fn-scan  .fn-avatar { background: linear-gradient(135deg, #38bdf8, #06b6d4); border-color: rgba(56,189,248,0.5);  box-shadow: 0 0 28px rgba(34,211,238,0.45);  color: #fff; }
+.fn-buy   .fn-avatar { background: linear-gradient(135deg, #f472b6, #ec4899); border-color: rgba(244,114,182,0.5); box-shadow: 0 0 28px rgba(236,72,153,0.45);  color: #fff; }
+.fn-earn  .fn-avatar { background: linear-gradient(135deg, #facc15, #f59e0b); border-color: rgba(250,204,21,0.5);  box-shadow: 0 0 28px rgba(250,204,21,0.55);  color: #111; }
+
+.flow-node:hover .fn-avatar { transform: scale(1.08); }
+.fn-you:hover  .fn-avatar { box-shadow: 0 0 36px rgba(108,99,255,0.7); }
+.fn-scan:hover .fn-avatar { box-shadow: 0 0 36px rgba(34,211,238,0.7); }
+.fn-buy:hover  .fn-avatar { box-shadow: 0 0 36px rgba(236,72,153,0.7); }
+.fn-earn:hover .fn-avatar { box-shadow: 0 0 36px rgba(250,204,21,0.85); }
+
+/* Active "You earn" pulse */
+.flow-node.fn-earn.active .fn-avatar {
+  animation: earnPulse 2.4s ease-in-out infinite;
+}
+@keyframes earnPulse {
+  0%, 100% { box-shadow: 0 0 28px rgba(250,204,21,0.5); }
+  50%      { box-shadow: 0 0 48px rgba(250,204,21,0.9), 0 0 80px rgba(245,158,11,0.4); }
+}
+
+/* Connecting flow lines — gradient between adjacent step colors */
+.flow-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 22px;
+}
+.flow-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--c-from, #6C63FF), var(--c-to, #06b6d4));
+  opacity: 0.4;
+  animation: flowPulse 1.5s ease-in-out infinite;
+  box-shadow: 0 0 8px var(--c-from, #6C63FF);
+}
+.flow-dot:nth-child(2) { animation-delay: 0.2s; }
+.flow-dot:nth-child(3) { animation-delay: 0.4s; }
+
+/* Color each line's gradient based on its position (between specific nodes) */
+.flow-line:nth-of-type(2) .flow-dot { --c-from: #6C63FF; --c-to: #06b6d4; }   /* You → Scan: purple → cyan */
+.flow-line:nth-of-type(4) .flow-dot { --c-from: #06b6d4; --c-to: #ec4899; }   /* Scan → Buy: cyan → pink */
+.flow-line:nth-of-type(6) .flow-dot { --c-from: #ec4899; --c-to: #facc15; }   /* Buy → Earn: pink → gold */
+
+@keyframes flowPulse {
+  0%, 100% { opacity: 0.25; transform: scale(0.8); }
+  50%      { opacity: 1;    transform: scale(1.3); }
+}
 
 /* ─── PARALLAX STRIPS ─── */
 .parallax-strip {
