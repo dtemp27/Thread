@@ -192,6 +192,7 @@ const HOODIE_COLORS_INDEX = {
   'Ember Crimson': { body:'#2a0a0a', hood:'#1a0505', cord:'#8b3030', bg:'#100303' },
   'Forest Shadow': { body:'#0b1a0d', hood:'#081208', cord:'#4a7850', bg:'#050d06' },
   'Ash Stone':     { body:'#3a3a3a', hood:'#2a2a2a', cord:'#888',    bg:'#1e1e1e' },
+  'Ivory Pure':    { body:'#f4f1ea', hood:'#e8e3d6', cord:'#cfc8b8', bg:'#f0ece2' },
 };
 
 // Map THREAD product names → image file slugs (in images/ folder)
@@ -201,6 +202,7 @@ const HOODIE_PHOTO_SLUG = {
   'Ember Crimson': 'ember-crimson',
   'Forest Shadow': 'forest-shadow',
   'Ash Stone':     'ash-stone',
+  'Ivory Pure':    'ivory-pure',
 };
 
 function hoodieThumb(name) {
