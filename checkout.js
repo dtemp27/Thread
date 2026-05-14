@@ -39,7 +39,7 @@ const HOODIE_SLUGS = {
 
 function miniHoodieSVG(name) {
   const slug = HOODIE_SLUGS[name] || 'phantom-black';
-  return `<img src="images/${slug}-front.jpg" alt="${name}" style="width:56px;height:56px;object-fit:cover;object-position:center top;border-radius:8px;background:#111">`;
+  return `<img src="images/${slug}-front.png" alt="${name}" style="width:56px;height:56px;object-fit:cover;object-position:center top;border-radius:8px;background:#111">`;
 }
 
 /* ─── Render order summary ────────────────────────────────────────────────── */
