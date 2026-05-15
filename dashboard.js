@@ -309,6 +309,8 @@ function renderStats() {
   document.getElementById('subScans').textContent    = scans ? `${scans} total scans` : 'No scans yet';
   document.getElementById('subEarned').textContent   = conv  ? `${conv} conversions`  : 'All time';
 
+  renderTier(conv);
+
   document.getElementById('qrTotalScans').textContent  = scans;
   document.getElementById('qrConversions').textContent = conv;
   document.getElementById('qrRate').textContent        = rate + '%';
@@ -334,6 +336,42 @@ function renderStats() {
     .reduce((a,b) => a+(b.amount||0), 0);
   document.getElementById('ebMonth').textContent  = '$' + monthEarned.toFixed(2);
   document.getElementById('txCount').textContent  = (s.scanHistory||[]).filter(h=>h.converted).length + ' transactions';
+}
+
+/* ─── TIER PROGRESS RENDERING ─── */
+function renderTier(conversions) {
+  if (!window.ThreadTiers) return;
+  const tier = window.ThreadTiers.getTierForReferrals(conversions);
+  const next = window.ThreadTiers.getNextTier(tier);
+  const pct  = window.ThreadTiers.progressToNext(conversions);
+  const left = window.ThreadTiers.salesUntilNext(conversions);
+
+  const badge = document.getElementById('tierBadge');
+  if (badge) badge.style.background = tier.gradient;
+  const emoji = document.getElementById('tierEmoji');
+  if (emoji) emoji.textContent = tier.emoji;
+  const name = document.getElementById('tierName');
+  if (name) name.textContent = tier.name;
+  const rate = document.getElementById('tierRate');
+  if (rate) rate.textContent = `$${tier.perSale} per referral sale (${tier.percentage}%)`;
+
+  const fill = document.getElementById('tierBarFill');
+  if (fill) {
+    fill.style.width = (pct * 100).toFixed(1) + '%';
+    fill.style.background = tier.gradient;
+  }
+  const pctEl = document.getElementById('tierProgressPct');
+  if (pctEl) pctEl.textContent = Math.round(pct * 100) + '%';
+
+  const label = document.getElementById('tierProgressLabel');
+  const nextEl = document.getElementById('tierNext');
+  if (next) {
+    if (label) label.textContent = `${conversions} / ${next.minSales} to ${next.name}`;
+    if (nextEl) nextEl.textContent = `Next: ${next.emoji} ${next.name} — $${next.perSale} per sale`;
+  } else {
+    if (label) label.textContent = `${conversions} sales · Top tier`;
+    if (nextEl) nextEl.textContent = '👑 You\'re at the top — max payout unlocked';
+  }
 }
 
 function setNum(id, target) {

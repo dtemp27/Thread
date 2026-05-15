@@ -262,14 +262,30 @@ async function finalizeOrder(orderId, customerEmail = '') {
     }
   } catch(e) { console.warn('POD submission error:', e); }
 
-  // Credit referrer commission (10%)
+  // Credit referrer commission using the tier system
+  // Starter ($22) → Hustler ($25) → Elite ($27) based on past converted sales
   let refResult = null;
   if (refCode) {
     try {
-      const commission = parseFloat((checkoutData.total * 0.10).toFixed(2));
+      // 1. Count the referrer's past converted sales BEFORE crediting this new one
+      const pastConversions = await window.DB.referrals.countConvertedForCode(refCode);
+
+      // 2. Look up their current tier from that count
+      const tier = window.ThreadTiers
+        ? window.ThreadTiers.getTierForReferrals(pastConversions)
+        : { perSale: 22, name: 'Starter' };
+
+      // 3. Commission = per-sale amount × number of hoodies in this order
+      const itemCount  = checkoutData.items.reduce((s, i) => s + i.qty, 0);
+      const commission = parseFloat((tier.perSale * itemCount).toFixed(2));
+
       await window.DB.referrals.markConverted(refCode, orderId, commission);
       const referrer = await window.DB.profiles.getByReferralCode(refCode);
-      if (referrer) refResult = { name: referrer.name, commission };
+      if (referrer) {
+        refResult = { name: referrer.name, commission, tier: tier.name };
+      }
+      console.log('[checkout] Credited referrer:',
+        { code: refCode, tier: tier.name, perSale: tier.perSale, itemCount, commission });
     } catch(e) { console.warn('Referral error:', e); }
   }
 

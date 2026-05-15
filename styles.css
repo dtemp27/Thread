@@ -1001,6 +1001,116 @@ img { display: block; max-width: 100%; }
 }
 .cart-toast.show { transform: translateY(0); opacity: 1; }
 
+/* ─── TIER LADDER (homepage rewards section) ─── */
+.tier-ladder {
+  margin: 50px 0 30px;
+  text-align: center;
+}
+.tier-ladder-head { margin-bottom: 28px; }
+.tier-ladder-head h3 {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.tier-ladder-head p {
+  font-size: 14px;
+  color: var(--text2);
+}
+.tier-ladder-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.tier-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 18px;
+  position: relative;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  overflow: hidden;
+}
+.tier-tile::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+.tier-tile:hover { transform: translateY(-6px); }
+.tier-tile:hover::before { opacity: 1; }
+
+.tier-tile-starter::before { background: radial-gradient(ellipse at center, rgba(108,99,255,0.18), transparent 70%); }
+.tier-tile-hustler::before { background: radial-gradient(ellipse at center, rgba(236,72,153,0.18), transparent 70%); }
+.tier-tile-elite::before   { background: radial-gradient(ellipse at center, rgba(250,204,21,0.22), transparent 70%); }
+
+.tier-tile-starter:hover { border-color: rgba(108,99,255,0.5); box-shadow: 0 12px 40px rgba(108,99,255,0.18); }
+.tier-tile-hustler:hover { border-color: rgba(236,72,153,0.5); box-shadow: 0 12px 40px rgba(236,72,153,0.18); }
+.tier-tile-elite:hover   { border-color: rgba(250,204,21,0.55); box-shadow: 0 12px 40px rgba(250,204,21,0.22); }
+
+.tt-emoji { font-size: 38px; margin-bottom: 10px; }
+.tt-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
+  letter-spacing: 0.01em;
+}
+.tt-range {
+  font-size: 11px;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 18px;
+}
+.tt-payout {
+  font-family: 'Space Mono', monospace;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  position: relative;
+}
+.tt-payout span {
+  font-size: 13px;
+  color: var(--text2);
+  font-weight: 500;
+  margin-left: 2px;
+}
+.tt-pct {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 3px 12px;
+  border-radius: 50px;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+.tier-tile-starter .tt-pct { background: rgba(108,99,255,0.15); color: #8b7cff; }
+.tier-tile-hustler .tt-pct { background: rgba(236,72,153,0.15); color: #f472b6; }
+.tier-tile-elite   .tt-pct { background: rgba(250,204,21,0.18); color: #facc15; }
+
+.tt-badge-top {
+  position: absolute;
+  top: 12px; right: 12px;
+  background: linear-gradient(135deg, #facc15, #f59e0b);
+  color: #111;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  padding: 3px 9px;
+  border-radius: 50px;
+}
+
+@media (max-width: 700px) {
+  .tier-ladder-grid { grid-template-columns: 1fr; }
+}
+
 /* ─── SIZE PICKER MODAL ─── */
 .size-modal-overlay {
   position: fixed;

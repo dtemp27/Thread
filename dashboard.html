@@ -89,6 +89,30 @@
         </div>
       </div>
 
+      <!-- TIER PROGRESS -->
+      <div class="tier-card" id="tierCard">
+        <div class="tier-left">
+          <div class="tier-badge" id="tierBadge">
+            <span class="tier-emoji" id="tierEmoji">🌱</span>
+          </div>
+          <div class="tier-info">
+            <div class="tier-label">Current tier</div>
+            <div class="tier-name" id="tierName">Starter</div>
+            <div class="tier-rate" id="tierRate">$22 per referral sale</div>
+          </div>
+        </div>
+        <div class="tier-progress-wrap">
+          <div class="tier-progress-top">
+            <span id="tierProgressLabel">0 / 11 to Hustler</span>
+            <span id="tierProgressPct" class="tier-pct">0%</span>
+          </div>
+          <div class="tier-bar">
+            <div class="tier-bar-fill" id="tierBarFill" style="width:0%"></div>
+          </div>
+          <div class="tier-next" id="tierNext">Next: 🔥 Hustler — $25 per sale</div>
+        </div>
+      </div>
+
       <!-- STATS -->
       <div class="stats-grid">
         <div class="stat-card" id="sc-scans">
@@ -513,6 +537,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
+  <script src="db.js"></script>
+  <script src="tiers.js"></script>
   <script src="dashboard.js"></script>
 </body>
 </html>

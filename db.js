@@ -1,3 +1,4 @@
+/**
  * THREAD Store — Unified Data Layer (db.js)
  *
  * When Supabase is configured → uses real cloud database + auth.
@@ -285,6 +286,32 @@
       }
       const session = JSON.parse(localStorage.getItem('thread_session'));
       return session?.stats?.history || [];
+    },
+
+    /* Count lifetime converted referrals for a user — used by tier system */
+    async countConvertedFor(userId) {
+      if (isLive()) {
+        const { count } = await getSB().from('referral_scans')
+          .select('id', { count: 'exact', head: true })
+          .eq('referrer_id', userId).eq('converted', true);
+        return count || 0;
+      }
+      const session = JSON.parse(localStorage.getItem('thread_session'));
+      return session?.stats?.conversions || 0;
+    },
+
+    /* Same as above but by referral code (used when we don't have the user ID) */
+    async countConvertedForCode(referralCode) {
+      if (!referralCode) return 0;
+      if (isLive()) {
+        const { count } = await getSB().from('referral_scans')
+          .select('id', { count: 'exact', head: true })
+          .eq('referral_code', referralCode).eq('converted', true);
+        return count || 0;
+      }
+      const users = JSON.parse(localStorage.getItem('thread_users') || '{}');
+      const refEmail = Object.keys(users).find(e => users[e].referralCode === referralCode);
+      return refEmail ? (users[refEmail].stats?.conversions || 0) : 0;
     },
 
     /* Admin: all scans */
