@@ -359,13 +359,28 @@ function applyPromo() {
 function toggleCart() {
   const drawer  = document.getElementById('cartDrawer');
   const overlay = document.getElementById('cartOverlay');
-  drawer?.classList.toggle('open');
-  overlay?.classList.toggle('open');
+  if (!drawer || !overlay) return;
+  // Close mobile menu first so we don't get overlapping panels
+  if (typeof closeMobileMenu === 'function') closeMobileMenu();
+  drawer.classList.toggle('open');
+  overlay.classList.toggle('open');
+  document.body.classList.toggle('cart-open', drawer.classList.contains('open'));
 }
 function openCart() {
+  if (typeof closeMobileMenu === 'function') closeMobileMenu();
   document.getElementById('cartDrawer')?.classList.add('open');
   document.getElementById('cartOverlay')?.classList.add('open');
+  document.body.classList.add('cart-open');
 }
+function closeCart() {
+  document.getElementById('cartDrawer')?.classList.remove('open');
+  document.getElementById('cartOverlay')?.classList.remove('open');
+  document.body.classList.remove('cart-open');
+}
+// Esc closes cart
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeCart();
+});
 
 /* ─── ADD TO CART (product buttons → opens size picker) ─── */
 const cartToast = document.getElementById('cartToast');
@@ -495,10 +510,14 @@ const navLinks = document.querySelector('.nav-links');
 function closeMobileMenu() {
   if (navLinks) navLinks.classList.remove('open');
   if (hamburger) hamburger.classList.remove('open');
+  document.body.classList.remove('menu-open');
 }
 function openMobileMenu() {
+  // Close cart first if open — only one panel at a time
+  if (typeof closeCart === 'function') closeCart();
   if (navLinks) navLinks.classList.add('open');
   if (hamburger) hamburger.classList.add('open');
+  document.body.classList.add('menu-open');
 }
 
 if (hamburger && navLinks) {
