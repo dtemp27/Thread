@@ -1,17 +1,51 @@
-/* ─── AUTH STATE ─── */
-(function () {
-  const id = localStorage.getItem('thread_session');
-  const users = JSON.parse(localStorage.getItem('thread_users') || '[]');
-  const user = id ? users.find(u => u.id === id) : null;
+/* ─── AUTH STATE + GLOBAL NAV ─── */
+async function renderNavAuth() {
   const actions = document.getElementById('navActions');
-  if (actions && user) {
-    actions.innerHTML = `
-      <a href="dashboard.html" class="nav-user-pill">
-        <div class="nav-user-avatar">${user.avatar}</div>
-        ${user.name.split(' ')[0]}'s Dashboard
-      </a>`;
+  const navLinks = document.querySelector('#navbar .nav-links');
+  if (!actions) return;
+
+  // Try Supabase first; fall back to localStorage session
+  let user = null;
+  try {
+    if (window.DB?.auth?.getUser) user = await window.DB.auth.getUser();
+  } catch(_) {}
+  if (!user) {
+    try { user = JSON.parse(localStorage.getItem('thread_session') || 'null'); }
+    catch(_) {}
   }
-})();
+
+  if (user) {
+    // SIGNED IN — show Dashboard + Sign Out, and add Shop link
+    const name = (user.user_metadata?.name || user.name || user.email || 'You').split(' ')[0];
+    const initial = name[0]?.toUpperCase() || 'U';
+    actions.innerHTML = `
+      <a href="dashboard.html" class="nav-user-pill" title="Open dashboard">
+        <div class="nav-user-avatar">${initial}</div>
+        ${name}
+      </a>
+      <button class="btn-ghost btn-signout" onclick="threadSignOut()">Sign Out</button>
+    `;
+  } else {
+    // SIGNED OUT — show Log In / Join Free
+    actions.innerHTML = `
+      <a href="auth.html?tab=signin" class="btn-ghost" id="navLogin">Log In</a>
+      <a href="auth.html" class="btn-primary" id="navJoin">Join Free</a>
+    `;
+  }
+}
+
+async function threadSignOut() {
+  try { if (window.DB?.auth?.signOut) await window.DB.auth.signOut(); } catch(_) {}
+  localStorage.removeItem('thread_session');
+  window.location.href = 'index.html';
+}
+
+// Run once DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', renderNavAuth);
+} else {
+  renderNavAuth();
+}
 
 /* ─── REFERRAL TRACKING ─── */
 (function () {
@@ -333,6 +367,16 @@ document.querySelectorAll('.btn-add-cart').forEach(btn => {
     const name  = btn.dataset.product || card?.querySelector('h3')?.textContent || 'Item';
     const price = btn.dataset.price   || '89';
     openSizeModal(name, price);
+  });
+});
+
+/* ─── Tap the photo (mobile) to toggle front/back ─── */
+document.querySelectorAll('.product-card .product-img').forEach(imgArea => {
+  imgArea.addEventListener('click', (e) => {
+    if (e.target.closest('.btn-add-cart')) return;        // don't intercept button clicks
+    const card = imgArea.closest('.product-card');
+    if (!card) return;
+    card.classList.toggle('flipped');
   });
 });
 

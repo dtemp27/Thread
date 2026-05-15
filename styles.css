@@ -20,14 +20,21 @@
   --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
 }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  width: 100%;
+}
 
 body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Space Grotesk', sans-serif;
   overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
   line-height: 1.6;
+  position: relative;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -1384,8 +1391,13 @@ img { display: block; max-width: 100%; }
 .hoodie-front { opacity: 1; z-index: 1; }
 .hoodie-back  { opacity: 0; z-index: 2; }
 
-.product-card:hover .hoodie-front { opacity: 0; transform: scale(1.02); }
-.product-card:hover .hoodie-back  { opacity: 1; transform: scale(1.02); }
+.product-card:hover .hoodie-front,
+.product-card.flipped .hoodie-front { opacity: 0; transform: scale(1.02); }
+.product-card:hover .hoodie-back,
+.product-card.flipped .hoodie-back  { opacity: 1; transform: scale(1.02); }
+
+/* Make .product-img feel tappable on touch devices */
+.product-img { cursor: pointer; }
 
 .qr-back-hint {
   position: absolute;
@@ -1419,6 +1431,19 @@ img { display: block; max-width: 100%; }
   text-decoration: none;
 }
 .nav-user-pill:hover { border-color: var(--accent); }
+.btn-signout {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 8px 16px;
+  border-radius: 50px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.btn-signout:hover { border-color: #ef4444; color: #ef4444; }
 .nav-user-avatar {
   width: 28px; height: 28px;
   border-radius: 50%;

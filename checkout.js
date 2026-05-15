@@ -124,14 +124,16 @@ function handleGooglePay() {
   setTimeout(() => finalizeOrder(genOrderId()), 2000);
 }
 
-/* ─── Simple checkout handler ─────────────────────────────────────────────── */
+/* ─── Simple checkout handler — Stripe collects email on its own page ─── */
 async function handleCheckout(e) {
   e.preventDefault();
-  const email = document.getElementById('cardEmail').value.trim();
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    showError('Please enter a valid email for your receipt.');
-    return;
-  }
+  // Try to use the logged-in user's email if available (pre-fills Stripe form),
+  // otherwise hand off blank and let Stripe collect it.
+  let email = '';
+  try {
+    const u = await window.DB?.auth?.getUser?.();
+    if (u?.email) email = u.email;
+  } catch(_) {}
   await launchStripeCheckout(email);
 }
 
@@ -142,8 +144,9 @@ async function launchStripeCheckout(email) {
   const spin = document.getElementById('paySpinner');
   btn.disabled = true; txt.style.display = 'none'; spin.style.display = 'block';
 
-  // Save email for use after Stripe returns
-  localStorage.setItem('thread_checkout_email', email);
+  // Save email (if available) for use after Stripe returns
+  if (email) localStorage.setItem('thread_checkout_email', email);
+  else       localStorage.removeItem('thread_checkout_email');
 
   try {
     const orderId = genOrderId();
