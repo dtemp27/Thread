@@ -517,8 +517,14 @@ function openMobileMenu() {
   if (typeof closeCart === 'function') closeCart();
   if (navLinks) navLinks.classList.add('open');
   if (hamburger) hamburger.classList.add('open');
-  document.body.classList.add('menu-open');
 }
+
+// Tap anywhere outside the menu closes it
+document.addEventListener('click', e => {
+  if (!navLinks?.classList.contains('open')) return;
+  if (e.target.closest('.nav-links') || e.target.closest('.hamburger')) return;
+  closeMobileMenu();
+});
 
 if (hamburger && navLinks) {
   hamburger.addEventListener('click', () => {
