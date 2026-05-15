@@ -15,13 +15,24 @@ async function renderNavAuth() {
   }
 
   if (user) {
-    // SIGNED IN — show Dashboard + Sign Out, and add Shop link
-    const name = (user.user_metadata?.name || user.name || user.email || 'You').split(' ')[0];
-    const initial = name[0]?.toUpperCase() || 'U';
+    // SIGNED IN — show Dashboard button + Sign Out
+    // Try to grab the real name from the Supabase profiles table; fall back to metadata/email
+    let displayName = user.user_metadata?.name || user.name || '';
+    try {
+      if (window.DB?.profiles?.get && user.id) {
+        const profile = await window.DB.profiles.get(user.id);
+        if (profile?.name) displayName = profile.name;
+      }
+    } catch(_) {}
+    if (!displayName) {
+      // Last resort — use the part of email before '@'
+      displayName = (user.email || 'You').split('@')[0];
+    }
+    const initial = (displayName.trim()[0] || 'U').toUpperCase();
     actions.innerHTML = `
-      <a href="dashboard.html" class="nav-user-pill" title="Open dashboard">
+      <a href="dashboard.html" class="nav-user-pill" title="${displayName}'s dashboard">
         <div class="nav-user-avatar">${initial}</div>
-        ${name}
+        Dashboard
       </a>
       <button class="btn-ghost btn-signout" onclick="threadSignOut()">Sign Out</button>
     `;
