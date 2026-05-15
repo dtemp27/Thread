@@ -74,14 +74,15 @@ function renderSummary() {
     document.getElementById('coPromoSaving').textContent    = data.discount.toFixed(2);
   }
 
-  // Referral attribution
-  if (refCode) {
-    DB.profiles.getByReferralCode(refCode).then(referrer => {
+  // Referral attribution. Keep this optional so checkout still works if db.js
+  // fails to load; the server webhook handles the real paid order.
+  if (refCode && window.DB?.profiles?.getByReferralCode) {
+    window.DB.profiles.getByReferralCode(refCode).then(referrer => {
       if (referrer) {
         document.getElementById('coRefNotice').style.display = 'flex';
         document.getElementById('coRefName').textContent     = referrer.name;
       }
-    });
+    }).catch(() => {});
   }
 }
 
@@ -90,6 +91,24 @@ if (checkoutData) renderSummary();
 /* ─── Generate order ID ───────────────────────────────────────────────────── */
 function genOrderId() {
   return 'TH-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2,6).toUpperCase();
+}
+
+async function getCheckoutEmail() {
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (cfg?.supabaseUrl && window.supabase?.createClient) {
+      const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+      const { data } = await sb.auth.getUser();
+      if (data?.user?.email) return data.user.email;
+    }
+  } catch (_) {}
+
+  try {
+    const session = JSON.parse(localStorage.getItem('thread_session') || 'null');
+    if (session?.email) return session.email;
+  } catch (_) {}
+
+  return '';
 }
 
 /* ─── Apple Pay ───────────────────────────────────────────────────────────── */
@@ -127,13 +146,9 @@ function handleGooglePay() {
 /* ─── Simple checkout handler — Stripe collects email on its own page ─── */
 async function handleCheckout(e) {
   e.preventDefault();
-  // Try to use the logged-in user's email if available (pre-fills Stripe form),
-  // otherwise hand off blank and let Stripe collect it.
-  let email = '';
-  try {
-    const u = await window.DB?.auth?.getUser?.();
-    if (u?.email) email = u.email;
-  } catch(_) {}
+  // Try to use the logged-in user's email if available (pre-fills Stripe form).
+  // Stripe still collects/verifies the customer email on its hosted page.
+  const email = await getCheckoutEmail();
   await launchStripeCheckout(email);
 }
 
@@ -158,6 +173,7 @@ async function launchStripeCheckout(email) {
         items:        checkoutData.items,
         total:        checkoutData.total,
         orderId:      orderId,
+        customerEmail: email || '',
         referralCode: refCode || '',
         promoCode:    checkoutData.promoCode || '',
         successUrl:   base + '/checkout.html',
@@ -223,7 +239,7 @@ async function finalizeOrder(orderId, customerEmail = '') {
   // Save order to database (now includes the print-file reference)
   try {
     await window.DB.orders.create({
-      id:               orderId,
+      order_number:     orderId,
       items:            checkoutData.items,
       subtotal:         checkoutData.subtotal,
       discount:         checkoutData.discount || 0,

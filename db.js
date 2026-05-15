@@ -202,13 +202,20 @@
   const Orders = {
 
     async create(orderData) {
+      const payload = { ...orderData };
+      const uuidLike = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (payload.id && !uuidLike.test(String(payload.id))) {
+        payload.order_number = payload.order_number || payload.id;
+        delete payload.id;
+      }
+
       if (isLive()) {
-        const { data, error } = await getSB().from('orders').insert(orderData).select().single();
+        const { data, error } = await getSB().from('orders').insert(payload).select().single();
         return { data, error };
       }
       // Fallback
       const orders = JSON.parse(localStorage.getItem('thread_orders') || '[]');
-      const order  = { id: 'LS-' + Date.now(), ...orderData, created_at: new Date().toISOString() };
+      const order  = { id: 'LS-' + Date.now(), ...payload, created_at: new Date().toISOString() };
       orders.unshift(order);
       localStorage.setItem('thread_orders', JSON.stringify(orders));
       return { data: order, error: null };
@@ -266,13 +273,17 @@
 
     async markConverted(referralCode, orderId, commission) {
       if (isLive()) {
+        const uuidLike = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        const updatePayload = { converted: true, commission, status: 'pending' };
+        if (uuidLike.test(String(orderId))) updatePayload.order_id = orderId;
+
         // Mark the most recent unconverted scan for this referral code
         const { data } = await getSB().from('referral_scans')
           .select('id').eq('referral_code', referralCode).eq('converted', false)
           .order('created_at', { ascending: false }).limit(1);
         if (data?.length) {
           await getSB().from('referral_scans')
-            .update({ converted: true, order_id: orderId, commission, status: 'pending' })
+            .update(updatePayload)
             .eq('id', data[0].id);
         }
         return;

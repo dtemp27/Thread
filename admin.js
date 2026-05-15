@@ -307,6 +307,7 @@ function renderOrders() {
   if (search) {
     filtered = filtered.filter(o =>
       (o.id || '').toLowerCase().includes(search) ||
+      (o.order_number || '').toLowerCase().includes(search) ||
       (o.customer_email || '').toLowerCase().includes(search) ||
       (o.profiles?.email || '').toLowerCase().includes(search) ||
       (o.profiles?.name  || '').toLowerCase().includes(search)
@@ -326,7 +327,8 @@ function orderRow(o, showAction) {
   const date = o.created_at
     ? new Date(o.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : '—';
-  const idShort = (o.id || '').slice(0, 12);
+  const displayId = o.order_number || o.id || '';
+  const idShort = displayId.length > 16 ? displayId.slice(0, 16) + '...' : displayId;
   const ref     = o.referral_code ? `<code style="font-size:11px">${o.referral_code}</code>` : '—';
 
   const action = showAction
@@ -334,7 +336,7 @@ function orderRow(o, showAction) {
     : '';
 
   return `<tr>
-    <td><code style="font-size:11px">${idShort}…</code></td>
+    <td><code style="font-size:11px">${idShort}</code></td>
     <td>${customer}</td>
     <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${items}</td>
     <td style="font-family:var(--mono)">$${parseFloat(o.total||0).toFixed(2)}</td>
