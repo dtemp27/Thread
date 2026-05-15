@@ -266,29 +266,43 @@ async function finalizeOrder(orderId, customerEmail = '') {
   } catch(e) { console.warn('POD submission error:', e); }
 
   // Credit referrer commission using the tier system
-  // Starter ($22) → Hustler ($25) → Elite ($27) based on past converted sales
+  // Priority for "who gets the credit":
+  //   1. Buyer's profile.referred_by  — account-linked, survives device/browser switches
+  //   2. localStorage thread_ref       — current-browser session fallback
+  //   3. URL ?ref= param               — if they're checking out directly from a scan
   let refResult = null;
-  if (refCode) {
+  let effectiveRefCode = refCode;  // starts as localStorage value
+  try {
+    const buyer = await window.DB.auth.getUser();
+    if (buyer) {
+      const profile = await window.DB.profiles.get(buyer.id);
+      if (profile?.referredBy || profile?.referred_by) {
+        effectiveRefCode = profile.referredBy || profile.referred_by;
+      }
+    }
+  } catch(_) {}
+
+  if (effectiveRefCode) {
     try {
       // 1. Count the referrer's past converted sales BEFORE crediting this new one
-      const pastConversions = await window.DB.referrals.countConvertedForCode(refCode);
+      const pastConversions = await window.DB.referrals.countConvertedForCode(effectiveRefCode);
 
       // 2. Look up their current tier from that count
       const tier = window.ThreadTiers
         ? window.ThreadTiers.getTierForReferrals(pastConversions)
-        : { perSale: 22, name: 'Starter' };
+        : { perSale: 20, name: 'Starter' };
 
       // 3. Commission = per-sale amount × number of hoodies in this order
       const itemCount  = checkoutData.items.reduce((s, i) => s + i.qty, 0);
       const commission = parseFloat((tier.perSale * itemCount).toFixed(2));
 
-      await window.DB.referrals.markConverted(refCode, orderId, commission);
-      const referrer = await window.DB.profiles.getByReferralCode(refCode);
+      await window.DB.referrals.markConverted(effectiveRefCode, orderId, commission);
+      const referrer = await window.DB.profiles.getByReferralCode(effectiveRefCode);
       if (referrer) {
         refResult = { name: referrer.name, commission, tier: tier.name };
       }
       console.log('[checkout] Credited referrer:',
-        { code: refCode, tier: tier.name, perSale: tier.perSale, itemCount, commission });
+        { code: effectiveRefCode, tier: tier.name, perSale: tier.perSale, itemCount, commission });
     } catch(e) { console.warn('Referral error:', e); }
   }
 

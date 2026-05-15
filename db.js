@@ -54,10 +54,18 @@
         if (error) return { error };
 
         const referralCode = generateReferralCode(name);
+        // Account-linking attribution: if they scanned a QR before signing up,
+        // capture WHO referred them so we can credit that person on any future
+        // purchase, even from a different device.
+        const referredBy = (localStorage.getItem('thread_ref') || '').trim() || null;
+
         // Use UPSERT so we overwrite the temp code that the DB trigger
         // (`on_auth_user_created`) inserts with the friendly name-based code.
         const { error: pe } = await getSB().from('profiles').upsert({
-          id: data.user.id, email, name, referral_code: referralCode
+          id: data.user.id,
+          email, name,
+          referral_code: referralCode,
+          referred_by:   referredBy,
         }, { onConflict: 'id' });
         if (pe) return { error: pe };
 
@@ -71,9 +79,11 @@
       if (users[email]) return { error: { message: 'Email already registered.' } };
 
       const referralCode = generateReferralCode(name);
+      const referredBy = (localStorage.getItem('thread_ref') || '').trim() || null;
       const user = {
         id: 'loc_' + Math.random().toString(36).slice(2, 10),
         email, name, referralCode,
+        referredBy,
         passwordHash: simpleHash(password),
         stats: { totalScans: 0, conversions: 0, earned: 0, pending: 0, history: [] },
         purchases: [],
@@ -148,7 +158,11 @@
       if (isLive()) {
         if (_profile?.id === userId) return _profile;
         const { data } = await getSB().from('profiles').select('*').eq('id', userId).single();
-        _profile = data ? { ...data, referralCode: data.referral_code } : null;
+        _profile = data ? {
+          ...data,
+          referralCode: data.referral_code,
+          referredBy:   data.referred_by,
+        } : null;
         return _profile;
       }
       const session = JSON.parse(localStorage.getItem('thread_session'));

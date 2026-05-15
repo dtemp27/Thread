@@ -9,11 +9,16 @@ create table if not exists public.profiles (
   id             uuid  references auth.users(id) on delete cascade primary key,
   email          text  not null unique,
   name           text  not null,
-  referral_code  text  not null unique,
+  referral_code  text  not null unique,            -- THIS user's QR code
+  referred_by    text,                              -- the OTHER user's code that brought them in (account-linked attribution)
   payout_method  text  default 'cash',
   payout_handle  text,
   created_at     timestamptz default now()
 );
+
+-- Add the column to existing tables that pre-date this migration
+alter table public.profiles add column if not exists referred_by text;
+create index if not exists idx_profiles_referred_by on public.profiles(referred_by);
 
 alter table public.profiles enable row level security;
 
@@ -42,11 +47,21 @@ create table if not exists public.orders (
   discount           numeric(10,2) default 0,
   total              numeric(10,2) not null default 0,
   promo_code         text,
-  referral_code      text,
+  referral_code      text,                     -- code of the REFERRER (who sent this buyer)
   status             text  default 'pending',  -- pending | paid | shipped | delivered | refunded
   customer_email     text,
+  print_file_url     text,                     -- unique QR + logo PNG sent to POD service
+  buyer_qr_code      text,                     -- this BUYER's referral code (printed on their hoodie)
+  pod_service        text,                     -- 'apliiq' | 'printful' | 'printify'
+  pod_order_id       text,                     -- POD service's order ID for fulfilment tracking
   created_at         timestamptz default now()
 );
+
+-- If the orders table already existed before, add the new columns
+alter table public.orders add column if not exists print_file_url text;
+alter table public.orders add column if not exists buyer_qr_code  text;
+alter table public.orders add column if not exists pod_service    text;
+alter table public.orders add column if not exists pod_order_id   text;
 
 alter table public.orders enable row level security;
 
