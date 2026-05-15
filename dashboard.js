@@ -353,7 +353,7 @@ function renderTier(conversions) {
   const name = document.getElementById('tierName');
   if (name) name.textContent = tier.name;
   const rate = document.getElementById('tierRate');
-  if (rate) rate.textContent = `$${tier.perSale} per referral sale (${tier.percentage}%)`;
+  if (rate) rate.textContent = `$${tier.perSale} per referral sale`;
 
   const fill = document.getElementById('tierBarFill');
   if (fill) {

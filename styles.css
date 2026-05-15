@@ -185,8 +185,23 @@ img { display: block; max-width: 100%; }
 .nav-links a { font-size: 14px; color: var(--text2); transition: var(--transition); font-weight: 500; }
 .nav-links a:hover { color: var(--text); }
 .nav-actions { display: flex; align-items: center; gap: 12px; }
-.hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 4px; }
-.hamburger span { display: block; width: 22px; height: 2px; background: var(--text); border-radius: 2px; transition: var(--transition); }
+.hamburger {
+  display: none; flex-direction: column;
+  justify-content: center; align-items: center;
+  gap: 5px; background: none; border: none; cursor: pointer;
+  padding: 4px; width: 32px; height: 32px;
+  position: relative; z-index: 1100;
+}
+.hamburger span {
+  display: block; width: 22px; height: 2px;
+  background: var(--text); border-radius: 2px;
+  transition: transform 0.3s ease, opacity 0.25s ease;
+  transform-origin: center;
+}
+/* When open, morph the 3 bars into an X */
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
 /* ─── HERO ─── */
 .hero {
@@ -1391,12 +1406,17 @@ img { display: block; max-width: 100%; }
 .hoodie-front { opacity: 1; z-index: 1; }
 .hoodie-back  { opacity: 0; z-index: 2; }
 
-.product-card:hover .hoodie-front,
+/* Desktop-only hover (no sticky :hover state on touch devices) */
+@media (hover: hover) and (pointer: fine) {
+  .product-card:hover .hoodie-front { opacity: 0; transform: scale(1.02); }
+  .product-card:hover .hoodie-back  { opacity: 1; transform: scale(1.02); }
+}
+
+/* Mobile + desktop: .flipped class toggles back image via tap */
 .product-card.flipped .hoodie-front { opacity: 0; transform: scale(1.02); }
-.product-card:hover .hoodie-back,
 .product-card.flipped .hoodie-back  { opacity: 1; transform: scale(1.02); }
 
-/* Make .product-img feel tappable on touch devices */
+/* Make .product-img feel tappable */
 .product-img { cursor: pointer; }
 
 .qr-back-hint {
@@ -1528,22 +1548,24 @@ img { display: block; max-width: 100%; }
   .cart-drawer { width: 100%; }
   .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
   .footer-links { flex-wrap: wrap; gap: 24px; }
-  /* Mobile nav dropdown (toggled by JS) */
-  .nav-links[style*="flex"] {
-    position: fixed !important;
-    top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
-    background: rgba(8,8,8,0.98) !important;
-    backdrop-filter: blur(20px) !important;
-    border: none !important;
-    padding: 80px 32px 40px !important;
-    flex-direction: column !important;
-    gap: 0 !important;
-    z-index: 998 !important;
-    align-items: flex-start !important;
-    justify-content: flex-start !important;
-    overflow-y: auto !important;
+  /* Mobile nav dropdown (toggled by JS via .open class) */
+  .nav-links.open {
+    display: flex !important;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(8,8,8,0.98);
+    backdrop-filter: blur(20px);
+    border: none;
+    padding: 80px 32px 40px;
+    flex-direction: column;
+    gap: 0;
+    z-index: 1050;
+    align-items: flex-start;
+    justify-content: flex-start;
+    overflow-y: auto;
   }
-  .nav-links[style*="flex"] li a {
+  .nav-links.open li a,
+  .nav-links.open a {
     display: block;
     padding: 18px 0;
     font-size: 22px;

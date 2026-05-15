@@ -295,7 +295,7 @@ function renderCartDrawer() {
         <div class="cd-item-name">${item.name}</div>
         <div class="cd-item-size">Size: ${item.size || 'M'}</div>
         <div class="cd-item-price">$${item.price}</div>
-        <div class="cd-item-earn">Earns referrer $22</div>
+        <div class="cd-item-earn">Earns referrer $20+</div>
       </div>
       <div class="cd-item-controls">
         <button class="cd-qty-btn" onclick="updateCartQty(${idx}, -1)">−</button>
@@ -491,20 +491,30 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
 /* ─── HAMBURGER MENU ─── */
 const hamburger = document.getElementById('hamburger');
 const navLinks = document.querySelector('.nav-links');
+
+function closeMobileMenu() {
+  if (navLinks) navLinks.classList.remove('open');
+  if (hamburger) hamburger.classList.remove('open');
+}
+function openMobileMenu() {
+  if (navLinks) navLinks.classList.add('open');
+  if (hamburger) hamburger.classList.add('open');
+}
+
 if (hamburger && navLinks) {
   hamburger.addEventListener('click', () => {
-    navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
-    navLinks.style.flexDirection = 'column';
-    navLinks.style.position = 'absolute';
-    navLinks.style.top = '70px';
-    navLinks.style.left = '0';
-    navLinks.style.right = '0';
-    navLinks.style.background = 'rgba(8,8,8,0.95)';
-    navLinks.style.padding = '20px 24px';
-    navLinks.style.borderBottom = '1px solid rgba(255,255,255,0.07)';
-    navLinks.style.backdropFilter = 'blur(20px)';
+    if (navLinks.classList.contains('open')) closeMobileMenu();
+    else openMobileMenu();
+  });
+  // Close when tapping any nav link
+  navLinks.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', closeMobileMenu);
   });
 }
+// Esc closes the menu
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeMobileMenu();
+});
 
 /* ─── FLOATING REWARDS MOUSE PARALLAX ─── */
 const floatingRewards = document.querySelectorAll('.floating-reward');
