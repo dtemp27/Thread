@@ -27,6 +27,11 @@
       perSale:   22,
       percentage: 25,
       tagline:   'Just getting started',
+      perks: [
+        '$22 per referral sale',
+        'Cash, gift card, or store credit payouts',
+      ],
+      unlockReward: null,
     },
     {
       id:        'hustler',
@@ -39,6 +44,16 @@
       perSale:   25,
       percentage: 28,
       tagline:   'Making moves',
+      perks: [
+        '$25 per referral sale',
+        '🎁 Hustler Drop Box (sticker pack + hangtag)',
+        'Early access to new colorways',
+      ],
+      unlockReward: {
+        emoji: '🎁',
+        name:  'Hustler Drop Box',
+        items: ['THREAD sticker pack', 'Embroidered hangtag', 'Surprise extra'],
+      },
     },
     {
       id:        'elite',
@@ -51,6 +66,17 @@
       perSale:   27,
       percentage: 30,
       tagline:   'Top earner',
+      perks: [
+        '$27 per referral sale (max payout)',
+        '👑 Elite Drop Box (exclusive colorway + premium swag)',
+        'First pick on limited drops',
+        'Spot on the public leaderboard',
+      ],
+      unlockReward: {
+        emoji: '👑',
+        name:  'Elite Drop Box',
+        items: ['Exclusive colorway preview', 'Premium THREAD pin set', 'Free hoodie of choice', 'Surprise extra'],
+      },
     },
   ];
 

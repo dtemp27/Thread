@@ -344,8 +344,8 @@ function renderTier(conversions) {
   const tier = window.ThreadTiers.getTierForReferrals(conversions);
   const next = window.ThreadTiers.getNextTier(tier);
   const pct  = window.ThreadTiers.progressToNext(conversions);
-  const left = window.ThreadTiers.salesUntilNext(conversions);
 
+  // 1. Current tier card
   const badge = document.getElementById('tierBadge');
   if (badge) badge.style.background = tier.gradient;
   const emoji = document.getElementById('tierEmoji');
@@ -371,6 +371,53 @@ function renderTier(conversions) {
   } else {
     if (label) label.textContent = `${conversions} sales · Top tier`;
     if (nextEl) nextEl.textContent = '👑 You\'re at the top — max payout unlocked';
+  }
+
+  // 2. Full tier ladder with Drop Box rewards
+  const grid = document.getElementById('dashTierGrid');
+  if (grid) {
+    grid.innerHTML = window.ThreadTiers.TIERS.map(t => {
+      const status =
+        t.id === tier.id ? 'current' :
+        conversions > t.maxSales ? 'unlocked' :
+        'locked';
+      const rangeText = t.maxSales === Infinity
+        ? `${t.minSales}+ sales`
+        : `${t.minSales} – ${t.maxSales} sales`;
+      const dropBox = t.unlockReward ? `
+        <div class="dt-reward">
+          <div class="dt-reward-head">
+            <span class="dt-gift">${t.unlockReward.emoji}</span>
+            <span class="dt-reward-name">${t.unlockReward.name}</span>
+          </div>
+          <ul class="dt-reward-items">
+            ${t.unlockReward.items.map(i => `<li>${i}</li>`).join('')}
+          </ul>
+        </div>
+      ` : `
+        <div class="dt-reward dt-reward-none">
+          <div class="dt-reward-head"><span class="dt-gift">✨</span><span class="dt-reward-name">Starting perks</span></div>
+          <ul class="dt-reward-items">
+            <li>Permanent QR code on your hoodie</li>
+            <li>Live earnings dashboard</li>
+            <li>Cash, gift card, or store credit</li>
+          </ul>
+        </div>
+      `;
+      return `
+        <div class="dt-tile dt-tile-${t.id} dt-${status}">
+          ${status === 'current' ? '<div class="dt-tag-current">YOU\'RE HERE</div>' : ''}
+          ${status === 'unlocked' ? '<div class="dt-tag-unlocked">✓ UNLOCKED</div>' : ''}
+          <div class="dt-top" style="background:${t.gradient}">
+            <div class="dt-emoji">${t.emoji}</div>
+            <div class="dt-name">${t.name}</div>
+            <div class="dt-range">${rangeText}</div>
+            <div class="dt-rate">$${t.perSale}<span>/sale</span></div>
+          </div>
+          ${dropBox}
+        </div>
+      `;
+    }).join('');
   }
 }
 
