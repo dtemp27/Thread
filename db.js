@@ -54,9 +54,11 @@
         if (error) return { error };
 
         const referralCode = generateReferralCode(name);
-        const { error: pe } = await getSB().from('profiles').insert({
+        // Use UPSERT so we overwrite the temp code that the DB trigger
+        // (`on_auth_user_created`) inserts with the friendly name-based code.
+        const { error: pe } = await getSB().from('profiles').upsert({
           id: data.user.id, email, name, referral_code: referralCode
-        });
+        }, { onConflict: 'id' });
         if (pe) return { error: pe };
 
         _user    = data.user;
