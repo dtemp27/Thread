@@ -250,7 +250,7 @@ function renderCartDrawer() {
         <div class="cd-item-name">${item.name}</div>
         <div class="cd-item-size">Size: ${item.size || 'M'}</div>
         <div class="cd-item-price">$${item.price}</div>
-        <div class="cd-item-earn">Earns referrer $${Math.round(item.price * 0.22)}</div>
+        <div class="cd-item-earn">Earns referrer $22</div>
       </div>
       <div class="cd-item-controls">
         <button class="cd-qty-btn" onclick="updateCartQty(${idx}, -1)">−</button>
