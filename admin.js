@@ -4,8 +4,13 @@
 const ADMIN_KEY = 'thread_admin_authed';
 
 (function checkAdminGate() {
-  if (sessionStorage.getItem(ADMIN_KEY) === '1') {
-    unlock();
+  try {
+    if (sessionStorage.getItem(ADMIN_KEY) === '1') {
+      unlock();
+    }
+  } catch(e) {
+    // If anything crashes during auto-unlock, just show the gate
+    sessionStorage.removeItem(ADMIN_KEY);
   }
 })();
 
@@ -23,10 +28,16 @@ function checkGate() {
 }
 
 function unlock() {
-  document.getElementById('adminGate').style.display = 'none';
-  document.getElementById('adminApp').style.display  = 'flex';
-  updateModeBadge();
-  loadAllData();
+  try {
+    document.getElementById('adminGate').style.display = 'none';
+    document.getElementById('adminApp').style.display  = 'flex';
+    updateModeBadge();
+    loadAllData();
+  } catch(e) {
+    // If crash, clear session and reload so the gate shows
+    sessionStorage.removeItem(ADMIN_KEY);
+    window.location.reload();
+  }
 }
 
 function adminSignOut() {
@@ -81,8 +92,131 @@ async function loadAllData() {
   renderOrders();
   renderCustomers();
   renderReferrals();
+  loadDropBoxes();
 
   refresh.textContent = 'Updated ' + new Date().toLocaleTimeString();
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   DROP BOX QUEUE  (tier-up physical reward fulfillment)
+───────────────────────────────────────────────────────────────────────── */
+const DROPBOX_KEY = 'thread_admin_dropboxes_shipped';
+function getShippedDropboxes() {
+  try { return JSON.parse(localStorage.getItem(DROPBOX_KEY) || '[]'); }
+  catch { return []; }
+}
+function saveShippedDropboxes(list) {
+  localStorage.setItem(DROPBOX_KEY, JSON.stringify(list));
+}
+function markDropboxShipped(referrerId, tierId, wearerName) {
+  const list = getShippedDropboxes();
+  list.push({ referrerId, tierId, wearerName, shippedAt: Date.now() });
+  saveShippedDropboxes(list);
+  loadDropBoxes();
+}
+function undoDropboxShipped(referrerId, tierId) {
+  const list = getShippedDropboxes().filter(x => !(x.referrerId === referrerId && x.tierId === tierId));
+  saveShippedDropboxes(list);
+  loadDropBoxes();
+}
+
+async function loadDropBoxes() {
+  if (!window.ThreadTiers) return;
+
+  // 1. Build a referrer-id → { name, email, code, conversions } map from scans + customers
+  const byReferrerId = {};
+  allScans.forEach(s => {
+    if (!s.referrer_id) return;
+    if (!byReferrerId[s.referrer_id]) {
+      byReferrerId[s.referrer_id] = { conversions: 0, code: s.referral_code };
+    }
+    if (s.converted) byReferrerId[s.referrer_id].conversions++;
+  });
+  // Attach customer details
+  Object.keys(byReferrerId).forEach(id => {
+    const cust = allCustomers.find(c => c.id === id || c.user_id === id);
+    if (cust) {
+      byReferrerId[id].name  = cust.name || cust.email || '—';
+      byReferrerId[id].email = cust.email;
+    } else {
+      byReferrerId[id].name  = byReferrerId[id].code || 'Unknown';
+      byReferrerId[id].email = '—';
+    }
+  });
+
+  // 2. Compute owed drop boxes (every tier-up earns a box; track shipped state)
+  const shipped = getShippedDropboxes();
+  const isShipped = (referrerId, tierId) =>
+    shipped.some(x => x.referrerId === referrerId && x.tierId === tierId);
+
+  const owed = [];
+  Object.entries(byReferrerId).forEach(([refId, info]) => {
+    window.ThreadTiers.TIERS.forEach(tier => {
+      if (!tier.unlockReward) return;                       // Starter has no box
+      if (info.conversions >= tier.minSales && !isShipped(refId, tier.id)) {
+        owed.push({ referrerId: refId, ...info, tier });
+      }
+    });
+  });
+
+  // 3. Render queue
+  const body  = document.getElementById('dropBoxBody');
+  const badge = document.getElementById('dropBoxBadge');
+  if (badge) badge.textContent = owed.length;
+
+  if (!owed.length) {
+    body.innerHTML = `<tr><td colspan="6" class="ad-empty">No pending drop boxes 👌</td></tr>`;
+  } else {
+    body.innerHTML = owed.map(r => {
+      const contents = r.tier.unlockReward.items.map(i => `<li>${i}</li>`).join('');
+      return `
+        <tr>
+          <td><strong>${escapeHtml(r.name)}</strong></td>
+          <td>${escapeHtml(r.email)}</td>
+          <td><span class="db-tier-pill db-tier-${r.tier.id}">${r.tier.emoji} ${r.tier.name}</span></td>
+          <td><strong>${r.conversions}</strong></td>
+          <td><ul class="db-contents">${contents}</ul></td>
+          <td>
+            <button class="ad-action-btn ship" onclick="markDropboxShipped('${r.referrerId}','${r.tier.id}','${escapeHtml(r.name)}')">
+              ✓ Mark Shipped
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // 4. Render history
+  const histBody = document.getElementById('dropBoxHistoryBody');
+  if (!shipped.length) {
+    histBody.innerHTML = `<tr><td colspan="4" class="ad-empty">No shipped drop boxes yet</td></tr>`;
+  } else {
+    histBody.innerHTML = shipped.slice().reverse().map(s => {
+      const tier = window.ThreadTiers.TIERS.find(t => t.id === s.tierId);
+      return `
+        <tr>
+          <td>${escapeHtml(s.wearerName || '—')}</td>
+          <td><span class="db-tier-pill db-tier-${s.tierId}">${tier?.emoji || '🎁'} ${tier?.name || s.tierId}</span></td>
+          <td>${new Date(s.shippedAt).toLocaleDateString()} ${new Date(s.shippedAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</td>
+          <td><button class="ad-action-btn refund-btn" onclick="undoDropboxShipped('${s.referrerId}','${s.tierId}')">Undo</button></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // 5. Stat counts
+  const totalPending = owed.length;
+  const totalHustler = owed.filter(o => o.tier.id === 'hustler').length;
+  const totalElite   = owed.filter(o => o.tier.id === 'elite').length;
+  const totalShipped = shipped.length;
+  document.getElementById('dbPending').textContent = totalPending;
+  document.getElementById('dbHustler').textContent = totalHustler;
+  document.getElementById('dbElite').textContent   = totalElite;
+  document.getElementById('dbShipped').textContent = totalShipped;
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 /* ─────────────────────────────────────────────────────────────────────────

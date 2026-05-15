@@ -1,5 +1,49 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ─── DROP BOX QUEUE STYLES ─── */
+.db-tier-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.db-tier-starter { background: rgba(108,99,255,0.18); color: #a78bfa; }
+.db-tier-hustler { background: rgba(236,72,153,0.18); color: #f472b6; }
+.db-tier-elite   { background: rgba(250,204,21,0.20); color: #facc15; }
+
+.db-contents {
+  list-style: none;
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.65);
+}
+.db-contents li {
+  padding-left: 12px;
+  position: relative;
+}
+.db-contents li::before {
+  content: '+';
+  position: absolute;
+  left: 0;
+  color: rgba(255,255,255,0.3);
+}
+
+.ad-action-btn.ship {
+  background: #22c55e;
+  color: #000;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 50px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+}
+.ad-action-btn.ship:hover { background: #16a34a; color: #fff; }
+
+
 :root {
   --bg:       #0a0a0a;
   --surface:  #111;
