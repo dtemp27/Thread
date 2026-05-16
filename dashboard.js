@@ -842,9 +842,25 @@ function scheduleNextScan() {
 }
 
 /* ═══════════════════════════════════════════════
-   DEMO DATA LOADER
+   DEMO DATA TOGGLE
 ═══════════════════════════════════════════════ */
+let _realStats     = null;
+let _realPurchases = null;
+let _demoActive    = false;
+
+function toggleDemo() {
+  if (_demoActive) {
+    clearDemoData();
+  } else {
+    loadDemoData();
+  }
+}
+
 function loadDemoData() {
+  /* save real data so we can restore it */
+  _realStats     = JSON.parse(JSON.stringify(user.stats));
+  _realPurchases = JSON.parse(JSON.stringify(user.purchases));
+
   const history = [];
   const now = Date.now();
   for (let i = 29; i >= 0; i--) {
@@ -868,10 +884,32 @@ function loadDemoData() {
     totalEarned:     parseFloat(convItems.reduce((a,b)=>a+(b.amount||0),0).toFixed(2)),
     scanHistory:     history
   };
-  updateUser(user);
-  document.getElementById('demoBtn').style.display = 'none';
+
+  _demoActive = true;
+  const btn = document.getElementById('demoBtn');
+  if (btn) { btn.textContent = '✕ Clear Demo Data'; btn.style.display = 'inline-flex'; btn.style.borderColor = 'rgba(248,113,113,0.4)'; btn.style.color = '#f87171'; }
   renderAll();
   showToast('📊 Demo data loaded!', 'success');
+}
+
+function clearDemoData() {
+  if (_realStats !== null)     user.stats     = _realStats;
+  if (_realPurchases !== null) user.purchases = _realPurchases;
+  _realStats     = null;
+  _realPurchases = null;
+  _demoActive    = false;
+
+  const btn = document.getElementById('demoBtn');
+  if (btn) {
+    btn.textContent   = '🎬 Load Demo Data';
+    btn.style.borderColor = '';
+    btn.style.color       = '';
+    /* hide button again if no real data */
+    if (!user.stats.totalScans) btn.style.display = 'inline-flex';
+    else btn.style.display = 'none';
+  }
+  renderAll();
+  showToast('Demo data cleared', '');
 }
 
 /* ═══════════════════════════════════════════════
