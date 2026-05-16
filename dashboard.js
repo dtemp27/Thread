@@ -846,10 +846,10 @@ function scheduleNextScan() {
 ═══════════════════════════════════════════════ */
 let _realStats     = null;
 let _realPurchases = null;
-let _demoActive    = false;
 
 function toggleDemo() {
-  if (_demoActive) {
+  const btn = document.getElementById('demoBtn');
+  if (btn && btn.dataset.demo === 'on') {
     clearDemoData();
   } else {
     loadDemoData();
@@ -885,9 +885,14 @@ function loadDemoData() {
     scanHistory:     history
   };
 
-  _demoActive = true;
   const btn = document.getElementById('demoBtn');
-  if (btn) { btn.textContent = '✕ Clear Demo Data'; btn.style.display = 'inline-flex'; btn.style.borderColor = 'rgba(248,113,113,0.4)'; btn.style.color = '#f87171'; }
+  if (btn) {
+    btn.dataset.demo      = 'on';
+    btn.textContent       = '✕ Clear Demo Data';
+    btn.style.display     = 'inline-flex';
+    btn.style.borderColor = 'rgba(248,113,113,0.4)';
+    btn.style.color       = '#f87171';
+  }
   renderAll();
   showToast('📊 Demo data loaded!', 'success');
 }
@@ -897,19 +902,17 @@ function clearDemoData() {
   if (_realPurchases !== null) user.purchases = _realPurchases;
   _realStats     = null;
   _realPurchases = null;
-  _demoActive    = false;
 
   const btn = document.getElementById('demoBtn');
   if (btn) {
-    btn.textContent   = '🎬 Load Demo Data';
+    btn.dataset.demo      = 'off';
+    btn.textContent       = '🎬 Load Demo Data';
     btn.style.borderColor = '';
     btn.style.color       = '';
-    /* hide button again if no real data */
-    if (!user.stats.totalScans) btn.style.display = 'inline-flex';
-    else btn.style.display = 'none';
+    btn.style.display     = 'inline-flex';
   }
   renderAll();
-  showToast('Demo data cleared', '');
+  showToast('Showing your real data', '');
 }
 
 /* ═══════════════════════════════════════════════
