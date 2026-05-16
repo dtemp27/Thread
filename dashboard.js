@@ -146,7 +146,12 @@ function bootUI() {
   document.getElementById('welcomeSub').textContent    = `Here's how your referrals are performing today.`;
   document.getElementById('topbarDate').textContent    = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
 
-  /* show demo button if no data */
+  /* clean up any leftover demo sessionStorage from a previous page load */
+  sessionStorage.removeItem(DEMO_KEY_STATS);
+  sessionStorage.removeItem(DEMO_KEY_PURCHASES);
+  sessionStorage.removeItem(DEMO_KEY_ACTIVE);
+
+  /* show demo button if user has no real data yet */
   if (!user.stats.totalScans) {
     const btn = document.getElementById('demoBtn');
     if (btn) btn.style.display = 'inline-flex';
@@ -816,8 +821,11 @@ function addRealTimeScan(converted) {
   clearTimeout(notif._timer);
   notif._timer = setTimeout(() => notif.classList.remove('show'), 4500);
 
-  const demoBtn = document.getElementById('demoBtn');
-  if (demoBtn) demoBtn.style.display = 'none';
+  /* only hide the demo button if demo mode is NOT active */
+  if (!isDemoActive()) {
+    const demoBtn = document.getElementById('demoBtn');
+    if (demoBtn) demoBtn.style.display = 'none';
+  }
 }
 
 function addToLiveFeed(scan) {
@@ -843,13 +851,19 @@ function scheduleNextScan() {
 
 /* ═══════════════════════════════════════════════
    DEMO DATA TOGGLE
+   State is kept in sessionStorage so it survives
+   any accidental variable resets between renders.
 ═══════════════════════════════════════════════ */
-let _realStats     = null;
-let _realPurchases = null;
+const DEMO_KEY_STATS     = 'thread_demo_real_stats';
+const DEMO_KEY_PURCHASES = 'thread_demo_real_purchases';
+const DEMO_KEY_ACTIVE    = 'thread_demo_active';
+
+function isDemoActive() {
+  return sessionStorage.getItem(DEMO_KEY_ACTIVE) === '1';
+}
 
 function toggleDemo() {
-  const btn = document.getElementById('demoBtn');
-  if (btn && btn.dataset.demo === 'on') {
+  if (isDemoActive()) {
     clearDemoData();
   } else {
     loadDemoData();
@@ -857,9 +871,10 @@ function toggleDemo() {
 }
 
 function loadDemoData() {
-  /* save real data so we can restore it */
-  _realStats     = JSON.parse(JSON.stringify(user.stats));
-  _realPurchases = JSON.parse(JSON.stringify(user.purchases));
+  /* save real data in sessionStorage so it always survives */
+  sessionStorage.setItem(DEMO_KEY_STATS,     JSON.stringify(user.stats));
+  sessionStorage.setItem(DEMO_KEY_PURCHASES, JSON.stringify(user.purchases));
+  sessionStorage.setItem(DEMO_KEY_ACTIVE,    '1');
 
   const history = [];
   const now = Date.now();
@@ -885,34 +900,40 @@ function loadDemoData() {
     scanHistory:     history
   };
 
-  const btn = document.getElementById('demoBtn');
-  if (btn) {
-    btn.dataset.demo      = 'on';
-    btn.textContent       = '✕ Clear Demo Data';
-    btn.style.display     = 'inline-flex';
-    btn.style.borderColor = 'rgba(248,113,113,0.4)';
-    btn.style.color       = '#f87171';
-  }
+  _updateDemoBtn(true);
   renderAll();
   showToast('📊 Demo data loaded!', 'success');
 }
 
 function clearDemoData() {
-  if (_realStats !== null)     user.stats     = _realStats;
-  if (_realPurchases !== null) user.purchases = _realPurchases;
-  _realStats     = null;
-  _realPurchases = null;
+  /* restore real data from sessionStorage */
+  const savedStats     = sessionStorage.getItem(DEMO_KEY_STATS);
+  const savedPurchases = sessionStorage.getItem(DEMO_KEY_PURCHASES);
+  if (savedStats)     user.stats     = JSON.parse(savedStats);
+  if (savedPurchases) user.purchases = JSON.parse(savedPurchases);
 
+  sessionStorage.removeItem(DEMO_KEY_STATS);
+  sessionStorage.removeItem(DEMO_KEY_PURCHASES);
+  sessionStorage.removeItem(DEMO_KEY_ACTIVE);
+
+  _updateDemoBtn(false);
+  renderAll();
+  showToast('Showing your real data', '');
+}
+
+function _updateDemoBtn(demoOn) {
   const btn = document.getElementById('demoBtn');
-  if (btn) {
-    btn.dataset.demo      = 'off';
+  if (!btn) return;
+  btn.style.display = 'inline-flex';
+  if (demoOn) {
+    btn.textContent       = '✕ Clear Demo Data';
+    btn.style.borderColor = 'rgba(248,113,113,0.4)';
+    btn.style.color       = '#f87171';
+  } else {
     btn.textContent       = '🎬 Load Demo Data';
     btn.style.borderColor = '';
     btn.style.color       = '';
-    btn.style.display     = 'inline-flex';
   }
-  renderAll();
-  showToast('Showing your real data', '');
 }
 
 /* ═══════════════════════════════════════════════
