@@ -1,7 +1,7 @@
 'use strict';
 
 /* ─── Load checkout data ──────────────────────────────────────────────────── */
-const checkoutData = JSON.parse(localStorage.getItem('thread_checkout') || 'null');
+let checkoutData = JSON.parse(localStorage.getItem('thread_checkout') || 'null');
 const refCode      = localStorage.getItem('thread_ref') || null;
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -43,12 +43,54 @@ function miniHoodieSVG(name) {
   return `<img src="images/${slug}-front.png?v=hoodie-20260517" alt="${name}" style="width:56px;height:56px;object-fit:cover;object-position:center top;border-radius:8px;background:#111">`;
 }
 
+/* ─── Recalculate totals and save ────────────────────────────────────────── */
+function recalcCheckout() {
+  const subtotal = checkoutData.items.reduce((s, i) => s + i.price * i.qty, 0);
+  const discount = checkoutData.discount || 0;
+  const total    = Math.max(0, subtotal - discount);
+  checkoutData.subtotal = subtotal;
+  checkoutData.total    = total;
+  // Keep thread_checkout in sync so page refresh preserves edits
+  localStorage.setItem('thread_checkout', JSON.stringify(checkoutData));
+  // Also keep thread_cart in sync
+  try {
+    const cart = JSON.parse(localStorage.getItem('thread_cart') || '{}');
+    cart.items    = checkoutData.items;
+    cart.discount = discount;
+    localStorage.setItem('thread_cart', JSON.stringify(cart));
+  } catch(_) {}
+}
+
+/* ─── Update qty from checkout page ─────────────────────────────────────── */
+function updateCheckoutQty(idx, delta) {
+  if (!checkoutData?.items?.[idx]) return;
+  const newQty = (checkoutData.items[idx].qty || 1) + delta;
+  if (newQty < 1) { removeCheckoutItem(idx); return; }
+  checkoutData.items[idx].qty = newQty;
+  recalcCheckout();
+  renderSummary();
+}
+
+function removeCheckoutItem(idx) {
+  if (!checkoutData?.items) return;
+  checkoutData.items.splice(idx, 1);
+  recalcCheckout();
+  if (!checkoutData.items.length) {
+    // Cart is now empty — go back to shop
+    localStorage.removeItem('thread_checkout');
+    localStorage.removeItem('thread_cart');
+    window.location.href = 'catalog.html';
+    return;
+  }
+  renderSummary();
+}
+
 /* ─── Render order summary ────────────────────────────────────────────────── */
 function renderSummary() {
   const data = checkoutData;
   const container = document.getElementById('coItems');
 
-  container.innerHTML = data.items.map(item => `
+  container.innerHTML = data.items.map((item, idx) => `
     <div class="co-item">
       <div class="co-item-thumb">${miniHoodieSVG(item.name)}</div>
       <div class="co-item-info">
@@ -57,7 +99,12 @@ function renderSummary() {
       </div>
       <div class="co-item-right">
         <div class="co-item-price">$${(item.price * item.qty).toFixed(2)}</div>
-        <div class="co-item-qty">Qty: ${item.qty}</div>
+        <div class="co-qty-ctrl">
+          <button class="co-qty-btn" onclick="updateCheckoutQty(${idx}, -1)" aria-label="Decrease">−</button>
+          <span class="co-qty-num">${item.qty}</span>
+          <button class="co-qty-btn" onclick="updateCheckoutQty(${idx}, 1)" aria-label="Increase">+</button>
+          <button class="co-qty-remove" onclick="removeCheckoutItem(${idx})" aria-label="Remove item">✕</button>
+        </div>
       </div>
     </div>
   `).join('');

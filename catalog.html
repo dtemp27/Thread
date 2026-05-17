@@ -118,7 +118,7 @@
     <div id="cdFooter" style="display:none;padding:20px 24px;border-top:1px solid rgba(255,255,255,0.08);">
       <div style="display:flex;justify-content:space-between;margin-bottom:8px;color:#888;font-size:14px;"><span>Subtotal</span><span id="cdSubtotal">$0.00</span></div>
       <div style="display:flex;justify-content:space-between;margin-bottom:16px;font-size:16px;font-weight:700;color:#f0f0f0;"><span>Total</span><span id="cdTotal">$0.00</span></div>
-      <a href="checkout.html" style="display:block;width:100%;padding:14px;background:#6C63FF;color:#fff;text-align:center;border-radius:50px;font-weight:700;font-size:15px;text-decoration:none;">Checkout →</a>
+      <button onclick="goToCheckout()" style="display:block;width:100%;padding:14px;background:#6C63FF;color:#fff;text-align:center;border-radius:50px;font-weight:700;font-size:15px;border:none;cursor:pointer;">Checkout →</button>
     </div>
   </div>
 
@@ -411,6 +411,20 @@
   }
 
   renderCartDrawer();
+
+  function goToCheckout() {
+    const cart = getCart();
+    if (!cart.items.length) return;
+    const subtotal = cart.items.reduce((s,i) => s + i.price * (i.qty||1), 0);
+    const discount = cart.discount || 0;
+    const total    = Math.max(0, subtotal - discount);
+    localStorage.setItem('thread_checkout', JSON.stringify({
+      items: cart.items, subtotal, discount, total,
+      promoCode: cart.promoCode || '',
+      ref: localStorage.getItem('thread_ref') || ''
+    }));
+    window.location.href = 'checkout.html';
+  }
 
   /* ── TOUCH SWIPE ── */
   grid.addEventListener('touchstart', e => {
