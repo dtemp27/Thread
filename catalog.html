@@ -205,7 +205,7 @@
   }
 
   function buildCard(p, idx) {
-    const typeLabel = p.type === 'tee' ? '<div class="type-label">Oversized Tee</div>' : '';
+    const typeLabel = p.type === 'tee' ? '<div class="type-label">Oversized Tee</div>' : '<div class="type-label">Oversized Heavyweight</div>';
     const badge = p.badge
       ? `<div class="product-badge ${p.badge.cls}">${p.badge.text}</div>` : '';
     const dots = p.photos.map((_,i) =>

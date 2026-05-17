@@ -295,80 +295,103 @@ img { display: block; max-width: 100%; }
   min-height: 500px;
   z-index: 2;
 }
-.shirt-mockup {
+
+/* ─── QR FLOAT CARD ─── */
+.qr-float-wrap {
   position: relative;
-  z-index: 3;
-  animation: floatShirt 4s ease-in-out infinite;
-}
-@keyframes floatShirt {
-  0%,100% { transform: translateY(0) rotate(-2deg); }
-  50% { transform: translateY(-20px) rotate(2deg); }
-}
-.shirt-body {
-  width: 260px;
-  height: 300px;
-  background: linear-gradient(145deg, #1e1e2e, #2a2a3e);
-  border-radius: 20px 20px 16px 16px;
-  border: 1px solid rgba(108,99,255,0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 60px rgba(108,99,255,0.15);
+  width: 300px;
+  height: 360px;
+}
+
+.qr-float-glow {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(108,99,255,0.22) 0%, rgba(167,139,250,0.08) 50%, transparent 72%);
+  animation: glowPulse 3.5s ease-in-out infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.qr-float-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 22px 22px 16px;
+  z-index: 1;
+  animation: qrFloat 4.5s ease-in-out infinite;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 24px 60px rgba(0,0,0,0.55),
+    0 0 50px rgba(108,99,255,0.18);
+}
+
+.qr-float-inner {
   position: relative;
   overflow: hidden;
+  border-radius: 10px;
+  line-height: 0;
 }
-.shirt-body::before {
-  content: '';
+
+.qr-float-img {
+  width: 210px;
+  height: 210px;
+  display: block;
+  border-radius: 8px;
+}
+
+.qr-scan-sweep {
   position: absolute;
-  top: 0; left: 50%;
-  transform: translateX(-50%);
-  width: 80px; height: 30px;
-  background: var(--bg3);
-  border-radius: 0 0 40px 40px;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(108,99,255,0.9) 50%, transparent 100%);
+  border-radius: 2px;
+  animation: scanSweep 2.8s ease-in-out infinite;
+  pointer-events: none;
 }
-.shirt-inner { display: flex; flex-direction: column; align-items: center; gap: 12px; }
-.qr-badge {
-  width: 100px; height: 100px;
-  background: white;
-  border-radius: 12px;
+
+.qr-float-footer {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8px;
-  gap: 4px;
+  gap: 8px;
+  margin-top: 14px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  color: #555;
+  text-transform: uppercase;
 }
+
+@keyframes qrFloat {
+  0%,100% { transform: translateY(0px) rotate(-1.5deg); }
+  50%      { transform: translateY(-22px) rotate(1.5deg); }
+}
+
+@keyframes glowPulse {
+  0%,100% { transform: scale(1);    opacity: 0.7; }
+  50%      { transform: scale(1.15); opacity: 1;   }
+}
+
+@keyframes scanSweep {
+  0%   { top: -2px; opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* legacy refs still used by app.js QR demo */
 .qr-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; width: 72px; height: 72px; }
 .qr-cell { border-radius: 1px; }
 .qr-cell.filled { background: #0f0f0f; }
 .qr-cell.empty { background: transparent; }
-.qr-label { font-family: 'Space Mono', monospace; font-size: 7px; color: #333; letter-spacing: 1px; }
 
-.shirt-tag {
-  position: absolute;
-  bottom: -10px; right: 20px;
-  background: var(--accent);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  box-shadow: 0 4px 20px rgba(108,99,255,0.5);
-}
-
-.orbit {
-  position: absolute;
-  border-radius: 50%;
-  border: 1px dashed rgba(108,99,255,0.2);
-  animation: orbitSpin 15s linear infinite;
-}
-.orbit-1 { width: 380px; height: 380px; animation-duration: 20s; }
-.orbit-2 { width: 500px; height: 500px; animation-direction: reverse; animation-duration: 30s; }
-@keyframes orbitSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+/* orbit refs kept so JS doesn't error */
+.orbit { display: none; }
 
 .floating-reward {
   position: absolute;
@@ -1710,8 +1733,8 @@ body.cart-open { overflow: hidden; }
   .stat-num-suffix { font-size: 20px; }
   .stat-label { font-size: 11px; margin-top: 0; }
   .stat-divider { display: none; }
-  .fr-1, .fr-2, .fr-3 { display: none; }
-  .orbit-1, .orbit-2 { display: none; }
+  .fr-1, .fr-2 { display: none; }
+  .qr-float-wrap { transform: scale(0.85); }
   .hero-visual { min-height: 260px; }
   .scroll-hint { display: none; }
 
