@@ -113,16 +113,25 @@ function generateQR(containerId, size) {
 generateQR('qrGrid', 7);
 generateQR('qrDemoGrid', 9);
 
-/* ─── STYLED HERO QR (SVG — looks like branded QR) ─── */
+/* ─── STYLED HERO QR (SVG — fixed seed, branded look) ─── */
 function buildHeroQR() {
   const svg = document.getElementById('qrHeroSvg');
   if (!svg) return;
 
   const NS  = 'http://www.w3.org/2000/svg';
-  const S   = 21;        // modules
-  const M   = 9;         // px per module
-  const PAD = 6;         // quiet-zone padding
-  const R   = M * 0.42;  // dot radius
+  const S   = 21;
+  const M   = 9;
+  const PAD = 5;
+  const R   = M * 0.40;
+
+  // Fixed seeded RNG — same pattern every single page load
+  let _seed = 8675309;
+  function rand() {
+    _seed ^= _seed << 13;
+    _seed ^= _seed >> 17;
+    _seed ^= _seed << 5;
+    return ((_seed >>> 0) / 0xFFFFFFFF);
+  }
 
   function mk(tag, attrs) {
     const el = document.createElementNS(NS, tag);
@@ -131,50 +140,61 @@ function buildHeroQR() {
   }
 
   // White background
-  svg.appendChild(mk('rect',{width:210,height:210,fill:'white',rx:8}));
+  svg.appendChild(mk('rect',{width:210,height:210,fill:'white',rx:10}));
 
-  // ── module data (skip finder + quiet zones) ──
+  // Areas reserved for finder patterns + separators
   function inFinder(r,c) {
     return (r<9&&c<9)||(r<9&&c>=S-8)||(r>=S-8&&c<9);
+  }
+  // Center logo area — clear 5×5 around center module
+  const cMid = Math.floor(S/2);
+  function inCenter(r,c) {
+    return Math.abs(r-cMid)<=2 && Math.abs(c-cMid)<=2;
   }
   // Timing strips
   const timing = new Set();
   for (let i=8;i<S-8;i++) { timing.add(6*100+i); timing.add(i*100+6); }
 
+  // Pre-generate the fixed data module grid
+  const modules = Array.from({length:S}, (_,r) =>
+    Array.from({length:S}, (_,c) => {
+      if (inFinder(r,c) || inCenter(r,c)) return false;
+      if (timing.has(r*100+c)) return (r+c)%2===0;
+      return rand() > 0.46;
+    })
+  );
+
+  // Draw data dots
   for (let r=0;r<S;r++) for (let c=0;c<S;c++) {
-    if (inFinder(r,c)) continue;
-    const isTiming = timing.has(r*100+c);
-    const filled = isTiming ? (r+c)%2===0 : Math.random()>0.48;
-    if (filled) {
-      svg.appendChild(mk('circle',{
-        cx: PAD + c*M + M/2,
-        cy: PAD + r*M + M/2,
-        r:  R,
-        fill:'#111'
-      }));
-    }
+    if (!modules[r][c]) continue;
+    svg.appendChild(mk('circle',{
+      cx: PAD + c*M + M/2,
+      cy: PAD + r*M + M/2,
+      r:  R, fill:'#111'
+    }));
   }
 
-  // ── Finder patterns (rounded iOS-style) ──
+  // Finder patterns — rounded iOS style
   function drawFinder(rOff, cOff) {
-    const x = PAD + cOff*M, y = PAD + rOff*M, sz = 7*M, rd = M*1.6;
+    const x = PAD+cOff*M, y = PAD+rOff*M, sz=7*M, rd=M*1.5;
     svg.appendChild(mk('rect',{x,y,width:sz,height:sz,rx:rd,fill:'#111'}));
-    svg.appendChild(mk('rect',{x:x+M,y:y+M,width:sz-2*M,height:sz-2*M,rx:rd*0.7,fill:'white'}));
-    svg.appendChild(mk('rect',{x:x+2*M,y:y+2*M,width:3*M,height:3*M,rx:M*0.8,fill:'#111'}));
+    svg.appendChild(mk('rect',{x:x+M,y:y+M,width:sz-2*M,height:sz-2*M,rx:rd*0.65,fill:'white'}));
+    svg.appendChild(mk('rect',{x:x+2*M,y:y+2*M,width:3*M,height:3*M,rx:M*0.75,fill:'#111'}));
   }
-  drawFinder(0, 0);
-  drawFinder(0, S-7);
-  drawFinder(S-7, 0);
+  drawFinder(0,0);
+  drawFinder(0,S-7);
+  drawFinder(S-7,0);
 
-  // ── Center T. logo ──
-  const cx = 105, cy = 105;
-  svg.appendChild(mk('circle',{cx,cy,r:M*2.4,fill:'white'}));
+  // Center T. logo — white circle + text
+  const cx = PAD + cMid*M + M/2, cy = PAD + cMid*M + M/2;
+  svg.appendChild(mk('circle',{cx,cy,r:M*2.2,fill:'white'}));
   const t = mk('text',{
-    x:cx, y:cy+7,
+    x:cx, y:cy+6,
     'text-anchor':'middle',
-    'font-family':'Space Mono, monospace',
+    'dominant-baseline':'middle',
+    'font-family':'Space Mono,monospace',
     'font-weight':'700',
-    'font-size':'19',
+    'font-size':'17',
     fill:'#111'
   });
   t.textContent = 'T.';
