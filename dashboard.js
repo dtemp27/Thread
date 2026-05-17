@@ -190,11 +190,7 @@ function bootUI() {
   sessionStorage.removeItem(DEMO_KEY_PURCHASES);
   sessionStorage.removeItem(DEMO_KEY_ACTIVE);
 
-  /* show demo button if user has no real data yet */
-  if (!user.stats.totalScans) {
-    const btn = document.getElementById('demoBtn');
-    if (btn) btn.style.display = 'inline-flex';
-  }
+  /* demo button is always visible — no conditional needed */
 
   /* ─── DRAW QR ─── */
   drawQR('miniQrCanvas', refURL, 120);
@@ -254,7 +250,7 @@ function bootUI() {
 
   /* ─── RENDER ALL ─── */
   renderAll();
-  scheduleNextScan();
+  // scheduleNextScan() is NOT called here — it only runs when Demo Mode is on
 }
 
 /* ═══════════════════════════════════════════════
@@ -875,11 +871,6 @@ function addRealTimeScan(converted) {
   clearTimeout(notif._timer);
   notif._timer = setTimeout(() => notif.classList.remove('show'), 4500);
 
-  /* only hide the demo button if demo mode is NOT active */
-  if (!isDemoActive()) {
-    const demoBtn = document.getElementById('demoBtn');
-    if (demoBtn) demoBtn.style.display = 'none';
-  }
 }
 
 function addToLiveFeed(scan) {
@@ -898,9 +889,20 @@ function addToLiveFeed(scan) {
   while (feed.children.length > 10) feed.removeChild(feed.lastChild);
 }
 
+let _demoScanTimer = null;
+
 function scheduleNextScan() {
-  const delay = 12000 + Math.random() * 28000;
-  setTimeout(() => { addRealTimeScan(Math.random() < 0.18); scheduleNextScan(); }, delay);
+  if (!isDemoActive()) return;   // stop as soon as demo is turned off
+  const delay = 8000 + Math.random() * 14000;  // 8–22s (faster so demo feels alive)
+  _demoScanTimer = setTimeout(() => {
+    if (!isDemoActive()) return;  // double-check before firing
+    addRealTimeScan(Math.random() < 0.18);
+    scheduleNextScan();
+  }, delay);
+}
+
+function stopDemoScans() {
+  if (_demoScanTimer) { clearTimeout(_demoScanTimer); _demoScanTimer = null; }
 }
 
 /* ═══════════════════════════════════════════════
@@ -956,7 +958,8 @@ function loadDemoData() {
 
   _updateDemoBtn(true);
   renderAll();
-  showToast('📊 Demo data loaded!', 'success');
+  scheduleNextScan();   // start live scan simulation only in demo mode
+  showToast('📊 Demo mode on — live scans simulated', 'success');
 }
 
 function clearDemoData() {
@@ -970,21 +973,21 @@ function clearDemoData() {
   sessionStorage.removeItem(DEMO_KEY_PURCHASES);
   sessionStorage.removeItem(DEMO_KEY_ACTIVE);
 
+  stopDemoScans();      // stop live scan simulation
   _updateDemoBtn(false);
   renderAll();
-  showToast('Showing your real data', '');
+  showToast('Demo mode off — showing your real data', '');
 }
 
 function _updateDemoBtn(demoOn) {
   const btn = document.getElementById('demoBtn');
   if (!btn) return;
-  btn.style.display = 'inline-flex';
   if (demoOn) {
-    btn.textContent       = '✕ Clear Demo Data';
+    btn.textContent       = '✕ Exit Demo';
     btn.style.borderColor = 'rgba(248,113,113,0.4)';
     btn.style.color       = '#f87171';
   } else {
-    btn.textContent       = '🎬 Load Demo Data';
+    btn.textContent       = '🎬 Demo Mode';
     btn.style.borderColor = '';
     btn.style.color       = '';
   }
