@@ -219,6 +219,30 @@ filterBtns.forEach(btn => {
   });
 });
 
+/* ─── CATALOG FILTER ─── */
+const catBtns = document.querySelectorAll('.cat-btn');
+const catalogCards = document.querySelectorAll('#catalogGrid .product-card');
+
+catBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    catBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.cat;
+    catalogCards.forEach(card => {
+      const match = filter === 'all' || card.dataset.type === filter;
+      card.style.display = match ? '' : 'none';
+    });
+  });
+});
+
+/* also wire tap-to-flip for catalog cards */
+document.querySelectorAll('#catalogGrid .product-card .product-img').forEach(imgArea => {
+  imgArea.addEventListener('click', (e) => {
+    if (e.target.closest('.btn-add-cart')) return;
+    imgArea.closest('.product-card').classList.toggle('flipped');
+  });
+});
+
 /* ═══════════════════════════════
    CART SYSTEM
 ═══════════════════════════════ */

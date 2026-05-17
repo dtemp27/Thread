@@ -664,6 +664,53 @@ img { display: block; max-width: 100%; }
 }
 .filter-btn.active, .filter-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
 
+/* cat-btn mirrors filter-btn for catalog section */
+.cat-btn {
+  padding: 10px 22px;
+  border-radius: 50px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.cat-btn.active, .cat-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* View Full Collection button */
+.btn-view-catalog {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  border-radius: 50px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--transition);
+}
+.btn-view-catalog:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* Tee badge */
+.product-badge.tee-badge { background: linear-gradient(135deg,#6C63FF,#a78bfa); }
+
+/* Oversized Tee label under product name */
+.product-type-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 4px;
+  font-family: 'Space Mono', monospace;
+}
+
 .products-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

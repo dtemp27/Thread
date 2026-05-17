@@ -672,17 +672,29 @@ function hoodieSVG(name) {
   </svg>`;
 }
 
+let _wardrobeTab = 'hoodie';
+function setWardrobeTab(type, btn) {
+  _wardrobeTab = type;
+  document.querySelectorAll('.wardrobe-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderPurchases();
+}
+
 function renderPurchases() {
   const grid = document.getElementById('purchasesGrid');
   if (!grid) return;
-  if (!user.purchases.length) {
+  const filtered = user.purchases.filter(p => {
+    const isTee = (p.name || '').toLowerCase().includes('tee');
+    return _wardrobeTab === 'tee' ? isTee : !isTee;
+  });
+  if (!filtered.length) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
       <span>👕</span><p>No pieces yet.</p>
       <a href="index.html" class="btn-shop-now">Browse the Collection →</a>
     </div>`;
     return;
   }
-  grid.innerHTML = user.purchases.map(p => `
+  grid.innerHTML = filtered.map(p => `
     <div class="purchase-card">
       <div class="pc-img">${hoodieSVG(p.name)}</div>
       <div class="pc-info">
