@@ -203,6 +203,41 @@ function buildHeroQR() {
 
 buildHeroQR();
 
+// Reuse same styled QR builder for the demo section
+function buildDemoQR() {
+  const svg = document.getElementById('qrDemoSvg');
+  if (!svg) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const S=21, M=8, PAD=4, R=M*0.40;
+  let _seed = 8675309;
+  function rand() { _seed^=_seed<<13; _seed^=_seed>>17; _seed^=_seed<<5; return((_seed>>>0)/0xFFFFFFFF); }
+  function mk(tag,attrs){ const el=document.createElementNS(NS,tag); Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v)); return el; }
+  svg.appendChild(mk('rect',{width:210,height:210,fill:'white',rx:8}));
+  function inFinder(r,c){ return(r<9&&c<9)||(r<9&&c>=S-8)||(r>=S-8&&c<9); }
+  const cMid=Math.floor(S/2);
+  function inCenter(r,c){ return Math.abs(r-cMid)<=2&&Math.abs(c-cMid)<=2; }
+  const timing=new Set();
+  for(let i=8;i<S-8;i++){timing.add(6*100+i);timing.add(i*100+6);}
+  for(let r=0;r<S;r++) for(let c=0;c<S;c++){
+    if(inFinder(r,c)||inCenter(r,c)) continue;
+    const isTiming=timing.has(r*100+c);
+    const filled=isTiming?(r+c)%2===0:rand()>0.46;
+    if(filled) svg.appendChild(mk('circle',{cx:PAD+c*M+M/2,cy:PAD+r*M+M/2,r:R,fill:'#111'}));
+  }
+  function drawFinder(rOff,cOff){
+    const x=PAD+cOff*M,y=PAD+rOff*M,sz=7*M,rd=M*1.5;
+    svg.appendChild(mk('rect',{x,y,width:sz,height:sz,rx:rd,fill:'#111'}));
+    svg.appendChild(mk('rect',{x:x+M,y:y+M,width:sz-2*M,height:sz-2*M,rx:rd*0.65,fill:'white'}));
+    svg.appendChild(mk('rect',{x:x+2*M,y:y+2*M,width:3*M,height:3*M,rx:M*0.75,fill:'#111'}));
+  }
+  drawFinder(0,0); drawFinder(0,S-7); drawFinder(S-7,0);
+  const cx=PAD+cMid*M+M/2, cy=PAD+cMid*M+M/2;
+  svg.appendChild(mk('circle',{cx,cy,r:M*2.2,fill:'white'}));
+  const t=mk('text',{x:cx,y:cy+6,'text-anchor':'middle','dominant-baseline':'middle','font-family':'Space Mono,monospace','font-weight':'700','font-size':'15',fill:'#111'});
+  t.textContent='T.'; svg.appendChild(t);
+}
+buildDemoQR();
+
 /* ─── HERO PARALLAX ─── */
 const heroBg = document.getElementById('heroBg');
 const shirtMockup = document.getElementById('shirtMockup');
