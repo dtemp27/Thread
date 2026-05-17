@@ -3,9 +3,9 @@
  * ─────────────────────────────────────────────────────────────────────────────
  * Three tiers based on lifetime converted referrals:
  *
- *   Starter  (0–10 sales)     → $22 per sale (25%)
- *   Hustler  (11–50 sales)    → $25 per sale (28%)
- *   Elite    (51+ sales)      → $27 per sale (30% — capped)
+ *   Starter  (0–10 sales)     → 20% commission per sale
+ *   Hustler  (11–50 sales)    → 25% commission per sale
+ *   Elite    (51+ sales)      → 30% commission per sale
  *
  * Used by:
  *   • checkout.js  → to credit the right commission amount
@@ -24,10 +24,10 @@
       gradient:  'linear-gradient(135deg, #8b7cff, #6C63FF)',
       minSales:  0,
       maxSales:  10,
-      perSale:   20,
+      pct:       20,
       tagline:   'Just getting started',
       perks: [
-        '$20 per referral sale',
+        '20% commission per referral sale',
         'Cash, gift card, or store credit payouts',
       ],
       unlockReward: null,
@@ -40,10 +40,10 @@
       gradient:  'linear-gradient(135deg, #f472b6, #ec4899)',
       minSales:  11,
       maxSales:  50,
-      perSale:   25,
+      pct:       25,
       tagline:   'Making moves',
       perks: [
-        '$25 per referral sale',
+        '25% commission per referral sale',
         '🎁 Hustler Drop Box (sticker pack + hangtag)',
         'Early access to new colorways',
       ],
@@ -61,10 +61,10 @@
       gradient:  'linear-gradient(135deg, #facc15, #f59e0b)',
       minSales:  51,
       maxSales:  Infinity,
-      perSale:   30,
+      pct:       30,
       tagline:   'Top earner',
       perks: [
-        '$30 per referral sale (max payout)',
+        '30% commission per referral sale (max payout)',
         '👑 Elite Drop Box (exclusive colorway + premium swag)',
         'First pick on limited drops',
         'Spot on the public leaderboard',

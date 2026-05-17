@@ -358,7 +358,7 @@ function renderTier(conversions) {
   const name = document.getElementById('tierName');
   if (name) name.textContent = tier.name;
   const rate = document.getElementById('tierRate');
-  if (rate) rate.textContent = `$${tier.perSale} per referral sale`;
+  if (rate) rate.textContent = `${tier.pct}% per referral sale`;
 
   const fill = document.getElementById('tierBarFill');
   if (fill) {
@@ -372,7 +372,7 @@ function renderTier(conversions) {
   const nextEl = document.getElementById('tierNext');
   if (next) {
     if (label) label.textContent = `${conversions} / ${next.minSales} to ${next.name}`;
-    if (nextEl) nextEl.textContent = `Next: ${next.emoji} ${next.name} — $${next.perSale} per sale`;
+    if (nextEl) nextEl.textContent = `Next: ${next.emoji} ${next.name} — ${next.pct}% per sale`;
   } else {
     if (label) label.textContent = `${conversions} sales · Top tier`;
     if (nextEl) nextEl.textContent = '👑 You\'re at the top — max payout unlocked';
@@ -417,7 +417,7 @@ function renderTier(conversions) {
             <div class="dt-emoji">${t.emoji}</div>
             <div class="dt-name">${t.name}</div>
             <div class="dt-range">${rangeText}</div>
-            <div class="dt-rate">$${t.perSale}<span>/sale</span></div>
+            <div class="dt-rate">${t.pct}%<span>/sale</span></div>
           </div>
           ${dropBox}
         </div>
