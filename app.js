@@ -252,7 +252,7 @@ const HOODIE_PHOTO_SLUG = {
 
 function hoodieThumb(name) {
   const slug = HOODIE_PHOTO_SLUG[name] || 'phantom-black';
-  return `<img src="images/${slug}-front.png" alt="${name}" style="width:100%;height:100%;object-fit:cover;object-position:center top;background:#0a0a0a;border-radius:8px">`;
+  return `<img src="images/${slug}-front.png?v=hoodie-20260517" alt="${name}" style="width:100%;height:100%;object-fit:cover;object-position:center top;background:#0a0a0a;border-radius:8px">`;
 }
 
 // Kept for backward compatibility — same call signature, real photo now
@@ -631,3 +631,4 @@ window.addEventListener('scroll', () => {
   const total = document.documentElement.scrollHeight - window.innerHeight;
   progressBar.style.width = (window.scrollY / total * 100) + '%';
 });
+
