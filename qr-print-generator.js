@@ -28,13 +28,13 @@
 
   /* ── Config ──────────────────────────────────────────────────────────── */
   const DEFAULT_SIZE        = { w: 2400, h: 2800 };          // print canvas
-  const REFERRAL_URL_BASE   = 'https://thread-dun.vercel.app/?ref=';
+  const REFERRAL_URL_BASE   = 'https://mythread.shop/?ref=';
   const LOGO_TEXT           = 'THREAD';
   const TAGLINE             = 'SCAN TO SHOP · EARN REWARDS';
 
   /* ── QR generation — styled with rounded dots, dot corners ─────────── */
   async function generateStyledQR(text, pixelSize) {
-    // Prefer qr-code-styling for premium look (rounded dots + dot finders)
+    // Prefer qr-code-styling for premium look (rounded dots + center logo)
     if (window.QRCodeStyling) {
       const qr = new QRCodeStyling({
         width:  pixelSize,
@@ -42,10 +42,10 @@
         type:   'canvas',
         data:   text,
         margin: 0,
-        qrOptions: { errorCorrectionLevel: 'H' },     // ~30% error correction
+        qrOptions: { errorCorrectionLevel: 'H' },     // ~30% — safe to overlay logo
         dotsOptions: {
           color: '#000000',
-          type:  'extra-rounded'                       // soft pill-shaped dots
+          type:  'dots'                                // perfect circles for every data dot
         },
         cornersSquareOptions: {
           color: '#000000',
@@ -55,7 +55,15 @@
           color: '#000000',
           type:  'dot'                                 // perfect circles inside finders
         },
-        backgroundOptions: { color: '#ffffff' }
+        backgroundOptions: { color: '#ffffff' },
+        // ── THREAD logo in the center (transparent PNG) ─────────────────
+        image: 'images/TLogo.png',
+        imageOptions: {
+          crossOrigin:        'anonymous',
+          margin:             6,                       // padding ring around logo
+          imageSize:          0.28,                    // ~28% of QR size
+          hideBackgroundDots: true                     // clean cutout behind logo
+        }
       });
 
       try {
