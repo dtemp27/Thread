@@ -1556,6 +1556,15 @@ body.cart-open { overflow: hidden; }
   .hamburger { display: flex; }
   .hero-title { letter-spacing: -1px; }
   .products-grid { grid-template-columns: 1fr; }
+  .qr-back-hint { font-size: 0; }
+  .qr-back-hint::after {
+    content: 'Tap to flip ↺';
+    font-size: 9px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+  }
   .rewards-grid { grid-template-columns: 1fr; }
   .flow-diagram {
     flex-wrap: nowrap;
@@ -1668,7 +1677,19 @@ body.cart-open { overflow: hidden; }
   .step-card { padding: 24px 20px; }
 
   /* Shop */
-  .product-img { height: 200px; }
+  .product-img { height: 280px; }
+  .hoodie-photo { object-position: center 20%; }
+
+  /* Replace "Hover to see back" with tap hint on mobile */
+  .qr-back-hint { font-size: 0; }
+  .qr-back-hint::after {
+    content: 'Tap to flip ↺';
+    font-size: 9px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+  }
 
   /* Calculator */
   .calculator { padding: 24px 16px; }
