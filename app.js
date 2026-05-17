@@ -83,12 +83,10 @@ window.addEventListener('scroll', () => {
   navbar.classList.toggle('scrolled', window.scrollY > 50);
 });
 
-/* ─── QR CODE GENERATOR (decorative) ─── */
+/* ─── QR CODE GENERATOR (decorative grid) ─── */
 function generateQR(containerId, size) {
   const container = document.getElementById(containerId);
   if (!container) return;
-
-  // Finder pattern squares (top-left, top-right, bottom-left)
   function finderAt(rOff, cOff) {
     const cells = [];
     for (let r = 0; r < 7; r++)
@@ -97,40 +95,93 @@ function generateQR(containerId, size) {
           cells.push([r+rOff, c+cOff]);
     return cells;
   }
-
-  const pattern = [
-    ...finderAt(0, 0),
-    ...finderAt(0, size - 7),
-    ...finderAt(size - 7, 0),
-  ];
-
-  // Timing strips
-  for (let i = 8; i < size - 8; i++) {
-    if (i % 2 === 0) { pattern.push([6, i]); pattern.push([i, 6]); }
+  const pattern = [...finderAt(0,0), ...finderAt(0,size-7), ...finderAt(size-7,0)];
+  for (let i = 8; i < size-8; i++) {
+    if (i%2===0) { pattern.push([6,i]); pattern.push([i,6]); }
   }
-
-  const patternSet = new Set(pattern.map(([r,c]) => r*100+c));
-  // Quiet zone (border around finders)
-  function inQuiet(r,c) {
-    return (r<9&&c<9)||(r<9&&c>=size-8)||(r>=size-8&&c<9);
+  const patSet = new Set(pattern.map(([r,c])=>r*100+c));
+  function inQuiet(r,c){ return (r<9&&c<9)||(r<9&&c>=size-8)||(r>=size-8&&c<9); }
+  for (let r=0;r<size;r++) for (let c=0;c<size;c++) {
+    const el = document.createElement('div');
+    el.classList.add('qr-cell');
+    if (patSet.has(r*100+c) || (!inQuiet(r,c) && Math.random()>0.48)) el.classList.add('filled');
+    container.appendChild(el);
   }
-
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      const cell = document.createElement('div');
-      cell.classList.add('qr-cell');
-      const inPat = patternSet.has(r*100+c);
-      const filled = inPat || (!inQuiet(r,c) && Math.random() > 0.48);
-      if (filled) cell.classList.add('filled');
-      container.appendChild(cell);
-    }
-  }
-  container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+  container.style.gridTemplateColumns = `repeat(${size},1fr)`;
 }
 
 generateQR('qrGrid', 7);
 generateQR('qrDemoGrid', 9);
-generateQR('qrHeroGrid', 21);
+
+/* ─── STYLED HERO QR (SVG — looks like branded QR) ─── */
+function buildHeroQR() {
+  const svg = document.getElementById('qrHeroSvg');
+  if (!svg) return;
+
+  const NS  = 'http://www.w3.org/2000/svg';
+  const S   = 21;        // modules
+  const M   = 9;         // px per module
+  const PAD = 6;         // quiet-zone padding
+  const R   = M * 0.42;  // dot radius
+
+  function mk(tag, attrs) {
+    const el = document.createElementNS(NS, tag);
+    Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k, v));
+    return el;
+  }
+
+  // White background
+  svg.appendChild(mk('rect',{width:210,height:210,fill:'white',rx:8}));
+
+  // ── module data (skip finder + quiet zones) ──
+  function inFinder(r,c) {
+    return (r<9&&c<9)||(r<9&&c>=S-8)||(r>=S-8&&c<9);
+  }
+  // Timing strips
+  const timing = new Set();
+  for (let i=8;i<S-8;i++) { timing.add(6*100+i); timing.add(i*100+6); }
+
+  for (let r=0;r<S;r++) for (let c=0;c<S;c++) {
+    if (inFinder(r,c)) continue;
+    const isTiming = timing.has(r*100+c);
+    const filled = isTiming ? (r+c)%2===0 : Math.random()>0.48;
+    if (filled) {
+      svg.appendChild(mk('circle',{
+        cx: PAD + c*M + M/2,
+        cy: PAD + r*M + M/2,
+        r:  R,
+        fill:'#111'
+      }));
+    }
+  }
+
+  // ── Finder patterns (rounded iOS-style) ──
+  function drawFinder(rOff, cOff) {
+    const x = PAD + cOff*M, y = PAD + rOff*M, sz = 7*M, rd = M*1.6;
+    svg.appendChild(mk('rect',{x,y,width:sz,height:sz,rx:rd,fill:'#111'}));
+    svg.appendChild(mk('rect',{x:x+M,y:y+M,width:sz-2*M,height:sz-2*M,rx:rd*0.7,fill:'white'}));
+    svg.appendChild(mk('rect',{x:x+2*M,y:y+2*M,width:3*M,height:3*M,rx:M*0.8,fill:'#111'}));
+  }
+  drawFinder(0, 0);
+  drawFinder(0, S-7);
+  drawFinder(S-7, 0);
+
+  // ── Center T. logo ──
+  const cx = 105, cy = 105;
+  svg.appendChild(mk('circle',{cx,cy,r:M*2.4,fill:'white'}));
+  const t = mk('text',{
+    x:cx, y:cy+7,
+    'text-anchor':'middle',
+    'font-family':'Space Mono, monospace',
+    'font-weight':'700',
+    'font-size':'19',
+    fill:'#111'
+  });
+  t.textContent = 'T.';
+  svg.appendChild(t);
+}
+
+buildHeroQR();
 
 /* ─── HERO PARALLAX ─── */
 const heroBg = document.getElementById('heroBg');
