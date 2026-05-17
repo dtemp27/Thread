@@ -308,6 +308,24 @@ a { color: var(--accent2); text-decoration: none; cursor: pointer; }
 .tc-label { font-size: 9px; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; }
 .tc-value { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; color: var(--accent2); letter-spacing: 2px; }
 .topbar-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; cursor: pointer; }
+.dash-cart-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); text-decoration: none;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.3px;
+  position: relative; transition: background 0.18s, border-color 0.18s;
+}
+.dash-cart-btn:hover { background: var(--surface); border-color: var(--accent); color: var(--accent); }
+.dash-cart-btn svg { flex-shrink: 0; opacity: 0.85; }
+.dash-cart-count {
+  position: absolute; top: -6px; right: -6px;
+  background: var(--accent); color: white;
+  font-size: 10px; font-weight: 700;
+  width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
 
 /* ─── SECTIONS ─── */
 .dash-section { display: none; padding: 28px; flex: 1; animation: fadeUp 0.3s ease; }

@@ -146,6 +146,19 @@ function bootUI() {
   document.getElementById('welcomeSub').textContent    = `Here's how your referrals are performing today.`;
   document.getElementById('topbarDate').textContent    = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
 
+  /* ─── Cart badge ─── */
+  (function updateDashCartBadge() {
+    try {
+      const raw = localStorage.getItem('thread_cart');
+      if (!raw) return;
+      const cart = JSON.parse(raw);
+      const items = Array.isArray(cart) ? cart : (cart.items || []);
+      const total = items.reduce((sum, i) => sum + (i.qty || 1), 0);
+      const badge = document.getElementById('dashCartCount');
+      if (badge && total > 0) { badge.textContent = total; badge.style.display = 'flex'; }
+    } catch(e) {}
+  })();
+
   /* clean up any leftover demo sessionStorage from a previous page load */
   sessionStorage.removeItem(DEMO_KEY_STATS);
   sessionStorage.removeItem(DEMO_KEY_PURCHASES);
