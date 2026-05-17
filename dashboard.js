@@ -636,6 +636,9 @@ const HOODIE_COLORS = {
   'Forest Shadow':{ body:'#0b1a0d', hood:'#081208', cord:'#4a7850' },
   'Ash Stone':    { body:'#3a3a3a', hood:'#2a2a2a', cord:'#888' },
   'Void Purple':  { body:'#1a0d2e', hood:'#130924', cord:'#7c4dbb' },
+  'Silver Mist':  { body:'#c8c8c4', hood:'#b0b0ab', cord:'#888' },
+  'Bone':         { body:'#e8dfd0', hood:'#d8cfc0', cord:'#a89880' },
+  'Tawny Dusk':   { body:'#b5895a', hood:'#9e7448', cord:'#7a5535' },
 };
 
 function hoodieSVG(name) {
