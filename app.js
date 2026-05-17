@@ -87,30 +87,50 @@ window.addEventListener('scroll', () => {
 function generateQR(containerId, size) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  const seed = Math.random();
+
+  // Finder pattern squares (top-left, top-right, bottom-left)
+  function finderAt(rOff, cOff) {
+    const cells = [];
+    for (let r = 0; r < 7; r++)
+      for (let c = 0; c < 7; c++)
+        if (r===0||r===6||c===0||c===6||(r>=2&&r<=4&&c>=2&&c<=4))
+          cells.push([r+rOff, c+cOff]);
+    return cells;
+  }
+
   const pattern = [
-    // Top-left finder
-    [0,0],[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],
-    [1,0],[1,6],[2,0],[2,2],[2,3],[2,4],[2,6],
-    [3,0],[3,2],[3,3],[3,4],[3,6],[4,0],[4,2],
-    [4,3],[4,4],[4,6],[5,0],[5,6],[6,0],[6,1],
-    [6,2],[6,3],[6,4],[6,5],[6,6],
+    ...finderAt(0, 0),
+    ...finderAt(0, size - 7),
+    ...finderAt(size - 7, 0),
   ];
+
+  // Timing strips
+  for (let i = 8; i < size - 8; i++) {
+    if (i % 2 === 0) { pattern.push([6, i]); pattern.push([i, 6]); }
+  }
+
+  const patternSet = new Set(pattern.map(([r,c]) => r*100+c));
+  // Quiet zone (border around finders)
+  function inQuiet(r,c) {
+    return (r<9&&c<9)||(r<9&&c>=size-8)||(r>=size-8&&c<9);
+  }
 
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
       const cell = document.createElement('div');
       cell.classList.add('qr-cell');
-      const inPattern = pattern.some(([pr, pc]) => pr === r && pc === c);
-      const filled = inPattern || (Math.random() > 0.5 && !(r < 8 && c < 8));
+      const inPat = patternSet.has(r*100+c);
+      const filled = inPat || (!inQuiet(r,c) && Math.random() > 0.48);
       if (filled) cell.classList.add('filled');
       container.appendChild(cell);
     }
   }
+  container.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
 }
 
 generateQR('qrGrid', 7);
 generateQR('qrDemoGrid', 9);
+generateQR('qrHeroGrid', 21);
 
 /* ─── HERO PARALLAX ─── */
 const heroBg = document.getElementById('heroBg');

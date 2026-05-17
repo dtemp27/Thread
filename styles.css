@@ -384,7 +384,22 @@ img { display: block; max-width: 100%; }
   100% { top: 100%; opacity: 0; }
 }
 
-/* legacy refs still used by app.js QR demo */
+/* ─── HERO QR GRID (21×21) ─── */
+.qr-hero-grid {
+  display: grid;
+  grid-template-columns: repeat(21, 1fr);
+  gap: 2px;
+  width: 210px;
+  height: 210px;
+  background: #fff;
+  padding: 10px;
+  border-radius: 8px;
+}
+.qr-hero-grid .qr-cell { border-radius: 1.5px; }
+.qr-hero-grid .qr-cell.filled { background: #111; }
+.qr-hero-grid .qr-cell:not(.filled) { background: transparent; }
+
+/* legacy refs used by QR demo section + small badge */
 .qr-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; width: 72px; height: 72px; }
 .qr-cell { border-radius: 1px; }
 .qr-cell.filled { background: #0f0f0f; }
