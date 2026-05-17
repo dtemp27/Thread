@@ -159,6 +159,32 @@ function bootUI() {
     } catch(e) {}
   })();
 
+  /* ─── Cart navigation ─── */
+  window.goToDashCart = function() {
+    try {
+      const raw = localStorage.getItem('thread_cart');
+      const cart = raw ? JSON.parse(raw) : null;
+      const items = cart?.items || (Array.isArray(cart) ? cart : []);
+      if (!items.length) {
+        // Nothing in cart — go browse the catalog
+        window.location.href = 'catalog.html';
+        return;
+      }
+      // Write thread_checkout so checkout.js doesn't redirect away
+      const subtotal = items.reduce((s, i) => s + i.price * (i.qty || 1), 0);
+      const discount = cart?.discount || 0;
+      const total    = Math.max(0, subtotal - discount);
+      localStorage.setItem('thread_checkout', JSON.stringify({
+        items, subtotal, discount, total,
+        promoCode: cart?.promoCode || '',
+        ref: localStorage.getItem('thread_ref') || ''
+      }));
+      window.location.href = 'checkout.html';
+    } catch(e) {
+      window.location.href = 'catalog.html';
+    }
+  };
+
   /* clean up any leftover demo sessionStorage from a previous page load */
   sessionStorage.removeItem(DEMO_KEY_STATS);
   sessionStorage.removeItem(DEMO_KEY_PURCHASES);

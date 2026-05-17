@@ -398,12 +398,28 @@ const HOODIE_PHOTO_SLUG = {
   'Forest Shadow': 'forest-shadow',
   'Ash Stone':     'ash-stone',
   'Ivory Pure':    'ivory-pure',
+  'Silver Mist':   'silver-mist',
+  'Bone':          'bone',
+  'Tawny Dusk':    'tawny-dusk',
+};
+const TEE_PHOTO_SLUG = {
+  'Clean White': 'clean-white',
+  'Raw Stone':   'raw-stone',
+  'Jet Black':   'jet-black',
 };
 
-function hoodieThumb(name) {
-  const slug = HOODIE_PHOTO_SLUG[name] || 'phantom-black';
-  return `<img src="images/${slug}-front.png?v=hoodie-20260517" alt="${name}" style="width:100%;height:100%;object-fit:cover;object-position:center top;background:#0a0a0a;border-radius:8px">`;
+function productThumb(item) {
+  const name = item.name || item;
+  const isHoodie = (item.type || 'hoodie') !== 'tee';
+  const slug = isHoodie
+    ? (HOODIE_PHOTO_SLUG[name] || 'phantom-black')
+    : (TEE_PHOTO_SLUG[name] || name.toLowerCase().replace(/\s+/g,'-'));
+  const ver = isHoodie ? 'hoodie-20260517' : 'tee-20260517';
+  return `<img src="images/${slug}-front.png?v=${ver}" alt="${name}" style="width:100%;height:100%;object-fit:cover;object-position:center top;background:#0a0a0a;border-radius:8px">`;
 }
+
+// Backward-compat aliases
+function hoodieThumb(name) { return productThumb({name, type:'hoodie'}); }
 
 // Kept for backward compatibility — same call signature, real photo now
 function miniHoodieSVG(name) { return hoodieThumb(name); }
@@ -438,14 +454,17 @@ function renderCartDrawer() {
 
   if (footerEl) footerEl.style.display = 'block';
 
-  itemsEl.innerHTML = cart.items.map((item, idx) => `
+  itemsEl.innerHTML = cart.items.map((item, idx) => {
+    const isHoodie = (item.type || 'hoodie') !== 'tee';
+    const typeLabel = isHoodie ? 'Oversized Heavyweight' : 'Oversized Tee';
+    return `
     <div class="cd-item">
-      <div class="cd-item-img">${hoodieThumb(item.name)}</div>
+      <div class="cd-item-img">${productThumb(item)}</div>
       <div class="cd-item-info">
         <div class="cd-item-name">${item.name}</div>
+        <div class="cd-item-type">${typeLabel}</div>
         <div class="cd-item-size">Size: ${item.size || 'M'}</div>
         <div class="cd-item-price">$${item.price}</div>
-        <div class="cd-item-earn">Earns referrer $20+</div>
       </div>
       <div class="cd-item-controls">
         <button class="cd-qty-btn" onclick="updateCartQty(${idx}, -1)">−</button>
@@ -453,7 +472,8 @@ function renderCartDrawer() {
         <button class="cd-qty-btn" onclick="updateCartQty(${idx}, 1)">+</button>
         <button class="cd-remove" onclick="removeCartItem(${idx})" title="Remove">✕</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   const { subtotal, discount, total } = cartTotal(cart);
   const subEl  = document.getElementById('cdSubtotal');
@@ -469,12 +489,12 @@ function renderCartDrawer() {
   localStorage.setItem('thread_checkout', JSON.stringify({ items: cart.items, subtotal, discount, total, ref: localStorage.getItem('thread_ref') }));
 }
 
-function addToCart(name, price, size = 'M') {
+function addToCart(name, price, size = 'M', type = 'hoodie') {
   const cart = getCart();
   // Same product + same size = stack qty; different size = new line
   const existing = cart.items.find(i => i.name === name && i.size === size);
   if (existing) { existing.qty++; }
-  else { cart.items.push({ name, price: parseFloat(price), qty: 1, size }); }
+  else { cart.items.push({ name, price: parseFloat(price), qty: 1, size, type }); }
   saveCart(cart);
   renderCartDrawer();
   openCart();
@@ -542,7 +562,8 @@ document.querySelectorAll('.btn-add-cart').forEach(btn => {
     const card = btn.closest('.product-card');
     const name  = btn.dataset.product || card?.querySelector('h3')?.textContent || 'Item';
     const price = btn.dataset.price   || '89';
-    openSizeModal(name, price);
+    const type  = btn.dataset.type    || 'hoodie';
+    openSizeModal(name, price, type);
   });
 });
 
@@ -558,8 +579,8 @@ document.querySelectorAll('.product-card .product-img').forEach(imgArea => {
 
 /* ─── SIZE PICKER MODAL ─── */
 let _pendingProduct = null;
-function openSizeModal(name, price) {
-  _pendingProduct = { name, price };
+function openSizeModal(name, price, type = 'hoodie') {
+  _pendingProduct = { name, price, type };
   const productEl  = document.getElementById('sizeModalProduct');
   const overlay    = document.getElementById('sizeModalOverlay');
   const modal      = document.getElementById('sizeModal');
@@ -587,7 +608,7 @@ document.getElementById('sizeModalConfirm')?.addEventListener('click', () => {
   const selected = document.querySelector('.size-pill.selected');
   if (!selected || !_pendingProduct) return;
   const size = selected.dataset.size;
-  addToCart(_pendingProduct.name, _pendingProduct.price, size);
+  addToCart(_pendingProduct.name, _pendingProduct.price, size, _pendingProduct.type || 'hoodie');
   const productName = _pendingProduct.name;
   closeSizeModal();
 

@@ -1470,7 +1470,8 @@ body.cart-open { overflow: hidden; }
 }
 .cd-item-img svg { width: 100%; height: 100%; }
 .cd-item-info { flex: 1; min-width: 0; }
-.cd-item-name { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+.cd-item-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+.cd-item-type { font-size: 10px; font-weight: 600; color: #6C63FF; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
 .cd-item-price { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--accent2); }
 .cd-item-earn { font-size: 11px; color: var(--green); margin-top: 2px; }
 .cd-item-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }

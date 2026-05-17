@@ -359,19 +359,28 @@
       if (cdFooter) cdFooter.style.display = 'none';
       return;
     }
-    cdItems.innerHTML = cart.items.map((item, idx) => `
+    cdItems.innerHTML = cart.items.map((item, idx) => {
+      const isHoodie = (item.type || 'hoodie') !== 'tee';
+      const typeLabel = isHoodie ? 'Oversized Heavyweight' : 'Oversized Tee';
+      const slugMap = {'Phantom Black':'phantom-black','Midnight Navy':'midnight-navy','Ember Crimson':'ember-crimson','Forest Shadow':'forest-shadow','Ash Stone':'ash-stone','Ivory Pure':'ivory-pure','Silver Mist':'silver-mist','Bone':'bone','Tawny Dusk':'tawny-dusk','Clean White':'clean-white','Raw Stone':'raw-stone','Jet Black':'jet-black'};
+      const slug = slugMap[item.name] || item.name.toLowerCase().replace(/\s+/g,'-');
+      const imgSrc = isHoodie ? `images/${slug}-front.png?v=hoodie-20260517` : `images/${slug}-front.png?v=tee-20260517`;
+      return `
       <div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
-        <div style="flex:1;">
-          <div style="font-weight:600;color:#f0f0f0;font-size:14px;">${item.name}</div>
-          <div style="font-size:12px;color:#888;margin-top:2px;">Size: ${item.size||'M'} · $${item.price}</div>
+        <img src="${imgSrc}" alt="${item.name}" style="width:54px;height:54px;object-fit:cover;object-position:center top;border-radius:8px;background:#111;flex-shrink:0;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;color:#f0f0f0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name}</div>
+          <div style="font-size:11px;color:#6C63FF;margin-top:1px;font-weight:500;">${typeLabel}</div>
+          <div style="font-size:11px;color:#888;margin-top:2px;">Size: ${item.size||'M'} · $${item.price}</div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;">
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
           <button onclick="updateQty(${idx},-1)" style="background:rgba(255,255,255,0.08);border:none;color:#f0f0f0;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:16px;">−</button>
-          <span style="color:#f0f0f0;font-size:14px;">${item.qty||1}</span>
+          <span style="color:#f0f0f0;font-size:14px;min-width:14px;text-align:center;">${item.qty||1}</span>
           <button onclick="updateQty(${idx},1)" style="background:rgba(255,255,255,0.08);border:none;color:#f0f0f0;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:16px;">+</button>
-          <button onclick="removeItem(${idx})" style="background:none;border:none;color:#555;cursor:pointer;font-size:16px;margin-left:4px;">✕</button>
+          <button onclick="removeItem(${idx})" style="background:none;border:none;color:#555;cursor:pointer;font-size:14px;margin-left:2px;">✕</button>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     if (cdFooter) cdFooter.style.display = 'block';
     const sub = document.getElementById('cdSubtotal'); if (sub) sub.textContent = '$'+total.toFixed(2);
     const tot = document.getElementById('cdTotal'); if (tot) tot.textContent = '$'+total.toFixed(2);
@@ -397,8 +406,11 @@
   function addToCart(name, price, btn) {
     const cart = getCart();
     const existing = cart.items.find(i => i.name === name);
+    // Look up product type from PRODUCTS array
+    const product = PRODUCTS.find(p => p.name === name);
+    const type = product ? product.type : 'hoodie';
     if (existing) { existing.qty = (existing.qty||1) + 1; }
-    else { cart.items.push({name, price:parseFloat(price), qty:1, size:'M'}); }
+    else { cart.items.push({name, price:parseFloat(price), qty:1, size:'M', type}); }
     saveCart(cart);
     renderCartDrawer();
     // Flash feedback on button

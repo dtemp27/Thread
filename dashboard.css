@@ -309,15 +309,16 @@ a { color: var(--accent2); text-decoration: none; cursor: pointer; }
 .tc-value { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; color: var(--accent2); letter-spacing: 2px; }
 .topbar-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; cursor: pointer; }
 .dash-cart-btn {
-  display: flex; align-items: center; gap: 6px;
-  padding: 7px 14px; border-radius: 8px;
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 7px;
   background: var(--surface2); border: 1px solid var(--border);
   color: var(--text); text-decoration: none;
-  font-size: 12px; font-weight: 600; letter-spacing: 0.3px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.3px;
   position: relative; transition: background 0.18s, border-color 0.18s;
+  cursor: pointer; font-family: inherit;
 }
 .dash-cart-btn:hover { background: var(--surface); border-color: var(--accent); color: var(--accent); }
-.dash-cart-btn svg { flex-shrink: 0; opacity: 0.85; }
+.dash-cart-btn svg { flex-shrink: 0; opacity: 0.85; width: 13px; height: 13px; }
 .dash-cart-count {
   position: absolute; top: -6px; right: -6px;
   background: var(--accent); color: white;
