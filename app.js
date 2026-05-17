@@ -496,12 +496,32 @@ const calcDetail = document.getElementById('calcDetail');
 function updateCalc() {
   const scans = parseInt(scanSlider.value, 10);
   scanDisplay.textContent = scans;
-  const weeklyConversions = scans * 0.18;
+
+  const weeklyConversions  = scans * 0.18;
   const monthlyConversions = weeklyConversions * 4.33;
-  const monthly = monthlyConversions * 20;
+
+  // Avg order value: mix of hoodies ($89) and tees ($65)
+  const avgOrder = 80;
+
+  // Tier based on estimated monthly sales volume:
+  // Starter 0-10 → 20%, Hustler 11-50 → 25%, Elite 51+ → 30%
+  let pct, tierLabel;
+  if (monthlyConversions <= 10) {
+    pct = 0.20; tierLabel = '20%';
+  } else if (monthlyConversions <= 50) {
+    pct = 0.25; tierLabel = '25%';
+  } else {
+    pct = 0.30; tierLabel = '30%';
+  }
+
+  const monthly = monthlyConversions * avgOrder * pct;
   const rounded = Math.round(monthly / 5) * 5;
+
   calcAmount.textContent = '$' + rounded.toLocaleString();
   calcDetail.textContent = `~${monthlyConversions.toFixed(1)} purchases · ${scans} scans/wk`;
+
+  const tierPctEl = document.getElementById('calcTierPct');
+  if (tierPctEl) tierPctEl.textContent = tierLabel;
 }
 
 if (scanSlider) {
