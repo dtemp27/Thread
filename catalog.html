@@ -144,76 +144,55 @@
       type:'hoodie', name:'Phantom Black', price:89, earn:'20%',
       badge:{text:'🔥 BEST SELLER', cls:'badge-hot'},
       stars:'4.9', reviews:312,
-      photos:['images/phantom-black-front.png','images/phantom-black-back.png']
+      photos:['Hoodie Varients/phantom-black-front.png','Hoodie Varients/phantom-black-model-front.png','Hoodie Varients/phantom-black-front-2.png','Hoodie Varients/phantom-black-back.png','Hoodie Varients/phantom-black-model-back.png']
     },
     {
       type:'hoodie', name:'Midnight Navy', price:89, earn:'20%',
       badge:{text:'NEW DROP', cls:'badge-new'},
       stars:'4.8', reviews:198,
-      photos:['images/midnight-navy-front.png','images/midnight-navy-back.png']
+      photos:['Hoodie Varients/midnight-navy-front.png','Hoodie Varients/midnight-navy-model-front.png','Hoodie Varients/midnight-navy-front-2.png','Hoodie Varients/midnight-navy-back.png','Hoodie Varients/midnight-navy-model-back.png']
     },
     {
       type:'hoodie', name:'Ember Crimson', price:89, earn:'20%',
       badge:{text:'LIMITED', cls:'badge-ltd'},
       stars:'5.0', reviews:87,
-      photos:['images/ember-crimson-front.png','images/ember-crimson-back.png']
+      photos:['Hoodie Varients/ember-crimson-front.png','Hoodie Varients/ember-crimson-model-front.png','Hoodie Varients/ember-crimson-front-2.png','Hoodie Varients/ember-crimson-back.png','Hoodie Varients/ember-crimson-model-back.png']
     },
     {
       type:'hoodie', name:'Forest Shadow', price:89, earn:'20%',
       badge:{text:'NEW DROP', cls:'badge-new'},
       stars:'4.7', reviews:143,
-      photos:['images/forest-shadow-front.png','images/forest-shadow-back.png']
+      photos:['Hoodie Varients/forest-shadow-front.png','Hoodie Varients/forest-shadow-model-front.png','Hoodie Varients/forest-shadow-front-2.png','Hoodie Varients/forest-shadow-back.png','Hoodie Varients/forest-shadow-model-back.png']
     },
     {
       type:'hoodie', name:'Ash Stone', price:89, earn:'20%',
       badge:null,
       stars:'4.6', reviews:224,
-      photos:['images/ash-stone-front.png','images/ash-stone-back.png']
+      photos:['Hoodie Varients/ash-stone-front.png','Hoodie Varients/ash-stone-model-front.png','Hoodie Varients/ash-stone-front-2.png','Hoodie Varients/ash-stone-back.png','Hoodie Varients/ash-stone-model-back.png']
     },
     {
       type:'hoodie', name:'Ivory Pure', price:89, earn:'20%',
       badge:{text:'NEW DROP', cls:'badge-new'},
       stars:'4.9', reviews:8,
-      photos:['images/ivory-pure-front.png','images/ivory-pure-back.png']
+      photos:['Hoodie Varients/ivory-pure-front.png','Hoodie Varients/ivory-pure-model-front.png','Hoodie Varients/ivory-pure-front-2.png','Hoodie Varients/ivory-pure-back.png','Hoodie Varients/ivory-pure-model-back.png']
     },
     {
       type:'hoodie', name:'Silver Mist', price:89, earn:'20%',
       badge:{text:'NEW DROP', cls:'badge-new'},
       stars:'4.8', reviews:41,
-      photos:[
-        'images/silver-mist-front.png',
-        'images/silver-mist-2.png',
-        'images/silver-mist-3.png',
-        'images/silver-mist-4.png',
-        'images/silver-mist-back.png',
-        'images/silver-mist-back-2.png'
-      ]
+      photos:['Hoodie Varients/silver-mist-front.png','Hoodie Varients/silver-mist-model-front.png','Hoodie Varients/silver-mist-front-2.png','Hoodie Varients/silver-mist-back.png','Hoodie Varients/silver-mist-model-back.png']
     },
     {
       type:'hoodie', name:'Bone', price:89, earn:'20%',
       badge:{text:'NEW DROP', cls:'badge-new'},
       stars:'4.9', reviews:29,
-      photos:[
-        'images/bone-front.png',
-        'images/bone-2.png',
-        'images/bone-3.png',
-        'images/bone-4.png',
-        'images/bone-back.png',
-        'images/bone-back-2.png'
-      ]
+      photos:['Hoodie Varients/bone-front.png','Hoodie Varients/bone-model-front.png','Hoodie Varients/bone-front-2.png','Hoodie Varients/bone-back.png','Hoodie Varients/bone-model-back.png']
     },
     {
       type:'hoodie', name:'Tawny Dusk', price:89, earn:'20%',
       badge:{text:'NEW DROP', cls:'badge-new'},
       stars:'4.7', reviews:17,
-      photos:[
-        'images/tawny-dusk-front.png',
-        'images/tawny-dusk-2.png',
-        'images/tawny-dusk-3.png',
-        'images/tawny-dusk-4.png',
-        'images/tawny-dusk-back.png',
-        'images/tawny-dusk-back-2.png'
-      ]
+      photos:['Hoodie Varients/tawny-dusk-front.png','Hoodie Varients/tawny-dusk-model-front.png','Hoodie Varients/tawny-dusk-front-2.png','Hoodie Varients/tawny-dusk-back.png','Hoodie Varients/tawny-dusk-model-back.png']
     },
     /* ── TEES ── */
     {
@@ -364,7 +343,7 @@
       const typeLabel = isHoodie ? 'Oversized Heavyweight' : 'Oversized Tee';
       const slugMap = {'Phantom Black':'phantom-black','Midnight Navy':'midnight-navy','Ember Crimson':'ember-crimson','Forest Shadow':'forest-shadow','Ash Stone':'ash-stone','Ivory Pure':'ivory-pure','Silver Mist':'silver-mist','Bone':'bone','Tawny Dusk':'tawny-dusk','Clean White':'clean-white','Raw Stone':'raw-stone','Jet Black':'jet-black'};
       const slug = slugMap[item.name] || item.name.toLowerCase().replace(/\s+/g,'-');
-      const imgSrc = isHoodie ? `images/${slug}-front.png?v=hoodie-20260517` : `images/${slug}-front.png?v=tee-20260517`;
+      const imgSrc = isHoodie ? `Hoodie Varients/${slug}-front.png?v=hoodie-20260517` : `images/${slug}-front.png?v=tee-20260517`;
       return `
       <div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
         <img src="${imgSrc}" alt="${item.name}" style="width:54px;height:54px;object-fit:cover;object-position:center top;border-radius:8px;background:#111;flex-shrink:0;">
