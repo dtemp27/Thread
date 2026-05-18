@@ -250,6 +250,39 @@ function bootUI() {
 
   /* ─── RENDER ALL ─── */
   renderAll();
+
+  /* ─── REAL-TIME SCAN LISTENER (Supabase) ─── */
+  if (_sb && user.id) {
+    _sb.channel('dashboard_scans_' + user.id)
+      .on('postgres_changes', {
+        event:  'INSERT',
+        schema: 'public',
+        table:  'referral_scans',
+        filter: `referrer_id=eq.${user.id}`
+      }, payload => {
+        const scan = payload.new;
+        const entry = {
+          type:      scan.converted ? 'conversion' : 'scan',
+          date:      scan.created_at || new Date().toISOString(),
+          city:      scan.city || 'Unknown',
+          converted: scan.converted || false,
+          amount:    parseFloat(scan.commission || 0),
+          status:    scan.status || 'completed'
+        };
+        user.stats.totalScans++;
+        user.stats.scanHistory.unshift(entry);
+        if (scan.converted) {
+          user.stats.conversions++;
+          user.stats.totalEarned   = parseFloat((user.stats.totalEarned + entry.amount).toFixed(2));
+          user.stats.pendingEarnings = parseFloat((user.stats.pendingEarnings + entry.amount).toFixed(2));
+        }
+        renderStats();
+        renderActivity();
+        renderTransactions();
+        showToast('👁 New QR scan — ' + (entry.city !== 'Unknown' ? entry.city : 'someone just scanned your code!'), 'success');
+      })
+      .subscribe();
+  }
   // scheduleNextScan() is NOT called here — it only runs when Demo Mode is on
 }
 
