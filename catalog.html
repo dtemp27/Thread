@@ -199,31 +199,31 @@
       type:'tee', name:'Jet Black', price:65, earn:'20%',
       badge:{text:'OVERSIZED TEE', cls:'badge-tee'},
       stars:'4.9', reviews:54,
-      photos:['images/tee-jet-black-front.png','images/tee-jet-black-2.png','images/tee-jet-black-model.png','images/tee-jet-black-back.png','images/tee-jet-black-back-2.png']
+      photos:['images/tee-jet-black-2.png','images/tee-jet-black-back-2.png','images/tee-jet-black-detail.png','images/tee-jet-black-model.png']
     },
     {
       type:'tee', name:'Deep Navy', price:65, earn:'20%',
       badge:{text:'OVERSIZED TEE', cls:'badge-tee'},
       stars:'4.8', reviews:31,
-      photos:['images/tee-deep-navy-front.png','images/tee-deep-navy-2.png','images/tee-deep-navy-model.png','images/tee-deep-navy-back.png','images/tee-deep-navy-back-2.png']
+      photos:['images/tee-deep-navy-2.png','images/tee-deep-navy-back-2.png','images/tee-deep-navy-detail.png','images/tee-deep-navy-model.png']
     },
     {
       type:'tee', name:'Slate Grey', price:65, earn:'20%',
       badge:{text:'OVERSIZED TEE', cls:'badge-tee'},
       stars:'4.7', reviews:28,
-      photos:['images/tee-slate-grey-front.png','images/tee-slate-grey-2.png','images/tee-slate-grey-model.png','images/tee-slate-grey-back.png','images/tee-slate-grey-back-2.png']
+      photos:['images/tee-slate-grey-2.png','images/tee-slate-grey-back-2.png','images/tee-slate-grey-detail.png','images/tee-slate-grey-model.png']
     },
     {
       type:'tee', name:'Raw Stone', price:65, earn:'20%',
       badge:{text:'OVERSIZED TEE', cls:'badge-tee'},
       stars:'4.8', reviews:19,
-      photos:['images/tee-raw-stone-front.png','images/tee-raw-stone-2.png','images/tee-raw-stone-model.png','images/tee-raw-stone-back.png','images/tee-raw-stone-back-2.png']
+      photos:['images/tee-raw-stone-2.png','images/tee-raw-stone-back-2.png','images/tee-raw-stone-detail.png','images/tee-raw-stone-model.png']
     },
     {
       type:'tee', name:'Clean White', price:65, earn:'20%',
       badge:{text:'OVERSIZED TEE', cls:'badge-tee'},
       stars:'4.9', reviews:22,
-      photos:['images/tee-clean-white-front.png','images/tee-clean-white-2.png','images/tee-clean-white-model.png','images/tee-clean-white-back.png','images/tee-clean-white-back-2.png']
+      photos:['images/tee-clean-white-2.png','images/tee-clean-white-back-2.png','images/tee-clean-white-detail.png','images/tee-clean-white-model.png']
     }
   ];
 
@@ -341,9 +341,9 @@
     cdItems.innerHTML = cart.items.map((item, idx) => {
       const isHoodie = (item.type || 'hoodie') !== 'tee';
       const typeLabel = isHoodie ? 'Oversized Heavyweight' : 'Oversized Tee';
-      const slugMap = {'Phantom Black':'phantom-black','Midnight Navy':'midnight-navy','Ember Crimson':'ember-crimson','Forest Shadow':'forest-shadow','Ash Stone':'ash-stone','Ivory Pure':'ivory-pure','Silver Mist':'silver-mist','Bone':'bone','Tawny Dusk':'tawny-dusk','Clean White':'clean-white','Raw Stone':'raw-stone','Jet Black':'jet-black'};
+      const slugMap = {'Phantom Black':'phantom-black','Midnight Navy':'midnight-navy','Ember Crimson':'ember-crimson','Forest Shadow':'forest-shadow','Ash Stone':'ash-stone','Ivory Pure':'ivory-pure','Silver Mist':'silver-mist','Bone':'bone','Tawny Dusk':'tawny-dusk','Clean White':'clean-white','Raw Stone':'raw-stone','Jet Black':'jet-black','Deep Navy':'deep-navy','Slate Grey':'slate-grey'};
       const slug = slugMap[item.name] || item.name.toLowerCase().replace(/\s+/g,'-');
-      const imgSrc = isHoodie ? `hoodie-variants/${slug}-front.png?v=hoodie-20260517` : `images/${slug}-front.png?v=tee-20260517`;
+      const imgSrc = isHoodie ? `hoodie-variants/${slug}-front.png?v=hoodie-20260517` : `images/tee-${slug}-2.png`;
       return `
       <div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
         <img src="${imgSrc}" alt="${item.name}" style="width:54px;height:54px;object-fit:cover;object-position:center top;border-radius:8px;background:#111;flex-shrink:0;">
@@ -385,14 +385,12 @@
   function addToCart(name, price, btn) {
     const cart = getCart();
     const existing = cart.items.find(i => i.name === name);
-    // Look up product type from PRODUCTS array
     const product = PRODUCTS.find(p => p.name === name);
     const type = product ? product.type : 'hoodie';
     if (existing) { existing.qty = (existing.qty||1) + 1; }
     else { cart.items.push({name, price:parseFloat(price), qty:1, size:'M', type}); }
     saveCart(cart);
     renderCartDrawer();
-    // Flash feedback on button
     if (btn) {
       btn.textContent = '✓ Added!';
       btn.style.background = '#22c55e';
