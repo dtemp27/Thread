@@ -53,7 +53,7 @@
     .cat-card:hover { transform:translateY(-6px); border-color:rgba(108,99,255,0.3); box-shadow:0 20px 50px rgba(0,0,0,0.4); }
 
     /* ── CAROUSEL ── */
-    .carousel { position:relative; background:#e2e2e2; aspect-ratio:1/1; overflow:hidden; }
+    .carousel { position:relative; background:#999; aspect-ratio:1/1; overflow:hidden; }
     .carousel-track { display:flex; height:100%; transition:transform 0.35s cubic-bezier(0.4,0,0.2,1); }
     .carousel-slide { min-width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
     .carousel-slide img { width:100%; height:100%; object-fit:contain; object-position:center; }
@@ -137,214 +137,118 @@
   <div class="catalog-grid" id="catalogGrid"></div>
 
   <script>
-  /* ── PRODUCT DATA ── */
   const PRODUCTS = [
-    /* ── HOODIES ── */
-    {
-      type:'hoodie', name:'Phantom Black', price:89, earn:'20%',
-      badge:{text:'🔥 BEST SELLER', cls:'badge-hot'},
-      stars:'4.9', reviews:312,
-      photos:['hoodie-variants/phantom-black-front.png','hoodie-variants/phantom-black-model-front.png','hoodie-variants/phantom-black-front-2.png','hoodie-variants/phantom-black-back.png','hoodie-variants/phantom-black-model-back.png']
-    },
-    {
-      type:'hoodie', name:'Midnight Navy', price:89, earn:'20%',
-      badge:{text:'NEW DROP', cls:'badge-new'},
-      stars:'4.8', reviews:198,
-      photos:['hoodie-variants/midnight-navy-front.png','hoodie-variants/midnight-navy-model-front.png','hoodie-variants/midnight-navy-front-2.png','hoodie-variants/midnight-navy-back.png','hoodie-variants/midnight-navy-model-back.png']
-    },
-    {
-      type:'hoodie', name:'Ember Crimson', price:89, earn:'20%',
-      badge:{text:'LIMITED', cls:'badge-ltd'},
-      stars:'5.0', reviews:87,
-      photos:['hoodie-variants/ember-crimson-front.png','hoodie-variants/ember-crimson-model-front.png','hoodie-variants/ember-crimson-front-2.png','hoodie-variants/ember-crimson-back.png','hoodie-variants/ember-crimson-model-back.png']
-    },
-    {
-      type:'hoodie', name:'Forest Shadow', price:89, earn:'20%',
-      badge:{text:'NEW DROP', cls:'badge-new'},
-      stars:'4.7', reviews:143,
-      photos:['hoodie-variants/forest-shadow-front.png','hoodie-variants/forest-shadow-model-front.png','hoodie-variants/forest-shadow-front-2.png','hoodie-variants/forest-shadow-back.png','hoodie-variants/forest-shadow-model-back.png']
-    },
-    {
-      type:'hoodie', name:'Ash Stone', price:89, earn:'20%',
-      badge:null,
-      stars:'4.6', reviews:224,
-      photos:['hoodie-variants/ash-stone-front.png','hoodie-variants/ash-stone-model-front.png','hoodie-variants/ash-stone-front-2.png','hoodie-variants/ash-stone-back.png','hoodie-variants/ash-stone-model-back.png']
-    },
-    {
-      type:'hoodie', name:'Ivory Pure', price:89, earn:'20%',
-      badge:{text:'NEW DROP', cls:'badge-new'},
-      stars:'4.9', reviews:8,
-      photos:['hoodie-variants/ivory-pure-front.png','hoodie-variants/ivory-pure-model-front.png','hoodie-variants/ivory-pure-front-2.png','hoodie-variants/ivory-pure-back.png','hoodie-variants/ivory-pure-model-back.png']
-    },
-    {
-      type:'hoodie', name:'Silver Mist', price:89, earn:'20%',
-      badge:{text:'NEW DROP', cls:'badge-new'},
-      stars:'4.8', reviews:41,
-      photos:['hoodie-variants/silver-mist-front.png','hoodie-variants/silver-mist-model-front.png','hoodie-variants/silver-mist-front-2.png','hoodie-variants/silver-mist-back.png','hoodie-variants/silver-mist-model-back.png']
-    },
-    {
-      type:'hoodie', name:'Bone', price:89, earn:'20%',
-      badge:{text:'NEW DROP', cls:'badge-new'},
-      stars:'4.9', reviews:29,
-      photos:['hoodie-variants/bone-front.png','hoodie-variants/bone-model-front.png','hoodie-variants/bone-front-2.png','hoodie-variants/bone-back.png','hoodie-variants/bone-model-back.png']
-    },
-    {
-      type:'hoodie', name:'Tawny Dusk', price:89, earn:'20%',
-      badge:{text:'NEW DROP', cls:'badge-new'},
-      stars:'4.7', reviews:17,
-      photos:['hoodie-variants/tawny-dusk-front.png','hoodie-variants/tawny-dusk-model-front.png','hoodie-variants/tawny-dusk-front-2.png','hoodie-variants/tawny-dusk-back.png','hoodie-variants/tawny-dusk-model-back.png']
-    },
-    /* ── TEES ── */
-    {
-      type:'tee', name:'Jet Black', price:65, earn:'20%',
-      badge:{text:'OVERSIZED TEE', cls:'badge-tee'},
-      stars:'4.9', reviews:54,
-      photos:['images/tee-jet-black-2.png','images/tee-jet-black-back-2.png','images/tee-jet-black-detail.png','images/tee-jet-black-model.png']
-    },
-    {
-      type:'tee', name:'Deep Navy', price:65, earn:'20%',
-      badge:{text:'OVERSIZED TEE', cls:'badge-tee'},
-      stars:'4.8', reviews:31,
-      photos:['images/tee-deep-navy-2.png','images/tee-deep-navy-back-2.png','images/tee-deep-navy-detail.png','images/tee-deep-navy-model.png']
-    },
-    {
-      type:'tee', name:'Slate Grey', price:65, earn:'20%',
-      badge:{text:'OVERSIZED TEE', cls:'badge-tee'},
-      stars:'4.7', reviews:28,
-      photos:['images/tee-slate-grey-2.png','images/tee-slate-grey-back-2.png','images/tee-slate-grey-detail.png','images/tee-slate-grey-model.png']
-    },
-    {
-      type:'tee', name:'Raw Stone', price:65, earn:'20%',
-      badge:{text:'OVERSIZED TEE', cls:'badge-tee'},
-      stars:'4.8', reviews:19,
-      photos:['images/tee-raw-stone-2.png','images/tee-raw-stone-back-2.png','images/tee-raw-stone-detail.png','images/tee-raw-stone-model.png']
-    },
-    {
-      type:'tee', name:'Clean White', price:65, earn:'20%',
-      badge:{text:'OVERSIZED TEE', cls:'badge-tee'},
-      stars:'4.9', reviews:22,
-      photos:['images/tee-clean-white-2.png','images/tee-clean-white-back-2.png','images/tee-clean-white-detail.png','images/tee-clean-white-model.png']
-    }
+    { type:'hoodie', name:'Phantom Black', price:89, earn:'20%', badge:{text:'🔥 BEST SELLER', cls:'badge-hot'}, stars:'4.9', reviews:312, photos:['hoodie-variants/phantom-black-front.png','hoodie-variants/phantom-black-model-front.png','hoodie-variants/phantom-black-front-2.png','hoodie-variants/phantom-black-back.png','hoodie-variants/phantom-black-model-back.png'] },
+    { type:'hoodie', name:'Midnight Navy', price:89, earn:'20%', badge:{text:'NEW DROP', cls:'badge-new'}, stars:'4.8', reviews:198, photos:['hoodie-variants/midnight-navy-front.png','hoodie-variants/midnight-navy-model-front.png','hoodie-variants/midnight-navy-front-2.png','hoodie-variants/midnight-navy-back.png','hoodie-variants/midnight-navy-model-back.png'] },
+    { type:'hoodie', name:'Ember Crimson', price:89, earn:'20%', badge:{text:'LIMITED', cls:'badge-ltd'}, stars:'5.0', reviews:87, photos:['hoodie-variants/ember-crimson-front.png','hoodie-variants/ember-crimson-model-front.png','hoodie-variants/ember-crimson-front-2.png','hoodie-variants/ember-crimson-back.png','hoodie-variants/ember-crimson-model-back.png'] },
+    { type:'hoodie', name:'Forest Shadow', price:89, earn:'20%', badge:{text:'NEW DROP', cls:'badge-new'}, stars:'4.7', reviews:143, photos:['hoodie-variants/forest-shadow-front.png','hoodie-variants/forest-shadow-model-front.png','hoodie-variants/forest-shadow-front-2.png','hoodie-variants/forest-shadow-back.png','hoodie-variants/forest-shadow-model-back.png'] },
+    { type:'hoodie', name:'Ash Stone', price:89, earn:'20%', badge:null, stars:'4.6', reviews:224, photos:['hoodie-variants/ash-stone-front.png','hoodie-variants/ash-stone-model-front.png','hoodie-variants/ash-stone-front-2.png','hoodie-variants/ash-stone-back.png','hoodie-variants/ash-stone-model-back.png'] },
+    { type:'hoodie', name:'Ivory Pure', price:89, earn:'20%', badge:{text:'NEW DROP', cls:'badge-new'}, stars:'4.9', reviews:8, photos:['hoodie-variants/ivory-pure-front.png','hoodie-variants/ivory-pure-model-front.png','hoodie-variants/ivory-pure-front-2.png','hoodie-variants/ivory-pure-back.png','hoodie-variants/ivory-pure-model-back.png'] },
+    { type:'hoodie', name:'Silver Mist', price:89, earn:'20%', badge:{text:'NEW DROP', cls:'badge-new'}, stars:'4.8', reviews:41, photos:['hoodie-variants/silver-mist-front.png','hoodie-variants/silver-mist-model-front.png','hoodie-variants/silver-mist-front-2.png','hoodie-variants/silver-mist-back.png','hoodie-variants/silver-mist-model-back.png'] },
+    { type:'hoodie', name:'Bone', price:89, earn:'20%', badge:{text:'NEW DROP', cls:'badge-new'}, stars:'4.9', reviews:29, photos:['hoodie-variants/bone-front.png','hoodie-variants/bone-model-front.png','hoodie-variants/bone-front-2.png','hoodie-variants/bone-back.png','hoodie-variants/bone-model-back.png'] },
+    { type:'hoodie', name:'Tawny Dusk', price:89, earn:'20%', badge:{text:'NEW DROP', cls:'badge-new'}, stars:'4.7', reviews:17, photos:['hoodie-variants/tawny-dusk-front.png','hoodie-variants/tawny-dusk-model-front.png','hoodie-variants/tawny-dusk-front-2.png','hoodie-variants/tawny-dusk-back.png','hoodie-variants/tawny-dusk-model-back.png'] },
+    { type:'tee', name:'Jet Black', price:65, earn:'20%', badge:{text:'OVERSIZED TEE', cls:'badge-tee'}, stars:'4.9', reviews:54, photos:['images/tee-jet-black-2.png','images/tee-jet-black-back-2.png','images/tee-jet-black-detail.png','images/tee-jet-black-model.png'] },
+    { type:'tee', name:'Deep Navy', price:65, earn:'20%', badge:{text:'OVERSIZED TEE', cls:'badge-tee'}, stars:'4.8', reviews:31, photos:['images/tee-deep-navy-2.png','images/tee-deep-navy-back-2.png','images/tee-deep-navy-detail.png','images/tee-deep-navy-model.png'] },
+    { type:'tee', name:'Slate Grey', price:65, earn:'20%', badge:{text:'OVERSIZED TEE', cls:'badge-tee'}, stars:'4.7', reviews:28, photos:['images/tee-slate-grey-2.png','images/tee-slate-grey-back-2.png','images/tee-slate-grey-detail.png','images/tee-slate-grey-model.png'] },
+    { type:'tee', name:'Raw Stone', price:65, earn:'20%', badge:{text:'OVERSIZED TEE', cls:'badge-tee'}, stars:'4.8', reviews:19, photos:['images/tee-raw-stone-2.png','images/tee-raw-stone-back-2.png','images/tee-raw-stone-detail.png','images/tee-raw-stone-model.png'] },
+    { type:'tee', name:'Clean White', price:65, earn:'20%', badge:{text:'OVERSIZED TEE', cls:'badge-tee'}, stars:'4.9', reviews:22, photos:['images/tee-clean-white-2.png','images/tee-clean-white-back-2.png','images/tee-clean-white-detail.png','images/tee-clean-white-model.png'] }
   ];
 
-  function starStr(s) {
-    const n = parseFloat(s);
-    return '★'.repeat(Math.floor(n)) + (n % 1 >= 0.5 ? '½' : '');
-  }
+  function starStr(s) { const n=parseFloat(s); return '★'.repeat(Math.floor(n))+(n%1>=0.5?'½':''); }
 
   function buildCard(p, idx) {
-    const typeLabel = p.type === 'tee' ? '<div class="type-label">Oversized Tee</div>' : '<div class="type-label">Oversized Heavyweight</div>';
-    const badge = p.badge
-      ? `<div class="product-badge ${p.badge.cls}">${p.badge.text}</div>` : '';
-    const dots = p.photos.map((_,i) =>
-      `<div class="dot${i===0?' active':''}" data-idx="${i}"></div>`).join('');
+    const typeLabel = p.type==='tee' ? '<div class="type-label">Oversized Tee</div>' : '<div class="type-label">Oversized Heavyweight</div>';
+    const badge = p.badge ? `<div class="product-badge ${p.badge.cls}">${p.badge.text}</div>` : '';
+    const dots = p.photos.map((_,i)=>`<div class="dot${i===0?' active':''}" data-idx="${i}"></div>`).join('');
     return `
       <div class="cat-card" data-type="${p.type}">
         <div class="carousel" data-card="${idx}">
           ${badge}
           <div class="carousel-track" id="track-${idx}">
-            ${p.photos.map(src => `
-              <div class="carousel-slide">
-                <img src="${src}" alt="${p.name}" loading="lazy">
-              </div>`).join('')}
+            ${p.photos.map(src=>`<div class="carousel-slide"><img src="${src}" alt="${p.name}" loading="lazy"></div>`).join('')}
           </div>
-          ${p.photos.length > 1 ? `
+          ${p.photos.length>1?`
           <button class="carousel-btn prev" onclick="slide(${idx},-1)">&#8249;</button>
-          <button class="carousel-btn next" onclick="slide(${idx}, 1)">&#8250;</button>
-          <div class="carousel-dots" id="dots-${idx}">${dots}</div>` : ''}
+          <button class="carousel-btn next" onclick="slide(${idx},1)">&#8250;</button>
+          <div class="carousel-dots" id="dots-${idx}">${dots}</div>`:''}
         </div>
         <div class="cat-info">
           ${typeLabel}
-          <div class="cat-top">
-            <h3>${p.name}</h3>
-            <span class="earn-tag">Earn ${p.earn} per sale</span>
-          </div>
-          <div class="cat-bottom">
-            <span class="price">$${p.price}</span>
-            <div class="stars">${starStr(p.stars)} <span>${p.stars} (${p.reviews})</span></div>
-          </div>
-          <button class="btn-cart" onclick="addToCart('${p.name}', ${p.price}, this)">Add to Cart — $${p.price}</button>
+          <div class="cat-top"><h3>${p.name}</h3><span class="earn-tag">Earn ${p.earn} per sale</span></div>
+          <div class="cat-bottom"><span class="price">$${p.price}</span><div class="stars">${starStr(p.stars)} <span>${p.stars} (${p.reviews})</span></div></div>
+          <button class="btn-cart" onclick="addToCart('${p.name}',${p.price},this)">Add to Cart — $${p.price}</button>
         </div>
       </div>`;
   }
 
-  /* ── RENDER ── */
   const grid = document.getElementById('catalogGrid');
   let currentFilter = 'all';
   const indices = {};
 
   function render() {
-    const visible = PRODUCTS.filter(p => currentFilter === 'all' || p.type === currentFilter);
-    grid.innerHTML = visible.map((p, i) => buildCard(p, i)).join('');
-    visible.forEach((_, i) => { indices[i] = 0; });
-    grid.querySelectorAll('.dot').forEach(dot => {
-      dot.addEventListener('click', () => {
-        const card = parseInt(dot.closest('.carousel').dataset.card);
-        goTo(card, parseInt(dot.dataset.idx));
+    const visible = PRODUCTS.filter(p=>currentFilter==='all'||p.type===currentFilter);
+    grid.innerHTML = visible.map((p,i)=>buildCard(p,i)).join('');
+    visible.forEach((_,i)=>{ indices[i]=0; });
+    grid.querySelectorAll('.dot').forEach(dot=>{
+      dot.addEventListener('click',()=>{
+        const card=parseInt(dot.closest('.carousel').dataset.card);
+        goTo(card,parseInt(dot.dataset.idx));
       });
     });
   }
 
-  function slide(cardIdx, dir) {
-    const track = document.getElementById('track-' + cardIdx);
-    if (!track) return;
-    const total = track.children.length;
-    indices[cardIdx] = (indices[cardIdx] + dir + total) % total;
-    goTo(cardIdx, indices[cardIdx]);
+  function slide(cardIdx,dir) {
+    const track=document.getElementById('track-'+cardIdx);
+    if(!track) return;
+    const total=track.children.length;
+    indices[cardIdx]=(indices[cardIdx]+dir+total)%total;
+    goTo(cardIdx,indices[cardIdx]);
   }
 
-  function goTo(cardIdx, idx) {
-    indices[cardIdx] = idx;
-    const track = document.getElementById('track-' + cardIdx);
-    if (track) track.style.transform = `translateX(-${idx * 100}%)`;
-    const dotsEl = document.getElementById('dots-' + cardIdx);
-    if (dotsEl) {
-      dotsEl.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === idx));
-    }
+  function goTo(cardIdx,idx) {
+    indices[cardIdx]=idx;
+    const track=document.getElementById('track-'+cardIdx);
+    if(track) track.style.transform=`translateX(-${idx*100}%)`;
+    const dotsEl=document.getElementById('dots-'+cardIdx);
+    if(dotsEl) dotsEl.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
   }
 
-  /* ── FILTER ── */
-  document.querySelectorAll('.f-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.f-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.f-btn').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
-      currentFilter = btn.dataset.filter;
+      currentFilter=btn.dataset.filter;
       render();
     });
   });
 
-  /* ── CART ── */
-  const CART_KEY = 'thread_cart';
-  function getCart() {
-    try { const c = JSON.parse(localStorage.getItem(CART_KEY)); return c && c.items ? c : {items:[], discount:0}; }
-    catch(e) { return {items:[], discount:0}; }
-  }
-  function saveCart(c) { localStorage.setItem(CART_KEY, JSON.stringify(c)); }
+  const CART_KEY='thread_cart';
+  function getCart(){ try{ const c=JSON.parse(localStorage.getItem(CART_KEY)); return c&&c.items?c:{items:[],discount:0}; }catch(e){return{items:[],discount:0};} }
+  function saveCart(c){ localStorage.setItem(CART_KEY,JSON.stringify(c)); }
 
   function renderCartDrawer() {
-    const cart = getCart();
-    const total = cart.items.reduce((s,i) => s + i.price * (i.qty||1), 0);
-    const count = cart.items.reduce((s,i) => s + (i.qty||1), 0);
-    const countEl = document.getElementById('cartCount');
-    const cdCount = document.getElementById('cdCount');
-    const cdItems = document.getElementById('cdItems');
-    const cdFooter = document.getElementById('cdFooter');
-    if (countEl) { countEl.textContent = count; countEl.style.display = count ? 'flex' : 'none'; }
-    if (cdCount) cdCount.textContent = count ? `(${count})` : '';
-    if (!cdItems) return;
-    if (!cart.items.length) {
-      cdItems.innerHTML = '<div style="text-align:center;padding:60px 0;"><div style="font-size:40px;margin-bottom:12px;">🛍️</div><p style="color:#888;">Your cart is empty</p></div>';
-      if (cdFooter) cdFooter.style.display = 'none';
+    const cart=getCart();
+    const total=cart.items.reduce((s,i)=>s+i.price*(i.qty||1),0);
+    const count=cart.items.reduce((s,i)=>s+(i.qty||1),0);
+    const countEl=document.getElementById('cartCount');
+    const cdCount=document.getElementById('cdCount');
+    const cdItems=document.getElementById('cdItems');
+    const cdFooter=document.getElementById('cdFooter');
+    if(countEl){countEl.textContent=count;countEl.style.display=count?'flex':'none';}
+    if(cdCount) cdCount.textContent=count?`(${count})`:'';
+    if(!cdItems) return;
+    if(!cart.items.length){
+      cdItems.innerHTML='<div style="text-align:center;padding:60px 0;"><div style="font-size:40px;margin-bottom:12px;">🛍️</div><p style="color:#888;">Your cart is empty</p></div>';
+      if(cdFooter) cdFooter.style.display='none';
       return;
     }
-    cdItems.innerHTML = cart.items.map((item, idx) => {
-      const isHoodie = (item.type || 'hoodie') !== 'tee';
-      const typeLabel = isHoodie ? 'Oversized Heavyweight' : 'Oversized Tee';
-      const slugMap = {'Phantom Black':'phantom-black','Midnight Navy':'midnight-navy','Ember Crimson':'ember-crimson','Forest Shadow':'forest-shadow','Ash Stone':'ash-stone','Ivory Pure':'ivory-pure','Silver Mist':'silver-mist','Bone':'bone','Tawny Dusk':'tawny-dusk','Clean White':'clean-white','Raw Stone':'raw-stone','Jet Black':'jet-black','Deep Navy':'deep-navy','Slate Grey':'slate-grey'};
-      const slug = slugMap[item.name] || item.name.toLowerCase().replace(/\s+/g,'-');
-      const imgSrc = isHoodie ? `hoodie-variants/${slug}-front.png?v=hoodie-20260517` : `images/tee-${slug}-2.png`;
-      return `
-      <div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+    const slugMap={'Phantom Black':'phantom-black','Midnight Navy':'midnight-navy','Ember Crimson':'ember-crimson','Forest Shadow':'forest-shadow','Ash Stone':'ash-stone','Ivory Pure':'ivory-pure','Silver Mist':'silver-mist','Bone':'bone','Tawny Dusk':'tawny-dusk','Clean White':'clean-white','Raw Stone':'raw-stone','Jet Black':'jet-black','Deep Navy':'deep-navy','Slate Grey':'slate-grey'};
+    cdItems.innerHTML=cart.items.map((item,idx)=>{
+      const isHoodie=(item.type||'hoodie')!=='tee';
+      const typeLabel=isHoodie?'Oversized Heavyweight':'Oversized Tee';
+      const slug=slugMap[item.name]||item.name.toLowerCase().replace(/\s+/g,'-');
+      const imgSrc=isHoodie?`hoodie-variants/${slug}-front.png`:`images/tee-${slug}-2.png`;
+      return `<div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
         <img src="${imgSrc}" alt="${item.name}" style="width:54px;height:54px;object-fit:cover;object-position:center top;border-radius:8px;background:#1a1a1a;flex-shrink:0;">
         <div style="flex:1;min-width:0;">
           <div style="font-weight:600;color:#f0f0f0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name}</div>
@@ -359,76 +263,46 @@
         </div>
       </div>`;
     }).join('');
-    if (cdFooter) cdFooter.style.display = 'block';
-    const sub = document.getElementById('cdSubtotal'); if (sub) sub.textContent = '$'+total.toFixed(2);
-    const tot = document.getElementById('cdTotal'); if (tot) tot.textContent = '$'+total.toFixed(2);
+    if(cdFooter) cdFooter.style.display='block';
+    const sub=document.getElementById('cdSubtotal'); if(sub) sub.textContent='$'+total.toFixed(2);
+    const tot=document.getElementById('cdTotal'); if(tot) tot.textContent='$'+total.toFixed(2);
   }
 
-  function updateQty(idx, delta) {
-    const cart = getCart();
-    cart.items[idx].qty = Math.max(1, (cart.items[idx].qty||1) + delta);
+  function updateQty(idx,delta){ const cart=getCart(); cart.items[idx].qty=Math.max(1,(cart.items[idx].qty||1)+delta); saveCart(cart); renderCartDrawer(); }
+  function removeItem(idx){ const cart=getCart(); cart.items.splice(idx,1); saveCart(cart); renderCartDrawer(); }
+
+  function toggleCart(){
+    const drawer=document.getElementById('cartDrawer');
+    const overlay=document.getElementById('cartOverlay');
+    const open=drawer.style.right==='0px';
+    drawer.style.right=open?'-420px':'0px';
+    overlay.style.display=open?'none':'block';
+  }
+
+  function addToCart(name,price,btn){
+    const cart=getCart();
+    const existing=cart.items.find(i=>i.name===name);
+    const product=PRODUCTS.find(p=>p.name===name);
+    const type=product?product.type:'hoodie';
+    if(existing){existing.qty=(existing.qty||1)+1;}
+    else{cart.items.push({name,price:parseFloat(price),qty:1,size:'M',type});}
     saveCart(cart); renderCartDrawer();
-  }
-  function removeItem(idx) {
-    const cart = getCart(); cart.items.splice(idx,1); saveCart(cart); renderCartDrawer();
-  }
-
-  function toggleCart() {
-    const drawer = document.getElementById('cartDrawer');
-    const overlay = document.getElementById('cartOverlay');
-    const open = drawer.style.right === '0px';
-    drawer.style.right = open ? '-420px' : '0px';
-    overlay.style.display = open ? 'none' : 'block';
-  }
-
-  function addToCart(name, price, btn) {
-    const cart = getCart();
-    const existing = cart.items.find(i => i.name === name);
-    const product = PRODUCTS.find(p => p.name === name);
-    const type = product ? product.type : 'hoodie';
-    if (existing) { existing.qty = (existing.qty||1) + 1; }
-    else { cart.items.push({name, price:parseFloat(price), qty:1, size:'M', type}); }
-    saveCart(cart);
-    renderCartDrawer();
-    if (btn) {
-      btn.textContent = '✓ Added!';
-      btn.style.background = '#22c55e';
-      btn.style.color = '#fff';
-      setTimeout(() => { btn.textContent = `Add to Cart — $${price}`; btn.style.background = ''; btn.style.color = ''; }, 1400);
-    }
+    if(btn){ btn.textContent='✓ Added!'; btn.style.background='#22c55e'; btn.style.color='#fff'; setTimeout(()=>{btn.textContent=`Add to Cart — $${price}`;btn.style.background='';btn.style.color='';},1400); }
   }
 
   renderCartDrawer();
 
-  function goToCheckout() {
-    const cart = getCart();
-    if (!cart.items.length) return;
-    const subtotal = cart.items.reduce((s,i) => s + i.price * (i.qty||1), 0);
-    const discount = cart.discount || 0;
-    const total    = Math.max(0, subtotal - discount);
-    localStorage.setItem('thread_checkout', JSON.stringify({
-      items: cart.items, subtotal, discount, total,
-      promoCode: cart.promoCode || '',
-      ref: localStorage.getItem('thread_ref') || ''
-    }));
-    window.location.href = 'checkout.html';
+  function goToCheckout(){
+    const cart=getCart(); if(!cart.items.length) return;
+    const subtotal=cart.items.reduce((s,i)=>s+i.price*(i.qty||1),0);
+    const discount=cart.discount||0;
+    const total=Math.max(0,subtotal-discount);
+    localStorage.setItem('thread_checkout',JSON.stringify({items:cart.items,subtotal,discount,total,promoCode:cart.promoCode||'',ref:localStorage.getItem('thread_ref')||''}));
+    window.location.href='checkout.html';
   }
 
-  /* ── TOUCH SWIPE ── */
-  grid.addEventListener('touchstart', e => {
-    const card = e.target.closest('.carousel');
-    if (card) card._tx = e.touches[0].clientX;
-  }, { passive:true });
-  grid.addEventListener('touchend', e => {
-    const card = e.target.closest('.carousel');
-    if (!card || card._tx == null) return;
-    const dx = e.changedTouches[0].clientX - card._tx;
-    if (Math.abs(dx) > 40) {
-      const idx = parseInt(card.dataset.card);
-      slide(idx, dx < 0 ? 1 : -1);
-    }
-    card._tx = null;
-  }, { passive:true });
+  grid.addEventListener('touchstart',e=>{ const card=e.target.closest('.carousel'); if(card) card._tx=e.touches[0].clientX; },{passive:true});
+  grid.addEventListener('touchend',e=>{ const card=e.target.closest('.carousel'); if(!card||card._tx==null) return; const dx=e.changedTouches[0].clientX-card._tx; if(Math.abs(dx)>40){const idx=parseInt(card.dataset.card);slide(idx,dx<0?1:-1);} card._tx=null; },{passive:true});
 
   render();
   </script>
