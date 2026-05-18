@@ -333,7 +333,7 @@ async function drawQR(canvasId, text, size) {
   const { fg, bg } = getQRColors(hoodieColor);
 
   // Build absolute URL so fetch resolves correctly regardless of page path
-  const logoSrc     = new URL('images/BrowserLogo.png', window.location.href).href;
+  const logoSrc     = new URL('images/TLogo.png', window.location.href).href;
   const logoDataUrl = await _imgToDataURL(logoSrc);
 
   // Hide original canvas, inject a div for qr-code-styling
