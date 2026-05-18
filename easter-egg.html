@@ -336,24 +336,24 @@
 
     <p class="sub">
       Not everyone makes it here. Since you did, here's a little reward —
-      20% off your entire first order, on us.
+      buy any sweatshirt and get a tee for 50% off.
     </p>
 
     <div class="code-card">
       <div class="code-label">Your exclusive promo code</div>
       <div class="code-value" id="codeValue">
-        <span class="highlight">HIDDEN</span>20
+        <span class="highlight">BOGO</span>EGG
       </div>
-      <div class="code-discount">Saves you 20% — applies at checkout</div>
+      <div class="code-discount">Add a sweatshirt + tee → tee is 50% off at checkout</div>
       <button class="copy-btn" id="copyBtn" onclick="copyCode()">
         <span class="copy-icon">📋</span> Copy Code
       </button>
     </div>
 
     <div class="perks">
-      <div class="perk"><span class="perk-icon">⚡</span> One-time use</div>
-      <div class="perk"><span class="perk-icon">🛍️</span> Full collection</div>
-      <div class="perk"><span class="perk-icon">✅</span> No minimum order</div>
+      <div class="perk"><span class="perk-icon">🧥</span> Any sweatshirt</div>
+      <div class="perk"><span class="perk-icon">👕</span> Any tee 50% off</div>
+      <div class="perk"><span class="perk-icon">✅</span> One-time use</div>
       <div class="perk"><span class="perk-icon">♻️</span> Still earn rewards</div>
     </div>
 
@@ -362,13 +362,13 @@
       <a href="index.html" class="btn-home">Back to Home</a>
     </div>
 
-    <p class="fine-print">Code valid for new customers · Single use · Cannot be combined with other offers</p>
+    <p class="fine-print">Both items must be in cart · Single use · Cannot be combined with other offers</p>
   </main>
 
   <script>
     /* ── Copy code ── */
     function copyCode() {
-      navigator.clipboard.writeText('HIDDEN20').then(() => {
+      navigator.clipboard.writeText('BOGOEGG').then(() => {
         const btn = document.getElementById('copyBtn');
         btn.textContent = '✓ Copied!';
         btn.classList.add('copied');
@@ -379,7 +379,7 @@
       }).catch(() => {
         /* fallback for old browsers */
         const ta = document.createElement('textarea');
-        ta.value = 'HIDDEN20';
+        ta.value = 'BOGOEGG';
         document.body.appendChild(ta);
         ta.select();
         document.execCommand('copy');
