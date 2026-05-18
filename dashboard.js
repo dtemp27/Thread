@@ -301,8 +301,13 @@ function drawQR(canvasId, text, size) {
   const hoodieColor = getUserHoodieColor();
   const { fg, bg } = getQRColors(hoodieColor);
 
-  // Use the high-res TLogo.png from the site
-  const logoUrl = window.location.origin + '/images/TLogo.png';
+  // SVG logo with transparent background so it blends with the QR
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+    <text x="28" y="148" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="110" fill="${fg}">T</text>
+    <text x="118" y="148" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="110" fill="${fg}">.</text>
+    <circle cx="158" cy="144" r="14" fill="#6C63FF"/>
+  </svg>`;
+  const logoUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
 
   // Hide original canvas, inject a div for qr-code-styling
   canvas.style.display = 'none';
@@ -324,7 +329,7 @@ function drawQR(canvasId, text, size) {
     cornersSquareOptions:{ color: fg, type: 'extra-rounded' },
     cornersDotOptions:   { color: fg, type: 'dot' },
     backgroundOptions:   { color: bg },
-    imageOptions:        { crossOrigin: 'anonymous', margin: 4, imageSize: 0.32 },
+    imageOptions:        { crossOrigin: 'anonymous', margin: 0, imageSize: 0.28 },
   }).append(div);
 }
 
