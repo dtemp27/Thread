@@ -294,21 +294,34 @@ function getQRColors(hoodieColor) {
     : { fg: '#ffffff', bg: '#111111' };  // white QR on black
 }
 
-function _imgToDataURL(src) {
+async function _imgToDataURL(src) {
+  // Method 1: fetch → FileReader (no canvas taint, works same-origin)
+  try {
+    const resp = await fetch(src);
+    if (resp.ok) {
+      const blob = await resp.blob();
+      return await new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror  = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+    }
+  } catch(e) {}
+  // Method 2: img + canvas fallback
   return new Promise(resolve => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
     img.onload = () => {
       try {
         const c = document.createElement('canvas');
-        c.width = img.naturalWidth || img.width;
-        c.height = img.naturalHeight || img.height;
+        c.width  = img.naturalWidth  || 100;
+        c.height = img.naturalHeight || 100;
         c.getContext('2d').drawImage(img, 0, 0);
         resolve(c.toDataURL('image/png'));
       } catch(e) { resolve(null); }
     };
     img.onerror = () => resolve(null);
-    img.src = src + '?v=' + Date.now(); // cache-bust
+    img.src = src;
   });
 }
 
@@ -319,8 +332,8 @@ async function drawQR(canvasId, text, size) {
   const hoodieColor = getUserHoodieColor();
   const { fg, bg } = getQRColors(hoodieColor);
 
-  // Convert logo to base64 so qr-code-styling never has to fetch it
-  const logoSrc = 'images/BrowserLogo.png';
+  // Build absolute URL so fetch resolves correctly regardless of page path
+  const logoSrc     = new URL('images/BrowserLogo.png', window.location.href).href;
   const logoDataUrl = await _imgToDataURL(logoSrc);
 
   // Hide original canvas, inject a div for qr-code-styling
