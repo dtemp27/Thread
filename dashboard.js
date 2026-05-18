@@ -269,66 +269,69 @@ function switchSection(name) {
 }
 
 /* ═══════════════════════════════════════════════
-   QR CODE — SELF-CONTAINED GENERATOR
+   QR CODE — REAL GENERATOR (qr-code-styling)
 ═══════════════════════════════════════════════ */
+
+// Light hoodies → black QR; Dark hoodies → white QR
+const LIGHT_HOODIES = ['Silver Mist', 'Bone', 'Tawny Dusk', 'Ivory Pure'];
+const DARK_HOODIES  = ['Phantom Black', 'Midnight Navy', 'Ember Crimson', 'Forest Shadow', 'Ash Stone'];
+
+function getUserHoodieColor() {
+  const all = [...LIGHT_HOODIES, ...DARK_HOODIES];
+  for (const purchase of (user?.purchases || [])) {
+    const name = purchase.name || '';
+    for (const color of all) {
+      if (name.includes(color)) return color;
+    }
+  }
+  return null;
+}
+
+function getQRColors(hoodieColor) {
+  const isLight = LIGHT_HOODIES.includes(hoodieColor);
+  return isLight
+    ? { fg: '#111111', bg: '#ffffff' }   // black QR on white
+    : { fg: '#ffffff', bg: '#111111' };  // white QR on black
+}
+
 function drawQR(canvasId, text, size) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
-  canvas.width  = size;
-  canvas.height = size;
-  const ctx  = canvas.getContext('2d');
-  const CELLS = 25;
-  const cell  = size / CELLS;
 
-  let h = 5381;
-  for (let i = 0; i < text.length; i++) h = ((h << 5) + h) ^ text.charCodeAt(i);
-  h = h >>> 0;
+  const hoodieColor = getUserHoodieColor();
+  const { fg, bg } = getQRColors(hoodieColor);
 
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, size, size);
-  ctx.fillStyle = '#111111';
+  // Build T. logo as inline SVG
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+    <rect width="120" height="120" fill="${bg}"/>
+    <text x="14" y="84" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="66" fill="${fg}">T</text>
+    <text x="65" y="84" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="66" fill="${fg}">.</text>
+    <circle cx="91" cy="84" r="9" fill="#6C63FF"/>
+  </svg>`;
+  const logoUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
 
-  function fillCell(r, c) {
-    ctx.fillRect(c * cell + 0.5, r * cell + 0.5, cell - 0.5, cell - 0.5);
-  }
-  function drawFinder(or, oc) {
-    for (let r = 0; r < 7; r++)
-      for (let c = 0; c < 7; c++)
-        if (r===0||r===6||c===0||c===6) fillCell(or+r, oc+c);
-    for (let r = 2; r <= 4; r++)
-      for (let c = 2; c <= 4; c++) fillCell(or+r, oc+c);
-  }
-  drawFinder(0, 0);
-  drawFinder(0, CELLS - 7);
-  drawFinder(CELLS - 7, 0);
+  // Hide original canvas, inject a div for qr-code-styling
+  canvas.style.display = 'none';
+  const containerId = canvasId + '_qr';
+  const old = document.getElementById(containerId);
+  if (old) old.remove();
+  const div = document.createElement('div');
+  div.id = containerId;
+  div.style.cssText = 'display:inline-block;border-radius:14px;overflow:hidden;';
+  canvas.parentElement.insertBefore(div, canvas);
 
-  function drawAlign(or, oc) {
-    for (let r = -2; r <= 2; r++)
-      for (let c = -2; c <= 2; c++)
-        if (Math.abs(r)===2||Math.abs(c)===2||(!r&&!c)) fillCell(or+r, oc+c);
-  }
-  drawAlign(16, 16);
-
-  for (let i = 8; i < CELLS - 8; i++) {
-    if (i % 2 === 0) { fillCell(6, i); fillCell(i, 6); }
-  }
-
-  function isReserved(r, c) {
-    if (r < 9 && c < 9) return true;
-    if (r < 9 && c >= CELLS - 8) return true;
-    if (r >= CELLS - 8 && c < 9) return true;
-    if (r === 6 || c === 6) return true;
-    if (r >= 14 && r <= 18 && c >= 14 && c <= 18) return true;
-    return false;
-  }
-  for (let r = 0; r < CELLS; r++) {
-    for (let c = 0; c < CELLS; c++) {
-      if (isReserved(r, c)) continue;
-      const idx  = r * CELLS + c;
-      const seed = (h ^ (idx * 2654435769)) >>> 0;
-      if (seed % 3 !== 0) fillCell(r, c);
-    }
-  }
+  new QRCodeStyling({
+    width:  size,
+    height: size,
+    type:   'canvas',
+    data:   text,
+    image:  logoUrl,
+    dotsOptions:         { color: fg, type: 'rounded' },
+    cornersSquareOptions:{ color: fg, type: 'extra-rounded' },
+    cornersDotOptions:   { color: fg, type: 'dot' },
+    backgroundOptions:   { color: bg },
+    imageOptions:        { crossOrigin: 'anonymous', margin: 6, imageSize: 0.28 },
+  }).append(div);
 }
 
 /* ═══════════════════════════════════════════════
