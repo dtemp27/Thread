@@ -294,14 +294,34 @@ function getQRColors(hoodieColor) {
     : { fg: '#ffffff', bg: '#111111' };  // white QR on black
 }
 
-function drawQR(canvasId, text, size) {
+function _imgToDataURL(src) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const c = document.createElement('canvas');
+        c.width = img.naturalWidth || img.width;
+        c.height = img.naturalHeight || img.height;
+        c.getContext('2d').drawImage(img, 0, 0);
+        resolve(c.toDataURL('image/png'));
+      } catch(e) { resolve(null); }
+    };
+    img.onerror = () => resolve(null);
+    img.src = src + '?v=' + Date.now(); // cache-bust
+  });
+}
+
+async function drawQR(canvasId, text, size) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
 
   const hoodieColor = getUserHoodieColor();
   const { fg, bg } = getQRColors(hoodieColor);
 
-  const logoUrl = window.location.origin + '/images/BrowserLogo.png';
+  // Convert logo to base64 so qr-code-styling never has to fetch it
+  const logoSrc = 'images/BrowserLogo.png';
+  const logoDataUrl = await _imgToDataURL(logoSrc);
 
   // Hide original canvas, inject a div for qr-code-styling
   canvas.style.display = 'none';
@@ -313,18 +333,23 @@ function drawQR(canvasId, text, size) {
   div.style.cssText = 'display:inline-block;border-radius:14px;overflow:hidden;';
   canvas.parentElement.insertBefore(div, canvas);
 
-  new QRCodeStyling({
+  const qrOpts = {
     width:  size,
     height: size,
     type:   'canvas',
     data:   text,
-    image:  logoUrl,
     dotsOptions:         { color: fg, type: 'rounded' },
     cornersSquareOptions:{ color: fg, type: 'extra-rounded' },
     cornersDotOptions:   { color: fg, type: 'dot' },
     backgroundOptions:   { color: bg },
-    imageOptions:        { crossOrigin: 'anonymous', margin: 4, imageSize: 0.32 },
-  }).append(div);
+  };
+
+  if (logoDataUrl) {
+    qrOpts.image = logoDataUrl;
+    qrOpts.imageOptions = { margin: 4, imageSize: 0.32 };
+  }
+
+  new QRCodeStyling(qrOpts).append(div);
 }
 
 /* ═══════════════════════════════════════════════
