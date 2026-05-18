@@ -418,7 +418,7 @@ function productThumb(item) {
     ? (HOODIE_PHOTO_SLUG[name] || 'phantom-black')
     : (TEE_PHOTO_SLUG[name] || name.toLowerCase().replace(/\s+/g,'-'));
   const ver = isHoodie ? 'hoodie-20260517' : 'tee-20260517';
-  const folder = isHoodie ? 'Hoodie Varients' : 'images';
+  const folder = isHoodie ? 'hoodie-variants' : 'images';
   return `<img src="${folder}/${slug}-front.png?v=${ver}" alt="${name}" style="width:100%;height:100%;object-fit:cover;object-position:center top;background:#0a0a0a;border-radius:8px">`;
 }
 
