@@ -329,38 +329,28 @@ async function drawQR(canvasId, text, size) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
 
-  const hoodieColor = getUserHoodieColor();
-  const { fg, bg } = getQRColors(hoodieColor);
-
-  const logoSrc     = new URL('images/TLogo.png', window.location.href).href;
-  const logoDataUrl = await _imgToDataURL(logoSrc);
-
   canvas.style.display = 'none';
   const containerId = canvasId + '_qr';
   const old = document.getElementById(containerId);
   if (old) old.remove();
-  const div = document.createElement('div');
-  div.id = containerId;
-  div.style.cssText = 'display:inline-block;border-radius:14px;overflow:hidden;';
-  canvas.parentElement.insertBefore(div, canvas);
 
-  const qrOpts = {
-    width:  size,
-    height: size,
-    type:   'canvas',
-    data:   text,
-    dotsOptions:         { color: fg, type: 'rounded' },
-    cornersSquareOptions:{ color: fg, type: 'extra-rounded' },
-    cornersDotOptions:   { color: fg, type: 'dot' },
-    backgroundOptions:   { color: bg },
-  };
+  const logoSize = Math.floor(size * 0.22);
+  const encoded  = encodeURIComponent(text);
 
-  if (logoDataUrl) {
-    qrOpts.image      = logoDataUrl;
-    qrOpts.imageOptions = { margin: 4, imageSize: 0.28 };
-  }
+  const wrapper = document.createElement('div');
+  wrapper.id = containerId;
+  wrapper.style.cssText = `position:relative;display:inline-block;width:${size}px;height:${size}px;border-radius:14px;overflow:hidden;background:#fff;`;
+  wrapper.innerHTML = `
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encoded}&margin=8&color=000000&bgcolor=ffffff"
+         style="width:${size}px;height:${size}px;display:block;" />
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+                width:${logoSize + 8}px;height:${logoSize + 8}px;background:#fff;border-radius:6px;
+                display:flex;align-items:center;justify-content:center;">
+      <img src="images/TLogo.png"
+           style="width:${logoSize}px;height:${logoSize}px;display:block;object-fit:contain;" />
+    </div>`;
 
-  if (window.QRCodeStyling) new QRCodeStyling(qrOpts).append(div);
+  canvas.parentElement.insertBefore(wrapper, canvas);
 }
 
 /* ═══════════════════════════════════════════════
@@ -833,21 +823,56 @@ function shareLink(type) {
 /* ═══════════════════════════════════════════════
    DOWNLOAD QR
 ═══════════════════════════════════════════════ */
-function downloadQR() {
-  const c   = document.getElementById('bigQrCanvas');
-  const tmp = document.createElement('canvas');
-  tmp.width = 300; tmp.height = 340;
-  const ctx = tmp.getContext('2d');
-  ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,300,340);
-  ctx.drawImage(c, 40, 40);
-  ctx.fillStyle = '#111'; ctx.font = 'bold 13px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('THREAD · ' + user.referralCode, 150, 320);
-  const a = document.createElement('a');
-  a.download = 'THREAD_QR_' + user.referralCode + '.png';
-  a.href = tmp.toDataURL('image/png');
-  a.click();
-  showToast('✓ QR code downloaded!', 'success');
+async function downloadQR() {
+  const size    = 300;
+  const refURL  = document.getElementById('refLinkInput').value;
+  const encoded = encodeURIComponent(refURL);
+  const apiUrl  = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encoded}&margin=8`;
+
+  try {
+    // Fetch QR image and draw it onto a canvas with the logo + label
+    const resp = await fetch(apiUrl);
+    const blob = await resp.blob();
+    const qrDataUrl = await new Promise(resolve => {
+      const r = new FileReader(); r.onloadend = () => resolve(r.result); r.readAsDataURL(blob);
+    });
+
+    const tmp = document.createElement('canvas');
+    tmp.width = size; tmp.height = size + 40;
+    const ctx = tmp.getContext('2d');
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, tmp.width, tmp.height);
+
+    // Draw QR
+    const qrImg = new Image();
+    await new Promise(resolve => { qrImg.onload = resolve; qrImg.src = qrDataUrl; });
+    ctx.drawImage(qrImg, 0, 0, size, size);
+
+    // Draw TLogo in center
+    const logoSize = Math.floor(size * 0.22);
+    const lx = (size - logoSize) / 2, ly = (size - logoSize) / 2;
+    try {
+      const logo = new Image();
+      await new Promise((resolve, reject) => { logo.onload = resolve; logo.onerror = reject; logo.src = 'images/TLogo.png'; });
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(lx - 4, ly - 4, logoSize + 8, logoSize + 8);
+      ctx.drawImage(logo, lx, ly, logoSize, logoSize);
+    } catch(_) {}
+
+    // Label
+    ctx.fillStyle = '#111'; ctx.font = 'bold 13px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('THREAD · ' + user.referralCode, size / 2, size + 26);
+
+    const a = document.createElement('a');
+    a.download = 'THREAD_QR_' + user.referralCode + '.png';
+    a.href = tmp.toDataURL('image/png');
+    a.click();
+    showToast('✓ QR code downloaded!', 'success');
+  } catch(e) {
+    // Fallback: just open the QR API URL directly
+    window.open(apiUrl, '_blank');
+    showToast('✓ QR code opened!', 'success');
+  }
 }
 
 /* ═══════════════════════════════════════════════
