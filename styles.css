@@ -1511,7 +1511,7 @@ body.cart-open { overflow: hidden; }
 
 /* ─── HOODIE PRODUCT IMAGES (real photos with front/back swap) ─── */
 .product-img {
-  background: radial-gradient(ellipse at 60% 40%, #1a1a1a, #050505);
+  background: #999;
   overflow: hidden;
 }
 .hoodie-photo {
