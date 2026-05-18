@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Print Preview — THREAD</title>
+  <link rel="icon" href="favicon.ico?v=4" sizes="any" />
+  <link rel="shortcut icon" href="favicon.ico?v=4" />
+  <link rel="icon" type="image/png" href="images/BrowserLogo.png?v=4" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #080808; color: #f0f0f0;
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      padding: 40px 20px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 28px; font-weight: 700;
+      letter-spacing: -0.02em; margin-bottom: 8px;
+    }
+    .subtitle {
+      text-align: center; color: #888;
+      font-size: 14px; margin-bottom: 32px;
+    }
+    .controls {
+      display: flex; gap: 12px; justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    .control-group {
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .control-group label {
+      font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.1em; color: #888;
+    }
+    .control-group input, .control-group select {
+      background: #1a1a1a; border: 1px solid rgba(255,255,255,0.07);
+      color: #fff; padding: 10px 14px;
+      border-radius: 8px; font-family: 'Space Mono', monospace;
+      font-size: 14px; min-width: 200px;
+    }
+    .control-group input:focus, .control-group select:focus {
+      outline: none; border-color: #6C63FF;
+    }
+    button.regenerate {
+      background: #6C63FF; color: #fff;
+      border: none; padding: 10px 20px;
+      border-radius: 8px; font-weight: 600;
+      cursor: pointer; align-self: end;
+      letter-spacing: 0.05em;
+    }
+    button.regenerate:hover { background: #5b52d9; }
+
+    .views {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    @media (max-width: 800px) {
+      .views { grid-template-columns: 1fr; }
+    }
+
+    .view-card {
+      background: #0f0f0f;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .view-card h2 {
+      font-size: 14px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.12em;
+      color: #888; margin-bottom: 16px;
+    }
+    .canvas-wrap {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; aspect-ratio: 1;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .canvas-wrap.raw {
+      background:
+        linear-gradient(45deg, #222 25%, transparent 25%),
+        linear-gradient(-45deg, #222 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #222 75%),
+        linear-gradient(-45deg, transparent 75%, #222 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, 10px 0;
+      background-color: #1a1a1a;
+    }
+    .canvas-wrap.hoodie {
+      position: relative;
+    }
+    .canvas-wrap canvas, .canvas-wrap img {
+      max-width: 90%;
+      max-height: 90%;
+      object-fit: contain;
+    }
+    /* Hoodie back silhouette */
+    .hoodie-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at center, #1a1a1a 0%, #0a0a0a 70%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .hoodie-bg svg {
+      width: 95%; height: 95%;
+    }
+    .hoodie-overlay {
+      position: absolute;
+      top: 28%; left: 50%;
+      transform: translateX(-50%);
+      width: 48%;
+      z-index: 2;
+    }
+    .hoodie-overlay canvas, .hoodie-overlay img {
+      width: 100%; height: auto; display: block;
+    }
+
+    .meta {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      color: #888;
+      display: grid; gap: 4px;
+    }
+    .meta b { color: #f0f0f0; font-weight: 700; }
+    .download {
+      margin-top: 12px;
+      display: inline-block;
+      color: #6C63FF;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .download:hover { text-decoration: underline; }
+
+    .back-link {
+      position: fixed; top: 20px; left: 20px;
+      color: #888; text-decoration: none;
+      font-size: 13px;
+    }
+    .back-link:hover { color: #f0f0f0; }
+  </style>
+</head>
+<body>
+
+  <a href="index.html" class="back-link">← Back to site</a>
+
+  <h1>Print Preview</h1>
+  <p class="subtitle">What every hoodie will look like before it ships from Printful</p>
+
+  <div class="controls">
+    <div class="control-group">
+      <label>Referral Code</label>
+      <input type="text" id="refCode" value="DYLA3X7N" maxlength="12">
+    </div>
+    <div class="control-group">
+      <label>Hoodie Color</label>
+      <select id="colorPick">
+        <option value="#0d0d0d">Phantom Black</option>
+        <option value="#0d2245">Midnight Navy</option>
+        <option value="#8b0000">Ember Crimson</option>
+        <option value="#1a3a1a">Forest Shadow</option>
+        <option value="#8a8a8a">Ash Stone</option>
+        <option value="#f4f1ea">Ivory Pure</option>
+      </select>
+    </div>
+    <button class="regenerate" onclick="regen()">Regenerate</button>
+  </div>
+
+  <div class="views">
+
+    <!-- ── RAW PRINT FILE ── -->
+    <div class="view-card">
+      <h2>Raw print file (transparent PNG)</h2>
+      <div class="canvas-wrap raw" id="rawWrap"></div>
+      <div class="meta">
+        <div>Resolution: <b id="metaRes">2400 × 2800 px</b></div>
+        <div>Format: <b>PNG, transparent background</b></div>
+        <div>QR encodes: <b id="metaUrl">mythread.shop/?ref=…</b></div>
+        <a class="download" id="downloadLink" href="#" download="thread-print-preview.png">↓ Download PNG</a>
+      </div>
+    </div>
+
+    <!-- ── ON HOODIE BACK ── -->
+    <div class="view-card">
+      <h2>On the hoodie back</h2>
+      <div class="canvas-wrap hoodie" id="hoodieWrap">
+        <div class="hoodie-bg" id="hoodieBg">
+          <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+            <!-- simplified hoodie back silhouette -->
+            <path d="M 200 30
+                     C 165 30, 130 45, 110 75
+                     L 60 110 L 80 145 L 110 130
+                     L 110 380 L 290 380 L 290 130
+                     L 320 145 L 340 110 L 290 75
+                     C 270 45, 235 30, 200 30 Z"
+                  id="hoodieShape" fill="#0d0d0d"
+                  stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <!-- subtle shading -->
+            <path d="M 110 130 L 110 380 L 200 380 L 200 130 Z"
+                  fill="rgba(0,0,0,0.15)"/>
+            <!-- hood seam -->
+            <path d="M 200 30 C 175 50, 175 90, 200 110 C 225 90, 225 50, 200 30 Z"
+                  fill="rgba(0,0,0,0.25)"/>
+          </svg>
+        </div>
+        <div class="hoodie-overlay" id="hoodieOverlay"></div>
+      </div>
+      <div class="meta">
+        <div>Print placement: <b>Full back</b></div>
+        <div>Print size: <b>~12 × 14 in</b></div>
+        <div>Technique: <b>DTG (direct-to-garment)</b></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+  <script src="qr-print-generator.js"></script>
+  <script>
+    async function regen() {
+      const code = document.getElementById('refCode').value.trim().toUpperCase() || 'DYLA3X7N';
+      const hoodieColor = document.getElementById('colorPick').value;
+
+      // 1. Generate the print file (async — styled QR fetch)
+      const { dataUrl } = await window.ThreadPrint.generate({ referralCode: code });
+
+      // 2. Show raw print file
+      const rawWrap = document.getElementById('rawWrap');
+      rawWrap.innerHTML = '';
+      const rawImg = document.createElement('img');
+      rawImg.src = dataUrl;
+      rawImg.alt = 'Print file preview';
+      rawWrap.appendChild(rawImg);
+
+      // 3. Show on hoodie
+      const overlay = document.getElementById('hoodieOverlay');
+      overlay.innerHTML = '';
+      const onImg = document.createElement('img');
+      onImg.src = dataUrl;
+      onImg.alt = 'On hoodie';
+      overlay.appendChild(onImg);
+
+      // 4. Update hoodie color
+      const shape = document.getElementById('hoodieShape');
+      if (shape) shape.setAttribute('fill', hoodieColor);
+
+      // 5. Update meta
+      document.getElementById('metaUrl').textContent = 'mythread.shop/?ref=' + code;
+      document.getElementById('downloadLink').href = dataUrl;
+    }
+
+    // Initial render
+    regen();
+  </script>
+</body>
+</html>
