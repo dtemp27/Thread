@@ -149,7 +149,7 @@ function handleNewScan(scan) {
 function bootUI() {
 
   /* ─── REFERRAL URL ─── */
-  const baseURL = window.location.href.replace('dashboard.html','index.html').split('?')[0];
+  const baseURL = window.location.origin + '/';
   const refURL  = baseURL + '?ref=' + user.referralCode;
 
   /* ─── INIT STATIC UI ─── */
