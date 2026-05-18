@@ -17,7 +17,7 @@ window.THREAD_CONFIG = {
 
   // ─── Stripe ─────────────────────────────────────────────────────────────────
   // Get this from: dashboard.stripe.com → Developers → API keys → Publishable key
-  stripePublishableKey: 'pk_test_51TWgQY2QT4x5CZb3vq2cvn7Ppikhuth0V9C2T8T4s0uaK2ZGVokmaA60AWnB9eGOnQL3Pia6GsmyltLS4gGXqedi003oqW1Oza',  // starts with pk_test_ or pk_live_
+  stripePublishableKey: 'pk_live_51TWgQPE11iNHdIansld1ffbfV41o1ijODTRxJBz2HumNwSySf8LW0hCrRhVteGrw6sH1rj4cK6RSpNAUJ2YvLpAo00zBBXMTPI',  // starts with pk_test_ or pk_live_
 
   // ─── Stripe Checkout Edge Function ─────────────────────────────────────────
   // After deploying the Supabase Edge Function (see edge-function.js),
