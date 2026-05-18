@@ -334,14 +334,14 @@ async function drawQR(canvasId, text, size) {
   const old = document.getElementById(containerId);
   if (old) old.remove();
 
-  const logoSize = Math.floor(size * 0.22);
+  const logoSize = Math.floor(size * 0.18);
   const encoded  = encodeURIComponent(text);
 
   const wrapper = document.createElement('div');
   wrapper.id = containerId;
   wrapper.style.cssText = `position:relative;display:inline-block;width:${size}px;height:${size}px;border-radius:14px;overflow:hidden;background:#fff;`;
   wrapper.innerHTML = `
-    <img src="https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encoded}&margin=8&color=000000&bgcolor=ffffff"
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encoded}&margin=8&ecc=H&color=000000&bgcolor=ffffff"
          style="width:${size}px;height:${size}px;display:block;" />
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
                 width:${logoSize + 8}px;height:${logoSize + 8}px;background:#fff;border-radius:6px;
