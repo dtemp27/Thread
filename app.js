@@ -382,12 +382,15 @@ function saveCart(cart) {
 }
 
 const HOODIE_COLORS_INDEX = {
-  'Phantom Black': { body:'#1c1c1c', hood:'#111', cord:'#555', bg:'#0a0a0a' },
+  'Phantom Black': { body:'#1c1c1c', hood:'#111',    cord:'#555',    bg:'#0a0a0a' },
   'Midnight Navy': { body:'#0d1b35', hood:'#091428', cord:'#4a7dc4', bg:'#060e1a' },
-  'Ember Crimson': { body:'#2a0a0a', hood:'#1a0505', cord:'#8b3030', bg:'#100303' },
-  'Forest Shadow': { body:'#0b1a0d', hood:'#081208', cord:'#4a7850', bg:'#050d06' },
-  'Ash Stone':     { body:'#3a3a3a', hood:'#2a2a2a', cord:'#888',    bg:'#1e1e1e' },
+  'Ember Crimson': { body:'#4a1010', hood:'#3a0a0a', cord:'#8b3030', bg:'#100303' },
+  'Forest Shadow': { body:'#1a3a1e', hood:'#122814', cord:'#4a7850', bg:'#050d06' },
+  'Ash Stone':     { body:'#4a4a4a', hood:'#3a3a3a', cord:'#999',    bg:'#2a2a2a' },
   'Ivory Pure':    { body:'#f4f1ea', hood:'#e8e3d6', cord:'#cfc8b8', bg:'#f0ece2' },
+  'Bone':          { body:'#d9cfc0', hood:'#cec4b4', cord:'#b0a898', bg:'#e8e2d8' },
+  'Tawny Dusk':    { body:'#7a5030', hood:'#5e3c22', cord:'#a07050', bg:'#3a2010' },
+  'Silver Mist':   { body:'#b0b4b8', hood:'#9ca0a4', cord:'#787c80', bg:'#d0d4d8' },
 };
 
 // Map THREAD product names → image file slugs (in images/ folder)
@@ -415,7 +418,8 @@ function productThumb(item) {
     ? (HOODIE_PHOTO_SLUG[name] || 'phantom-black')
     : (TEE_PHOTO_SLUG[name] || name.toLowerCase().replace(/\s+/g,'-'));
   const ver = isHoodie ? 'hoodie-20260517' : 'tee-20260517';
-  return `<img src="images/${slug}-front.png?v=${ver}" alt="${name}" style="width:100%;height:100%;object-fit:cover;object-position:center top;background:#0a0a0a;border-radius:8px">`;
+  const folder = isHoodie ? 'Hoodie Varients' : 'images';
+  return `<img src="${folder}/${slug}-front.png?v=${ver}" alt="${name}" style="width:100%;height:100%;object-fit:cover;object-position:center top;background:#0a0a0a;border-radius:8px">`;
 }
 
 // Backward-compat aliases
