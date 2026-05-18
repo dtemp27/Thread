@@ -59,17 +59,33 @@ if (document.readyState === 'loading') {
 }
 
 /* ─── REFERRAL TRACKING ─── */
-(function () {
+(async function () {
   const ref = new URLSearchParams(window.location.search).get('ref');
   if (!ref) return;
   localStorage.setItem('thread_ref', ref);
 
-  // Find referrer name for banner
-  const users = JSON.parse(localStorage.getItem('thread_users') || '[]');
-  const referrer = users.find(u => u.referralCode === ref);
+  // Don't double-count if user refreshes the page in the same session
+  const scanKey = 'thread_scan_logged_' + ref;
+  const alreadyLogged = sessionStorage.getItem(scanKey);
+
+  // Log the scan to Supabase via RPC (bypasses RLS lookup issues)
+  if (!alreadyLogged) {
+    try {
+      const cfg = window.THREAD_CONFIG;
+      if (cfg?.supabaseUrl && window.supabase) {
+        const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+        const { error } = await sb.rpc('log_referral_scan', { ref_code: ref, scan_city: null });
+        if (!error) sessionStorage.setItem(scanKey, '1');
+        else console.warn('[ref] rpc scan log failed:', error);
+      }
+    } catch(e) { console.warn('[ref] scan log failed:', e); }
+  }
+
+  // Show referral banner
+  const referrer = await window.DB?.profiles?.getByReferralCode(ref).catch(() => null);
   const banner = document.createElement('div');
   banner.className = 'ref-banner';
-  banner.innerHTML = referrer
+  banner.innerHTML = referrer?.name
     ? `👕 You were referred by <span>${referrer.name.split(' ')[0]}</span> — they earn when you buy!`
     : `👕 You arrived via a THREAD referral link — they earn when you buy!`;
   document.body.appendChild(banner);
