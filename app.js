@@ -68,13 +68,15 @@ if (document.readyState === 'loading') {
   const scanKey = 'thread_scan_logged_' + ref;
   const alreadyLogged = sessionStorage.getItem(scanKey);
 
-  // Log the scan to Supabase (so referrer sees it on their dashboard)
-  if (!alreadyLogged && window.DB) {
+  // Log the scan to Supabase via RPC (bypasses RLS lookup issues)
+  if (!alreadyLogged) {
     try {
-      const referrer = await window.DB.profiles.getByReferralCode(ref);
-      if (referrer?.id) {
-        await window.DB.referrals.logScan(ref, referrer.id, {});
-        sessionStorage.setItem(scanKey, '1');
+      const cfg = window.THREAD_CONFIG;
+      if (cfg?.supabaseUrl && window.supabase) {
+        const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+        const { error } = await sb.rpc('log_referral_scan', { ref_code: ref, scan_city: null });
+        if (!error) sessionStorage.setItem(scanKey, '1');
+        else console.warn('[ref] rpc scan log failed:', error);
       }
     } catch(e) { console.warn('[ref] scan log failed:', e); }
   }
