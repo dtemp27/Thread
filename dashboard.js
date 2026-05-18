@@ -301,8 +301,7 @@ function drawQR(canvasId, text, size) {
   const hoodieColor = getUserHoodieColor();
   const { fg, bg } = getQRColors(hoodieColor);
 
-  // Use the high-res TLogo.png from the site
-  const logoUrl = window.location.origin + '/images/TLogo.png';
+  const logoUrl = window.location.origin + '/images/BrowserLogo.png';
 
   // Hide original canvas, inject a div for qr-code-styling
   canvas.style.display = 'none';
