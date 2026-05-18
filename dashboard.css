@@ -470,11 +470,7 @@ a { color: var(--accent2); text-decoration: none; cursor: pointer; }
   box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 0 50px rgba(108,99,255,0.12);
 }
 .qr-frame canvas { display: block; border-radius: 6px; }
-.qr-frame-corner { position: absolute; width: 20px; height: 20px; border-color: var(--accent); border-style: solid; }
-.qr-frame-corner.tl { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
-.qr-frame-corner.tr { top: -2px; right: -2px; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
-.qr-frame-corner.bl { bottom: -2px; left: -2px; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
-.qr-frame-corner.br { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+.qr-frame-corner { display: none; }
 .qr-scan-overlay { position: absolute; inset: 20px; overflow: hidden; border-radius: 6px; pointer-events: none; }
 .qr-scan-line { position: absolute; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, rgba(108,99,255,0.9), transparent); animation: scanMove 2.5s ease-in-out infinite; }
 @keyframes scanMove { 0%{top:0;opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{top:100%;opacity:0} }
