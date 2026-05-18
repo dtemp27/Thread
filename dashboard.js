@@ -367,23 +367,54 @@ async function drawQR(canvasId, text, size) {
   const old = document.getElementById(containerId);
   if (old) old.remove();
 
-  const logoSize = Math.floor(size * 0.18);
+  const div = document.createElement('div');
+  div.id = containerId;
+  div.style.cssText = `display:inline-block;width:${size}px;height:${size}px;border-radius:16px;overflow:hidden;flex-shrink:0;`;
+  canvas.parentElement.insertBefore(div, canvas);
+
+  // Render at 4x for crisp high-res display, scaled down via CSS
+  const renderSize  = size * 4;
+  const logoDataUrl = await _imgToDataURL(new URL('images/TLogo.png', window.location.href).href);
+
+  if (window.QRCodeStyling) {
+    const qrOpts = {
+      width:  renderSize,
+      height: renderSize,
+      type:   'canvas',
+      data:   text,
+      margin: 0,
+      qrOptions: { errorCorrectionLevel: 'H' },
+      dotsOptions:          { color: '#000000', type: 'dots' },
+      cornersSquareOptions: { color: '#000000', type: 'extra-rounded' },
+      cornersDotOptions:    { color: '#000000', type: 'dot' },
+      backgroundOptions:    { color: '#ffffff' },
+    };
+    if (logoDataUrl) {
+      qrOpts.image        = logoDataUrl;
+      qrOpts.imageOptions = { margin: 6, imageSize: 0.25, hideBackgroundDots: true };
+    }
+    const qr = new QRCodeStyling(qrOpts);
+    qr.append(div);
+    // Scale high-res canvas down to display size for crispness
+    setTimeout(() => {
+      const c = div.querySelector('canvas');
+      if (c) { c.style.width = size + 'px'; c.style.height = size + 'px'; }
+    }, 400);
+    return;
+  }
+
+  // Fallback: API image with CSS logo overlay
   const encoded  = encodeURIComponent(text);
-
-  const wrapper = document.createElement('div');
-  wrapper.id = containerId;
-  wrapper.style.cssText = `position:relative;display:inline-block;width:${size}px;height:${size}px;border-radius:14px;overflow:hidden;background:#fff;`;
-  wrapper.innerHTML = `
-    <img src="https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encoded}&margin=8&ecc=H&color=000000&bgcolor=ffffff"
-         style="width:${size}px;height:${size}px;display:block;" />
+  const logoSize = Math.floor(size * 0.18);
+  div.style.cssText = `position:relative;display:inline-block;width:${size}px;height:${size}px;border-radius:16px;overflow:hidden;background:#fff;`;
+  div.innerHTML = `
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=${renderSize}x${renderSize}&data=${encoded}&margin=8&ecc=H"
+         style="width:${size}px;height:${size}px;display:block;image-rendering:crisp-edges;" />
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-                width:${logoSize + 8}px;height:${logoSize + 8}px;background:#fff;border-radius:6px;
+                width:${logoSize+8}px;height:${logoSize+8}px;background:#fff;border-radius:6px;
                 display:flex;align-items:center;justify-content:center;">
-      <img src="images/TLogo.png"
-           style="width:${logoSize}px;height:${logoSize}px;display:block;object-fit:contain;" />
+      <img src="images/TLogo.png" style="width:${logoSize}px;height:${logoSize}px;display:block;object-fit:contain;" />
     </div>`;
-
-  canvas.parentElement.insertBefore(wrapper, canvas);
 }
 
 /* ═══════════════════════════════════════════════
