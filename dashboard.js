@@ -332,10 +332,6 @@ async function drawQR(canvasId, text, size) {
   const hoodieColor = getUserHoodieColor();
   const { fg, bg } = getQRColors(hoodieColor);
 
-  // Build absolute URL so fetch resolves correctly regardless of page path
-  const logoSrc     = new URL('images/TLogo.png', window.location.href).href;
-  const logoDataUrl = await _imgToDataURL(logoSrc);
-
   // Hide original canvas, inject a div for qr-code-styling
   canvas.style.display = 'none';
   const containerId = canvasId + '_qr';
@@ -346,23 +342,47 @@ async function drawQR(canvasId, text, size) {
   div.style.cssText = 'display:inline-block;border-radius:14px;overflow:hidden;';
   canvas.parentElement.insertBefore(div, canvas);
 
-  const qrOpts = {
-    width:  size,
-    height: size,
-    type:   'canvas',
-    data:   text,
-    dotsOptions:         { color: fg, type: 'rounded' },
-    cornersSquareOptions:{ color: fg, type: 'extra-rounded' },
-    cornersDotOptions:   { color: fg, type: 'dot' },
-    backgroundOptions:   { color: bg },
-  };
+  // Try styled QR with logo first
+  if (window.QRCodeStyling) {
+    try {
+      const logoSrc     = new URL('images/TLogo.png', window.location.href).href;
+      const logoDataUrl = await _imgToDataURL(logoSrc);
 
-  if (logoDataUrl) {
-    qrOpts.image = logoDataUrl;
-    qrOpts.imageOptions = { margin: 4, imageSize: 0.32 };
+      const qrOpts = {
+        width:  size,
+        height: size,
+        type:   'canvas',
+        data:   text,
+        dotsOptions:         { color: fg, type: 'rounded' },
+        cornersSquareOptions:{ color: fg, type: 'extra-rounded' },
+        cornersDotOptions:   { color: fg, type: 'dot' },
+        backgroundOptions:   { color: bg },
+      };
+      if (logoDataUrl) {
+        qrOpts.image = logoDataUrl;
+        qrOpts.imageOptions = { crossOrigin: 'anonymous', margin: 4, imageSize: 0.28, hideBackgroundDots: true };
+      }
+      new QRCodeStyling(qrOpts).append(div);
+      return;
+    } catch(e) {
+      console.warn('[QR] styled render failed, falling back:', e);
+    }
   }
 
-  new QRCodeStyling(qrOpts).append(div);
+  // Fallback: plain canvas QR via qrious
+  if (window.QRious) {
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    c.style.borderRadius = '14px';
+    new QRious({ element: c, value: text, size, level: 'H', padding: 12,
+      foreground: fg, background: bg });
+    div.appendChild(c);
+    return;
+  }
+
+  // Last resort: show the text link so it's not just blank
+  div.style.cssText += `width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;background:${bg};border-radius:14px;padding:12px;box-sizing:border-box;`;
+  div.innerHTML = `<span style="color:${fg};font-size:11px;word-break:break-all;text-align:center;">${text}</span>`;
 }
 
 /* ═══════════════════════════════════════════════
