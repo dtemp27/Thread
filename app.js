@@ -59,17 +59,31 @@ if (document.readyState === 'loading') {
 }
 
 /* ─── REFERRAL TRACKING ─── */
-(function () {
+(async function () {
   const ref = new URLSearchParams(window.location.search).get('ref');
   if (!ref) return;
   localStorage.setItem('thread_ref', ref);
 
-  // Find referrer name for banner
-  const users = JSON.parse(localStorage.getItem('thread_users') || '[]');
-  const referrer = users.find(u => u.referralCode === ref);
+  // Don't double-count if user refreshes the page in the same session
+  const scanKey = 'thread_scan_logged_' + ref;
+  const alreadyLogged = sessionStorage.getItem(scanKey);
+
+  // Log the scan to Supabase (so referrer sees it on their dashboard)
+  if (!alreadyLogged && window.DB) {
+    try {
+      const referrer = await window.DB.profiles.getByReferralCode(ref);
+      if (referrer?.id) {
+        await window.DB.referrals.logScan(ref, referrer.id, {});
+        sessionStorage.setItem(scanKey, '1');
+      }
+    } catch(e) { console.warn('[ref] scan log failed:', e); }
+  }
+
+  // Show referral banner
+  const referrer = await window.DB?.profiles?.getByReferralCode(ref).catch(() => null);
   const banner = document.createElement('div');
   banner.className = 'ref-banner';
-  banner.innerHTML = referrer
+  banner.innerHTML = referrer?.name
     ? `👕 You were referred by <span>${referrer.name.split(' ')[0]}</span> — they earn when you buy!`
     : `👕 You arrived via a THREAD referral link — they earn when you buy!`;
   document.body.appendChild(banner);
