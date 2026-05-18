@@ -339,28 +339,23 @@ function drawQR(canvasId, text, size) {
 async function overlayQRLogo(canvasId, size) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
-  try {
-    const res  = await fetch('images/BrowserLogo.png');
-    const blob = await res.blob();
-    const blobUrl = URL.createObjectURL(blob);
-    const img = await new Promise((resolve, reject) => {
-      const i = new Image();
-      i.onload  = () => { URL.revokeObjectURL(blobUrl); resolve(i); };
-      i.onerror = reject;
-      i.src = blobUrl;
-    });
-    const ctx      = canvas.getContext('2d');
-    const logoSize = size * 0.26;
-    const x        = (size - logoSize) / 2;
-    const y        = (size - logoSize) / 2;
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(size / 2, size / 2, logoSize / 2 + 3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.drawImage(img, x, y, logoSize, logoSize);
-  } catch (e) {
-    console.warn('[QR] logo overlay failed:', e);
-  }
+  const dataUrl = (typeof BROWSER_LOGO_DATA_URL !== 'undefined') ? BROWSER_LOGO_DATA_URL : null;
+  if (!dataUrl) return;
+  const img = await new Promise((resolve, reject) => {
+    const i = new Image();
+    i.onload  = () => resolve(i);
+    i.onerror = reject;
+    i.src = dataUrl;
+  });
+  const ctx      = canvas.getContext('2d');
+  const logoSize = size * 0.26;
+  const x        = (size - logoSize) / 2;
+  const y        = (size - logoSize) / 2;
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(size / 2, size / 2, logoSize / 2 + 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.drawImage(img, x, y, logoSize, logoSize);
 }
 
 /* ═══════════════════════════════════════════════
