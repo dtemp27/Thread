@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>You Found It — THREAD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080808;
+      --surface: #1a1a1a;
+      --border: rgba(255,255,255,0.07);
+      --text: #f0f0f0;
+      --text2: #888;
+      --text3: #444;
+      --accent: #6C63FF;
+      --accent2: #a78bfa;
+      --gold: #f5c542;
+      --green: #22c55e;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── Confetti canvas ── */
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Page layout ── */
+    .page {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    /* ── Glow blobs ── */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .blob-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(108,99,255,0.22), transparent 70%);
+      top: -100px; left: -100px;
+      animation: blobFloat 8s ease-in-out infinite;
+    }
+    .blob-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(236,72,153,0.18), transparent 70%);
+      bottom: -80px; right: -80px;
+      animation: blobFloat 10s ease-in-out infinite reverse;
+    }
+    .blob-3 {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(245,197,66,0.12), transparent 70%);
+      top: 40%; left: 60%;
+      animation: blobFloat 12s ease-in-out infinite 2s;
+    }
+    @keyframes blobFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50%       { transform: translate(30px, -30px) scale(1.08); }
+    }
+
+    /* ── Egg icon ── */
+    .egg-icon {
+      font-size: 72px;
+      margin-bottom: 24px;
+      animation: eggBounce 1.2s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes eggBounce {
+      0%   { transform: scale(0) rotate(-15deg); opacity: 0; }
+      60%  { transform: scale(1.15) rotate(5deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    /* ── Badge ── */
+    .egg-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 18px;
+      background: rgba(245,197,66,0.12);
+      border: 1px solid rgba(245,197,66,0.35);
+      border-radius: 50px;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 28px;
+      animation: fadeSlideUp 0.6s ease 0.2s both;
+    }
+    .badge-dot {
+      width: 7px; height: 7px;
+      background: var(--gold);
+      border-radius: 50%;
+      animation: pulse 1.8s infinite;
+      box-shadow: 0 0 6px rgba(245,197,66,0.8);
+    }
+    @keyframes pulse {
+      0%,100% { transform: scale(1); box-shadow: 0 0 6px rgba(245,197,66,0.6); }
+      50%      { transform: scale(1.4); box-shadow: 0 0 14px rgba(245,197,66,0.9); }
+    }
+
+    /* ── Headline ── */
+    .headline {
+      font-size: clamp(36px, 7vw, 72px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -2px;
+      margin-bottom: 20px;
+      animation: fadeSlideUp 0.6s ease 0.35s both;
+    }
+    .headline .gold { color: var(--gold); }
+    .headline .purple {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Sub ── */
+    .sub {
+      font-size: clamp(15px, 2.5vw, 18px);
+      color: var(--text2);
+      max-width: 480px;
+      line-height: 1.7;
+      margin-bottom: 44px;
+      animation: fadeSlideUp 0.6s ease 0.45s both;
+    }
+
+    /* ── Code card ── */
+    .code-card {
+      background: linear-gradient(145deg, rgba(108,99,255,0.12), rgba(245,197,66,0.06));
+      border: 1px solid rgba(108,99,255,0.35);
+      border-radius: 20px;
+      padding: 36px 48px;
+      margin-bottom: 36px;
+      animation: fadeSlideUp 0.7s ease 0.55s both;
+      position: relative;
+      overflow: hidden;
+    }
+    .code-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(108,99,255,0.06), transparent 60%, rgba(245,197,66,0.04));
+      pointer-events: none;
+    }
+    .code-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--text2);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .code-value {
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(28px, 6vw, 48px);
+      font-weight: 700;
+      letter-spacing: 6px;
+      color: var(--text);
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: color 0.2s;
+      position: relative;
+    }
+    .code-value:hover { color: var(--accent2); }
+    .code-value .highlight { color: var(--gold); }
+    .code-discount {
+      font-size: 13px;
+      color: var(--green);
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .copy-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.15s ease;
+    }
+    .copy-btn:hover { background: var(--accent2); transform: translateY(-2px); }
+    .copy-btn.copied { background: var(--green); }
+    .copy-icon { font-size: 16px; }
+
+    /* ── Perks ── */
+    .perks {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 44px;
+      animation: fadeSlideUp 0.6s ease 0.65s both;
+    }
+    .perk {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      font-size: 13px;
+      color: var(--text2);
+      font-weight: 500;
+    }
+    .perk-icon { font-size: 16px; }
+
+    /* ── CTA ── */
+    .cta-row {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: fadeSlideUp 0.6s ease 0.75s both;
+    }
+    .btn-shop {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 15px 32px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-shop:hover { background: var(--accent2); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(108,99,255,0.45); }
+    .btn-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border: 1px solid var(--border);
+      color: var(--text2);
+      border-radius: 50px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-home:hover { border-color: var(--accent); color: var(--text); }
+
+    /* ── Fine print ── */
+    .fine-print {
+      margin-top: 36px;
+      font-size: 11px;
+      color: var(--text3);
+      letter-spacing: 0.04em;
+      animation: fadeSlideUp 0.6s ease 0.85s both;
+    }
+
+    /* ── Logo ── */
+    .logo-link {
+      position: fixed;
+      top: 24px; left: 24px;
+      font-family: 'Space Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -1px;
+      z-index: 10;
+    }
+    .logo-link .dot { color: var(--accent); }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 480px) {
+      .code-card { padding: 28px 24px; }
+      .headline { letter-spacing: -1px; }
+      .perks { gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <a href="index.html" class="logo-link">THREAD<span class="dot">.</span></a>
+
+  <main class="page">
+    <div class="egg-icon">🥚</div>
+
+    <div class="egg-badge">
+      <span class="badge-dot"></span>
+      Secret Page Found
+    </div>
+
+    <h1 class="headline">
+      You found the<br />
+      <span class="gold">hidden egg.</span>
+    </h1>
+
+    <p class="sub">
+      Not everyone makes it here. Since you did, here's a little reward —
+      20% off your entire first order, on us.
+    </p>
+
+    <div class="code-card">
+      <div class="code-label">Your exclusive promo code</div>
+      <div class="code-value" id="codeValue">
+        <span class="highlight">HIDDEN</span>20
+      </div>
+      <div class="code-discount">Saves you 20% — applies at checkout</div>
+      <button class="copy-btn" id="copyBtn" onclick="copyCode()">
+        <span class="copy-icon">📋</span> Copy Code
+      </button>
+    </div>
+
+    <div class="perks">
+      <div class="perk"><span class="perk-icon">⚡</span> One-time use</div>
+      <div class="perk"><span class="perk-icon">🛍️</span> Full collection</div>
+      <div class="perk"><span class="perk-icon">✅</span> No minimum order</div>
+      <div class="perk"><span class="perk-icon">♻️</span> Still earn rewards</div>
+    </div>
+
+    <div class="cta-row">
+      <a href="catalog.html" class="btn-shop">Shop the Collection →</a>
+      <a href="index.html" class="btn-home">Back to Home</a>
+    </div>
+
+    <p class="fine-print">Code valid for new customers · Single use · Cannot be combined with other offers</p>
+  </main>
+
+  <script>
+    /* ── Copy code ── */
+    function copyCode() {
+      navigator.clipboard.writeText('HIDDEN20').then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.textContent = '✓ Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerHTML = '<span class="copy-icon">📋</span> Copy Code';
+          btn.classList.remove('copied');
+        }, 2200);
+      }).catch(() => {
+        /* fallback for old browsers */
+        const ta = document.createElement('textarea');
+        ta.value = 'HIDDEN20';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      });
+    }
+
+    /* ── Confetti ── */
+    (function () {
+      const canvas = document.getElementById('confetti-canvas');
+      const ctx    = canvas.getContext('2d');
+      let W, H, pieces = [];
+
+      const COLORS = ['#6C63FF','#a78bfa','#f5c542','#22c55e','#ec4899','#38bdf8','#fff'];
+
+      function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      function randomPiece() {
+        return {
+          x:    Math.random() * W,
+          y:    Math.random() * -H * 0.5,
+          r:    3 + Math.random() * 5,
+          d:    2 + Math.random() * 3,
+          color: COLORS[Math.floor(Math.random() * COLORS.length)],
+          tilt:  Math.random() * 20 - 10,
+          tiltV: 0.2 + Math.random() * 0.3,
+          shape: Math.random() > 0.5 ? 'circle' : 'rect',
+          opacity: 0.7 + Math.random() * 0.3,
+        };
+      }
+
+      for (let i = 0; i < 160; i++) pieces.push(randomPiece());
+
+      let angle = 0;
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        angle += 0.008;
+        pieces.forEach(p => {
+          ctx.save();
+          ctx.globalAlpha = p.opacity;
+          ctx.fillStyle = p.color;
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.tilt * Math.PI / 180);
+          if (p.shape === 'circle') {
+            ctx.beginPath();
+            ctx.arc(0, 0, p.r, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r);
+          }
+          ctx.restore();
+
+          p.y    += p.d;
+          p.x    += Math.sin(angle + p.tilt) * 1.2;
+          p.tilt += p.tiltV;
+          p.opacity = Math.max(0, p.opacity - 0.0008);
+
+          if (p.y > H + 20 || p.opacity <= 0) {
+            Object.assign(p, randomPiece());
+          }
+        });
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+  </script>
+</body>
+</html>
