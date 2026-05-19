@@ -133,22 +133,32 @@ async function completeSignUp({ name, dob, email, password, parentEmail = null }
     const sb = getSB();
     if (!sb) throw new Error('Service unavailable. Please try again.');
 
-    const { data, error } = await sb.auth.signUp({ email, password });
-    if (error) throw new Error(error.message);
-
     const referralCode = generateReferralCode(name);
     const referredBy   = (localStorage.getItem('thread_ref') || '').trim() || null;
-    const profileData  = {
-      id: data.user.id, email, name,
-      referral_code: referralCode,
-      referred_by:   referredBy,
-      date_of_birth: dob,
-    };
-    if (parentEmail) {
-      profileData.parent_email = parentEmail;
-      profileData.is_minor     = true;
+
+    const { data, error } = await sb.auth.signUp({
+      email, password,
+      options: { data: { name } }   // stored in raw_user_meta_data so the DB trigger picks it up
+    });
+    if (error) throw new Error(error.message);
+
+    // When email confirmation is required, data.user can be null until verified.
+    // Save pending profile data to localStorage so we can upsert it on first sign-in.
+    const pendingProfile = { name, dob, email, referralCode, referredBy, parentEmail };
+    localStorage.setItem('thread_pending_profile', JSON.stringify(pendingProfile));
+
+    if (data.user) {
+      // User returned immediately (confirmation disabled or already confirmed)
+      const profileData = {
+        id: data.user.id, email, name,
+        referral_code: referralCode,
+        referred_by:   referredBy,
+        date_of_birth: dob,
+      };
+      if (parentEmail) { profileData.parent_email = parentEmail; profileData.is_minor = true; }
+      await sb.from('profiles').upsert(profileData, { onConflict: 'id' });
+      localStorage.removeItem('thread_pending_profile');
     }
-    await sb.from('profiles').upsert(profileData, { onConflict: 'id' });
 
     setLoading('signup', false);
     showSuccessOverlay(name, referralCode);
@@ -259,6 +269,24 @@ async function handleSignIn(event) {
 
     const { data, error } = await sb.auth.signInWithPassword({ email, password });
     if (error) throw new Error(error.message);
+
+    // If there's a pending profile from signup (email confirmation flow), upsert it now
+    try {
+      const pending = JSON.parse(localStorage.getItem('thread_pending_profile') || 'null');
+      if (pending && data.user && pending.email === email) {
+        const profileData = {
+          id: data.user.id,
+          email: pending.email,
+          name: pending.name,
+          referral_code: pending.referralCode,
+          referred_by: pending.referredBy,
+          date_of_birth: pending.dob,
+        };
+        if (pending.parentEmail) { profileData.parent_email = pending.parentEmail; profileData.is_minor = true; }
+        await sb.from('profiles').upsert(profileData, { onConflict: 'id' });
+        localStorage.removeItem('thread_pending_profile');
+      }
+    } catch(_) {}
 
     setLoading('signin', false);
     const next = new URLSearchParams(window.location.search).get('next');
