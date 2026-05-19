@@ -93,6 +93,7 @@ async function loadAllData() {
   renderCustomers();
   renderReferrals();
   loadDropBoxes();
+  showSection('overview');
 
   refresh.textContent = 'Updated ' + new Date().toLocaleTimeString();
 }

@@ -28,7 +28,7 @@ if (!isStripeReturn) {
   }
 }
 
-/* ─── Hoodie photo thumbnail ──────────────────────────────────────────────── */
+/* ─── Product photo thumbnail ─────────────────────────────────────────────── */
 const HOODIE_SLUGS = {
   'Phantom Black': 'phantom-black',
   'Midnight Navy': 'midnight-navy',
@@ -37,10 +37,23 @@ const HOODIE_SLUGS = {
   'Ash Stone':     'ash-stone',
   'Ivory Pure':    'ivory-pure',
 };
+const TEE_SLUGS = {
+  'Clean White': 'clean-white',
+  'Raw Stone':   'raw-stone',
+  'Jet Black':   'jet-black',
+  'Slate Grey':  'slate-grey',
+  'Deep Navy':   'deep-navy',
+};
 
-function miniHoodieSVG(name) {
-  const slug = HOODIE_SLUGS[name] || 'phantom-black';
-  return `<img src="images/${slug}-front.png?v=hoodie-20260517" alt="${name}" style="width:56px;height:56px;object-fit:cover;object-position:center top;border-radius:8px;background:#111">`;
+function miniHoodieSVG(name, type) {
+  const isTee = (type || 'hoodie') === 'tee';
+  const slug = isTee
+    ? (TEE_SLUGS[name] || name.toLowerCase().replace(/\s+/g, '-'))
+    : (HOODIE_SLUGS[name] || 'phantom-black');
+  const src = isTee
+    ? `images/tee-${slug}-front.png?v=tee-20260517`
+    : `hoodie-variants/${slug}-front.png?v=hoodie-20260517`;
+  return `<img src="${src}" alt="${name}" style="width:56px;height:56px;object-fit:cover;object-position:center top;border-radius:8px;background:#111">`;
 }
 
 /* ─── Recalculate totals and save ────────────────────────────────────────── */
@@ -90,12 +103,16 @@ function renderSummary() {
   const data = checkoutData;
   const container = document.getElementById('coItems');
 
-  container.innerHTML = data.items.map((item, idx) => `
+  container.innerHTML = data.items.map((item, idx) => {
+    const isTee = (item.type || 'hoodie') === 'tee';
+    const typeLabel = isTee ? 'Oversized Tee' : 'Oversized Heavyweight';
+    const displayName = isTee ? `${item.name} Tee` : `${item.name} Hoodie`;
+    return `
     <div class="co-item">
-      <div class="co-item-thumb">${miniHoodieSVG(item.name)}</div>
+      <div class="co-item-thumb">${miniHoodieSVG(item.name, item.type)}</div>
       <div class="co-item-info">
-        <div class="co-item-name">${item.name} Hoodie</div>
-        <div class="co-item-meta">THREAD Classic — Size ${item.size || 'M'}</div>
+        <div class="co-item-name">${displayName}</div>
+        <div class="co-item-meta">${typeLabel} — Size ${item.size || 'M'}</div>
       </div>
       <div class="co-item-right">
         <div class="co-item-price">$${(item.price * item.qty).toFixed(2)}</div>
@@ -107,7 +124,8 @@ function renderSummary() {
         </div>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 
   document.getElementById('coSubtotal').textContent    = `$${data.subtotal.toFixed(2)}`;
   document.getElementById('coTotal').textContent       = `$${data.total.toFixed(2)}`;

@@ -67,10 +67,10 @@ let _sb  = null;
             .select('*').eq('referrer_id', data.user.id)
             .order('created_at', { ascending: false });
           if (scans?.length) {
+            const now      = Date.now();
             const convs    = scans.filter(s => s.converted);
             const earned   = convs.reduce((s, r) => s + parseFloat(r.commission || 0), 0);
-            const pending  = convs.filter(s => s.status === 'pending')
-                                  .reduce((s, r) => s + parseFloat(r.commission || 0), 0);
+            const pending  = convs.filter(s => isScanPending(s, now)).reduce((s, r) => s + parseFloat(r.commission || 0), 0);
             user.stats = {
               totalScans:      scans.length,
               conversions:     convs.length,
@@ -82,7 +82,8 @@ let _sb  = null;
                 city:      s.city || 'Unknown',
                 converted: s.converted,
                 amount:    parseFloat(s.commission || 0),
-                status:    s.status || 'completed'
+                status:    s.status || 'completed',
+                clears_at: s.clears_at || null
               }))
             };
           }
@@ -292,10 +293,10 @@ function bootUI() {
         if (!scans) return;
         if (scans.length > user.stats.totalScans) {
           const newCount = scans.length - user.stats.totalScans;
+          const now      = Date.now();
           const convs    = scans.filter(s => s.converted);
           const earned   = convs.reduce((s, r) => s + parseFloat(r.commission || 0), 0);
-          const pending  = convs.filter(s => s.status === 'pending')
-                               .reduce((s, r) => s + parseFloat(r.commission || 0), 0);
+          const pending  = convs.filter(s => isScanPending(s, now)).reduce((s, r) => s + parseFloat(r.commission || 0), 0);
           user.stats = {
             totalScans:      scans.length,
             conversions:     convs.length,
@@ -307,7 +308,8 @@ function bootUI() {
               city:      s.city || 'Unknown',
               converted: s.converted,
               amount:    parseFloat(s.commission || 0),
-              status:    s.status || 'completed'
+              status:    s.status || 'completed',
+              clears_at: s.clears_at || null
             }))
           };
           renderStats(); renderActivity(); renderTransactions();
@@ -453,12 +455,23 @@ async function drawQR(canvasId, text, size) {
 /* ═══════════════════════════════════════════════
    STATS RENDERING
 ═══════════════════════════════════════════════ */
+
+const FALLBACK_HOLD_MS = 14 * 24 * 60 * 60 * 1000; // 14 days from conversion date
+
+function isScanPending(scan, now) {
+  if (scan.status !== 'pending') return false;
+  if (scan.clears_at) return new Date(scan.clears_at).getTime() > now;
+  // No delivery confirmation yet — hold for 14 days from conversion date as fallback
+  const scanDate = new Date(scan.date || scan.created_at || 0).getTime();
+  return (now - scanDate) < FALLBACK_HOLD_MS;
+}
+
 function renderStats() {
   const s     = user.stats;
   const scans = s.totalScans  || 0;
   const conv  = s.conversions || 0;
   const rate  = scans > 0 ? ((conv / scans) * 100).toFixed(1) : 0;
-  const avail = Math.max(0, (s.totalEarned||0) - (s.withdrawn||0));
+  const avail = Math.max(0, (s.totalEarned||0) - (s.pendingEarnings||0) - (s.withdrawn||0));
 
   setNum('statScans', scans);
   setNum('statConv',  conv);
@@ -844,13 +857,32 @@ function renderPurchases() {
   if (!filtered.length) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
       <span>👕</span><p>No pieces yet.</p>
-      <a href="index.html" class="btn-shop-now">Browse the Collection →</a>
+      <a href="catalog.html" class="btn-shop-now">Browse the Collection →</a>
     </div>`;
     return;
   }
-  grid.innerHTML = filtered.map(p => `
+  const HOODIE_PHOTO_SLUGS = {
+    'Phantom Black':'phantom-black','Midnight Navy':'midnight-navy',
+    'Ember Crimson':'ember-crimson','Forest Shadow':'forest-shadow',
+    'Ash Stone':'ash-stone','Ivory Pure':'ivory-pure',
+  };
+  const TEE_PHOTO_SLUGS = {
+    'Clean White':'clean-white','Raw Stone':'raw-stone',
+    'Jet Black':'jet-black','Slate Grey':'slate-grey','Deep Navy':'deep-navy',
+  };
+  grid.innerHTML = filtered.map(p => {
+    const isTee = (p.type || '').toLowerCase() === 'tee' || (p.name||'').toLowerCase().includes('tee');
+    const slug = isTee
+      ? (TEE_PHOTO_SLUGS[p.name] || p.name.toLowerCase().replace(/\s+/g,'-'))
+      : (HOODIE_PHOTO_SLUGS[p.name] || 'phantom-black');
+    const imgSrc = isTee
+      ? `images/tee-${slug}-front.png?v=tee-20260517`
+      : `hoodie-variants/${slug}-front.png?v=hoodie-20260517`;
+    return `
     <div class="purchase-card">
-      <div class="pc-img">${hoodieSVG(p.name)}</div>
+      <div class="pc-img">
+        <img src="${imgSrc}" alt="${p.name}" style="width:100%;height:100%;object-fit:contain;object-position:center;background:#0a0a0a">
+      </div>
       <div class="pc-info">
         <h3>${p.name}</h3>
         <p>Ordered ${new Date(p.date).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</p>
@@ -859,7 +891,8 @@ function renderPurchases() {
           <span class="pc-scan-count">All scans tracked</span>
         </div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 /* ═══════════════════════════════════════════════

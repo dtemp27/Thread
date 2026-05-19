@@ -1615,6 +1615,18 @@ body.cart-open { overflow: hidden; }
   pointer-events: none;
 }
 .ref-banner.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: all; }
+@media (max-width: 480px) {
+  .ref-banner {
+    white-space: normal;
+    text-align: center;
+    border-radius: 20px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    transform: translateY(20px);
+  }
+  .ref-banner.show { transform: translateY(0); }
+}
 .ref-banner span { color: var(--accent2); }
 
 /* ─── REVEAL ANIMATIONS ─── */

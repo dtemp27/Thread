@@ -243,13 +243,27 @@
     },
 
     async updateStatus(orderId, status) {
+      const HOLD_MS = 72 * 60 * 60 * 1000; // 72 hours post-delivery
       if (isLive()) {
-        await getSB().from('orders').update({ status }).eq('id', orderId);
+        const update = { status };
+        if (status === 'delivered') update.delivered_at = new Date().toISOString();
+        await getSB().from('orders').update(update).eq('id', orderId);
+        if (status === 'delivered') {
+          const clearsAt = new Date(Date.now() + HOLD_MS).toISOString();
+          await getSB().from('referral_scans')
+            .update({ clears_at: clearsAt })
+            .eq('order_id', orderId)
+            .eq('status', 'pending');
+        }
         return;
       }
       const orders = JSON.parse(localStorage.getItem('thread_orders') || '[]');
       const idx    = orders.findIndex(o => o.id === orderId);
-      if (idx !== -1) { orders[idx].status = status; localStorage.setItem('thread_orders', JSON.stringify(orders)); }
+      if (idx !== -1) {
+        orders[idx].status = status;
+        if (status === 'delivered') orders[idx].delivered_at = new Date().toISOString();
+        localStorage.setItem('thread_orders', JSON.stringify(orders));
+      }
     }
   };
 
