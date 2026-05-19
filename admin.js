@@ -88,14 +88,15 @@ async function loadAllData() {
     console.warn('Admin data load error:', e);
   }
 
-  renderOverview();
-  renderOrders();
-  renderCustomers();
-  renderReferrals();
-  loadDropBoxes();
-  showSection('overview');
+  const safe = (fn, name) => { try { fn(); } catch(e) { console.error(`[admin crash] ${name}:`, e); refresh.textContent = `ERROR in ${name}: ${e.message}`; } };
+  safe(renderOverview,  'renderOverview');
+  safe(renderOrders,    'renderOrders');
+  safe(renderCustomers, 'renderCustomers');
+  safe(renderReferrals, 'renderReferrals');
+  safe(loadDropBoxes,   'loadDropBoxes');
+  safe(() => showSection('overview'), 'showSection');
 
-  refresh.textContent = 'Updated ' + new Date().toLocaleTimeString();
+  if (!refresh.textContent.startsWith('ERROR')) refresh.textContent = 'Updated ' + new Date().toLocaleTimeString();
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
