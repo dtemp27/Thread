@@ -331,7 +331,7 @@ function switchSection(name) {
   const nav = document.querySelector(`.nav-item[data-section="${name}"]`);
   if (sec) sec.classList.add('active');
   if (nav) nav.classList.add('active');
-  const titles = { overview:'Overview', qrcode:'My QR Code', earnings:'Earnings', activity:'Activity', purchases:'My Purchases' };
+  const titles = { overview:'Overview', qrcode:'My QR Code', earnings:'Earnings', activity:'Activity', purchases:'My Closet' };
   document.getElementById('topbarTitle').textContent = titles[name] || 'Dashboard';
   document.getElementById('sidebar').classList.remove('open');
 }
@@ -882,7 +882,7 @@ function renderPurchases() {
     return `
     <div class="purchase-card">
       <div class="pc-img">
-        <img src="${imgSrc}" alt="${cleanName}" style="width:100%;height:100%;object-fit:contain;object-position:center top;background:#0a0a0a">
+        <img src="${imgSrc}" alt="${cleanName}" style="width:100%;height:auto;display:block;background:#0a0a0a">
       </div>
       <div class="pc-info">
         <h3>${p.name}</h3>
