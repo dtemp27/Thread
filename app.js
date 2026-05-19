@@ -506,7 +506,7 @@ function renderCartDrawer() {
   if (discEl && discount) discEl.textContent = '−$' + discount.toFixed(2);
 
   // write to checkout storage
-  localStorage.setItem('thread_checkout', JSON.stringify({ items: cart.items, subtotal, discount, total, ref: localStorage.getItem('thread_ref') }));
+  localStorage.setItem('thread_checkout', JSON.stringify({ items: cart.items, subtotal, discount, total, promoCode: cart.promoCode || null, ref: localStorage.getItem('thread_ref') }));
 }
 
 function addToCart(name, price, size = 'M', type = 'hoodie') {
@@ -520,15 +520,32 @@ function addToCart(name, price, size = 'M', type = 'hoodie') {
   openCart();
 }
 
+function validateCartPromo(cart) {
+  if (!cart.promoCode) return;
+  if (cart.promoCode === 'BOGOEGG') {
+    const hoodies = cart.items.filter(i => (i.type || 'hoodie') !== 'tee');
+    const tees    = cart.items.filter(i => i.type === 'tee');
+    if (!hoodies.length || !tees.length) {
+      cart.promoCode = null;
+      cart.discount  = 0;
+      showStoreToast('Promo removed — item requirement no longer met.', 'error');
+    } else {
+      cart.discount = parseFloat((Math.min(...tees.map(i => i.price)) * 0.5).toFixed(2));
+    }
+  }
+}
+
 function updateCartQty(idx, delta) {
   const cart = getCart();
   cart.items[idx].qty = Math.max(1, cart.items[idx].qty + delta);
+  validateCartPromo(cart);
   saveCart(cart); renderCartDrawer();
 }
 
 function removeCartItem(idx) {
   const cart = getCart();
   cart.items.splice(idx, 1);
+  validateCartPromo(cart);
   saveCart(cart); renderCartDrawer();
 }
 
@@ -537,7 +554,7 @@ function applyPromo() {
   const flatPromos = { 'THREAD10': 10, 'WEAR20': 20, 'FIRST15': 15, 'SCAN25': 25 };
   const cart = getCart();
 
-  if (code === 'BOGOEGG' || code === 'HIDDEN20') {
+  if (code === 'BOGOEGG') {
     const hoodies = cart.items.filter(i => (i.type || 'hoodie') !== 'tee');
     const tees    = cart.items.filter(i => i.type === 'tee');
     if (!hoodies.length) { showStoreToast('Add a sweatshirt to use this code', 'error'); return; }
@@ -546,7 +563,7 @@ function applyPromo() {
     cart.promoCode = code;
     cart.discount  = parseFloat((cheapestTee * 0.5).toFixed(2));
     saveCart(cart); renderCartDrawer();
-    showStoreToast(`✓ "${code}" applied — tee 50% off!`);
+    showStoreToast(`✓ "BOGOEGG" applied — tee 50% off!`);
     return;
   }
 

@@ -73,12 +73,35 @@ function recalcCheckout() {
   } catch(_) {}
 }
 
+/* ─── Promo re-validation (called after any cart change) ─────────────────── */
+function validateCheckoutPromo() {
+  if (!checkoutData?.promoCode) return;
+  if (checkoutData.promoCode === 'BOGOEGG') {
+    const hoodies = checkoutData.items.filter(i => (i.type || 'hoodie') !== 'tee');
+    const tees    = checkoutData.items.filter(i => i.type === 'tee');
+    if (!hoodies.length || !tees.length) {
+      checkoutData.promoCode = null;
+      checkoutData.discount  = 0;
+      // Hide promo UI
+      const applied = document.getElementById('coPromoApplied');
+      const msg     = document.getElementById('coPromoMsg');
+      const input   = document.getElementById('coPromoInput');
+      if (applied) applied.style.display = 'none';
+      if (input)   input.value = '';
+      if (msg) { msg.textContent = 'Promo removed — item requirement no longer met.'; msg.className = 'co-promo-msg co-promo-msg-error'; msg.style.display = 'block'; clearTimeout(msg._t); msg._t = setTimeout(() => { msg.style.display = 'none'; }, 3500); }
+    } else {
+      checkoutData.discount = parseFloat((Math.min(...tees.map(i => i.price)) * 0.5).toFixed(2));
+    }
+  }
+}
+
 /* ─── Update qty from checkout page ─────────────────────────────────────── */
 function updateCheckoutQty(idx, delta) {
   if (!checkoutData?.items?.[idx]) return;
   const newQty = (checkoutData.items[idx].qty || 1) + delta;
   if (newQty < 1) { removeCheckoutItem(idx); return; }
   checkoutData.items[idx].qty = newQty;
+  validateCheckoutPromo();
   recalcCheckout();
   renderSummary();
 }
@@ -86,9 +109,9 @@ function updateCheckoutQty(idx, delta) {
 function removeCheckoutItem(idx) {
   if (!checkoutData?.items) return;
   checkoutData.items.splice(idx, 1);
+  validateCheckoutPromo();
   recalcCheckout();
   if (!checkoutData.items.length) {
-    // Cart is now empty — go back to shop
     localStorage.removeItem('thread_checkout');
     localStorage.removeItem('thread_cart');
     window.location.href = 'catalog.html';
@@ -238,6 +261,7 @@ async function launchStripeCheckout(email) {
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({
         items:        checkoutData.items,
+        discount:     checkoutData.discount || 0,
         total:        checkoutData.total,
         orderId:      orderId,
         customerEmail: email || '',
@@ -437,7 +461,7 @@ function applyCheckoutPromo() {
 
   const flatPromos = { 'THREAD10': 10, 'WEAR20': 20, 'FIRST15': 15, 'SCAN25': 25 };
 
-  if (code === 'BOGOEGG' || code === 'HIDDEN20') {
+  if (code === 'BOGOEGG') {
     const hoodies = checkoutData.items.filter(i => (i.type || 'hoodie') !== 'tee');
     const tees    = checkoutData.items.filter(i => i.type === 'tee');
     if (!hoodies.length) { showPromoMsg('Add a sweatshirt to use this code', 'error'); return; }
@@ -447,7 +471,7 @@ function applyCheckoutPromo() {
     checkoutData.discount  = parseFloat((cheapestTee * 0.5).toFixed(2));
     recalcCheckout();
     renderSummary();
-    showPromoMsg(`✓ "${code}" applied — tee 50% off!`, 'success');
+    showPromoMsg(`✓ "BOGOEGG" applied — tee 50% off!`, 'success');
     return;
   }
 

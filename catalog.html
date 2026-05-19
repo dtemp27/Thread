@@ -305,8 +305,21 @@
     if(promoLabel&&cart.promoCode) promoLabel.textContent=cart.promoCode;
   }
 
-  function updateQty(idx,delta){ const cart=getCart(); cart.items[idx].qty=Math.max(1,(cart.items[idx].qty||1)+delta); saveCart(cart); renderCartDrawer(); }
-  function removeItem(idx){ const cart=getCart(); cart.items.splice(idx,1); saveCart(cart); renderCartDrawer(); }
+  function validateCatPromo(cart){
+    if(!cart.promoCode) return;
+    if(cart.promoCode==='BOGOEGG'){
+      const hoodies=cart.items.filter(i=>(i.type||'hoodie')!=='tee');
+      const tees=cart.items.filter(i=>i.type==='tee');
+      if(!hoodies.length||!tees.length){
+        cart.promoCode=null; cart.discount=0;
+        showCartMsg('Promo removed — item requirement no longer met.','error');
+      } else {
+        cart.discount=parseFloat((Math.min(...tees.map(i=>i.price))*0.5).toFixed(2));
+      }
+    }
+  }
+  function updateQty(idx,delta){ const cart=getCart(); cart.items[idx].qty=Math.max(1,(cart.items[idx].qty||1)+delta); validateCatPromo(cart); saveCart(cart); renderCartDrawer(); }
+  function removeItem(idx){ const cart=getCart(); cart.items.splice(idx,1); validateCatPromo(cart); saveCart(cart); renderCartDrawer(); }
 
   function toggleCart(){
     const drawer=document.getElementById('cartDrawer');
@@ -394,7 +407,7 @@
     const code=(document.getElementById('promoInput')?.value||'').trim().toUpperCase();
     const flatPromos={'THREAD10':10,'WEAR20':20,'FIRST15':15,'SCAN25':25};
     const cart=getCart();
-    if(code==='BOGOEGG'||code==='HIDDEN20'){
+    if(code==='BOGOEGG'){
       const hoodies=cart.items.filter(i=>(i.type||'hoodie')!=='tee');
       const tees=cart.items.filter(i=>i.type==='tee');
       if(!hoodies.length){showCartMsg('Add a sweatshirt to use this code','error');return;}
@@ -403,7 +416,7 @@
       cart.promoCode=code;
       cart.discount=parseFloat((cheapestTee*0.5).toFixed(2));
       saveCart(cart); renderCartDrawer();
-      showCartMsg(`✓ "${code}" applied — tee 50% off!`);
+      showCartMsg('✓ "BOGOEGG" applied — tee 50% off!');
       return;
     }
     if(flatPromos[code]){
