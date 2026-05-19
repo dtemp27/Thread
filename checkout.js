@@ -67,8 +67,9 @@ function recalcCheckout() {
   // Also keep thread_cart in sync
   try {
     const cart = JSON.parse(localStorage.getItem('thread_cart') || '{}');
-    cart.items    = checkoutData.items;
-    cart.discount = discount;
+    cart.items     = checkoutData.items;
+    cart.discount  = discount;
+    cart.promoCode = checkoutData.promoCode || null;
     localStorage.setItem('thread_cart', JSON.stringify(cart));
   } catch(_) {}
 }
