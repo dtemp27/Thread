@@ -327,6 +327,7 @@ async function launchStripeCheckout(email) {
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({
         items:        checkoutData.items,
+        discount:     checkoutData.discount || 0,
         total:        checkoutData.total,
         orderId:      orderId,
         customerEmail: email || '',

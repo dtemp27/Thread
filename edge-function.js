@@ -22,6 +22,7 @@ Deno.serve(async (req) => {
   try {
     const {
       items = [],
+      discount = 0,
       orderId = '',
       customerEmail = '',
       referralCode = '',
@@ -72,6 +73,29 @@ Deno.serve(async (req) => {
       body.append(`line_items[${i}][price_data][unit_amount]`, String(unitAmount));
       body.append(`line_items[${i}][quantity]`, String(qty));
     });
+
+    // If a discount was applied on the frontend, create a one-time Stripe coupon
+    // and attach it so the discount shows up (and is enforced) on Stripe's page.
+    if (discount > 0) {
+      const couponBody = new URLSearchParams();
+      couponBody.append('amount_off', String(Math.round(Number(discount) * 100)));
+      couponBody.append('currency', 'usd');
+      couponBody.append('duration', 'once');
+      if (promoCode) couponBody.append('name', promoCode);
+
+      const couponRes = await fetch('https://api.stripe.com/v1/coupons', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${stripeKey}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: couponBody.toString(),
+      });
+      const coupon = await couponRes.json();
+      if (coupon?.id) {
+        body.append('discounts[0][coupon]', coupon.id);
+      }
+    }
 
     const stripeRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {
       method: 'POST',
