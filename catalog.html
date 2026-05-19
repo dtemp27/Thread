@@ -116,6 +116,11 @@
       </div>
     </div>
     <div id="cdFooter" style="display:none;padding:20px 24px;border-top:1px solid rgba(255,255,255,0.08);">
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <input type="text" id="promoInput" placeholder="Promo code" style="flex:1;padding:10px 14px;background:#1a1a1a;border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#f0f0f0;font-family:'Space Grotesk',sans-serif;font-size:13px;outline:none;" onkeydown="if(event.key==='Enter')applyPromo()" />
+        <button onclick="applyPromo()" style="padding:10px 16px;background:#6C63FF;color:#fff;border:none;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">Apply</button>
+      </div>
+      <div id="cdDiscountRow" style="display:none;justify-content:space-between;margin-bottom:8px;color:#22c55e;font-size:13px;"><span>Discount</span><span id="cdDiscount"></span></div>
       <div style="display:flex;justify-content:space-between;margin-bottom:8px;color:#888;font-size:14px;"><span>Subtotal</span><span id="cdSubtotal">$0.00</span></div>
       <div style="display:flex;justify-content:space-between;margin-bottom:16px;font-size:16px;font-weight:700;color:#f0f0f0;"><span>Total</span><span id="cdTotal">$0.00</span></div>
       <button onclick="goToCheckout()" style="display:block;width:100%;padding:14px;background:#6C63FF;color:#fff;text-align:center;border-radius:50px;font-weight:700;font-size:15px;border:none;cursor:pointer;">Checkout →</button>

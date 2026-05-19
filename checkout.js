@@ -100,6 +100,71 @@ function removeCheckoutItem(idx) {
   renderSummary();
 }
 
+/* ─── Promo code on checkout page ───────────────────────────────────────── */
+function applyCheckoutPromo() {
+  const input  = document.getElementById('coPromoInput');
+  const msgEl  = document.getElementById('coPromoMsg');
+  const code   = (input?.value || '').trim().toUpperCase();
+  if (!code) return;
+
+  const setMsg = (txt, type) => {
+    if (!msgEl) return;
+    msgEl.textContent = txt;
+    msgEl.className = 'co-promo-msg ' + (type || '');
+  };
+
+  const items = checkoutData.items || [];
+  const promos = { 'THREAD10': 10, 'WEAR20': 20, 'FIRST15': 15, 'SCAN25': 25 };
+
+  let discount = 0;
+  let label = '';
+
+  if (code === 'BIGBIRD') {
+    const hasTee    = items.some(i => (i.type || 'hoodie') === 'tee');
+    const hasHoodie = items.some(i => (i.type || 'hoodie') !== 'tee');
+    if (hasTee && hasHoodie) { discount = 60; label = '$60 off your tee + hoodie'; }
+    else if (hasHoodie)      { discount = 32; label = '$32 off your hoodie'; }
+    else if (hasTee)         { discount = 28; label = '$28 off your tee'; }
+    else { setMsg('Add items to apply this code.', 'error'); return; }
+  } else if (promos[code]) {
+    discount = promos[code];
+    label = `$${discount} off`;
+  } else {
+    setMsg('Invalid promo code.', 'error');
+    return;
+  }
+
+  checkoutData.discount  = discount;
+  checkoutData.promoCode = code;
+  recalcCheckout();
+  renderSummary();
+  setMsg(`✓ ${code} applied — ${label}!`, 'success');
+  if (input) { input.value = ''; }
+
+  // Also sync back to cart
+  try {
+    const cart = JSON.parse(localStorage.getItem('thread_cart') || '{}');
+    cart.discount  = discount;
+    cart.promoCode = code;
+    localStorage.setItem('thread_cart', JSON.stringify(cart));
+  } catch(_) {}
+}
+
+function removeCheckoutPromo() {
+  checkoutData.discount  = 0;
+  checkoutData.promoCode = null;
+  recalcCheckout();
+  renderSummary();
+  const msgEl = document.getElementById('coPromoMsg');
+  if (msgEl) { msgEl.textContent = ''; msgEl.className = 'co-promo-msg'; }
+  try {
+    const cart = JSON.parse(localStorage.getItem('thread_cart') || '{}');
+    cart.discount  = 0;
+    cart.promoCode = null;
+    localStorage.setItem('thread_cart', JSON.stringify(cart));
+  } catch(_) {}
+}
+
 /* ─── Render order summary ────────────────────────────────────────────────── */
 function renderSummary() {
   const data = checkoutData;

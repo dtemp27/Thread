@@ -39,10 +39,20 @@
         <!-- populated by JS -->
       </div>
 
+      <!-- Promo code input -->
+      <div class="co-promo-wrap" id="coPromoWrap">
+        <div class="co-promo-row">
+          <input type="text" id="coPromoInput" placeholder="Promo code" class="co-promo-input" onkeydown="if(event.key==='Enter')applyCheckoutPromo()" />
+          <button onclick="applyCheckoutPromo()" class="co-promo-btn">Apply</button>
+        </div>
+        <div class="co-promo-msg" id="coPromoMsg"></div>
+      </div>
+
       <!-- Promo applied banner -->
       <div class="co-promo-applied" id="coPromoApplied" style="display:none">
         <span class="promo-tag">🏷 <span id="coPromoCode"></span></span>
         <span class="promo-saving">–$<span id="coPromoSaving"></span></span>
+        <button class="promo-remove" onclick="removeCheckoutPromo()">✕</button>
       </div>
 
       <div class="co-totals">

@@ -167,6 +167,44 @@ body {
 }
 .co-qty-remove:hover { background: rgba(255,77,77,0.25); color: #ff6464; }
 
+.co-promo-wrap { margin-bottom: 14px; }
+.co-promo-row { display: flex; gap: 8px; }
+.co-promo-input {
+  flex: 1;
+  padding: 11px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.co-promo-input:focus { border-color: var(--accent); }
+.co-promo-btn {
+  padding: 11px 18px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.co-promo-btn:hover { background: #a78bfa; }
+.co-promo-msg { font-size: 12px; margin-top: 6px; min-height: 16px; }
+.co-promo-msg.error { color: #f87171; }
+.co-promo-msg.success { color: #22c55e; }
+.promo-remove {
+  background: none; border: none; color: var(--green);
+  cursor: pointer; font-size: 14px; opacity: 0.7; padding: 0 2px;
+}
+.promo-remove:hover { opacity: 1; }
+
 .co-promo-applied {
   display: flex;
   align-items: center;
