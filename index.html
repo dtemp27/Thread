@@ -647,9 +647,7 @@
         <div class="qr-feature-right">
           <div class="qr-demo">
             <div class="qr-demo-inner" id="qrDemo">
-              <img src="images/mythread-shop-qr.png" alt="THREAD QR Code" class="qr-demo-img" id="qrDemoImg"
-                   onerror="this.style.display='none'; document.getElementById('qrDemoSvg').style.display='block';">
-              <svg id="qrDemoSvg" width="180" height="180" viewBox="0 0 210 210" xmlns="http://www.w3.org/2000/svg" style="display:none; border-radius:8px;"></svg>
+              <div id="bottomQrWrap" style="position:relative;display:inline-block;width:180px;height:180px;border-radius:12px;overflow:hidden;background:#fff;"></div>
             </div>
             <div class="qr-demo-label">SCAN TO SHOP · EARN REWARDS</div>
             <div class="qr-pulse-rings">
@@ -788,6 +786,56 @@
       wrap.style.cssText += 'position:relative;';
       wrap.innerHTML = `
         <img src="https://api.qrserver.com/v1/create-qr-code/?size=${size*4}x${size*4}&data=${encodeURIComponent('https://mythread.shop/secret.html')}&margin=8&ecc=H"
+             style="width:${size}px;height:${size}px;display:block;" />
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+                    width:${logoSize+8}px;height:${logoSize+8}px;background:#fff;border-radius:6px;
+                    display:flex;align-items:center;justify-content:center;">
+          <img src="images/TLogo.png" style="width:${logoSize}px;height:${logoSize}px;object-fit:contain;" />
+        </div>`;
+    })();
+
+    // ── Bottom "One code. Infinite reach." QR — also points to easter egg
+    (async function renderBottomQR() {
+      const wrap = document.getElementById('bottomQrWrap');
+      if (!wrap) return;
+      const size    = 180;
+      const url     = 'https://mythread.shop/secret.html';
+      const logoSrc = new URL('images/TLogo.png', window.location.href).href;
+
+      if (window.QRCodeStyling) {
+        let logoDataUrl = null;
+        try {
+          const r = await fetch(logoSrc);
+          if (r.ok) {
+            const b = await r.blob();
+            logoDataUrl = await new Promise(res => { const fr = new FileReader(); fr.onloadend = () => res(fr.result); fr.readAsDataURL(b); });
+          }
+        } catch(_) {}
+
+        const qr = new QRCodeStyling({
+          width:  size * 4, height: size * 4,
+          type:   'canvas',
+          data:   url,
+          margin: 0,
+          qrOptions:            { errorCorrectionLevel: 'H' },
+          dotsOptions:          { color: '#000000', type: 'dots' },
+          cornersSquareOptions: { color: '#000000', type: 'extra-rounded' },
+          cornersDotOptions:    { color: '#000000', type: 'dot' },
+          backgroundOptions:    { color: '#ffffff' },
+          ...(logoDataUrl ? { image: logoDataUrl, imageOptions: { margin: 6, imageSize: 0.25, hideBackgroundDots: true } } : {})
+        });
+        qr.append(wrap);
+        setTimeout(() => {
+          const c = wrap.querySelector('canvas');
+          if (c) { c.style.width = size + 'px'; c.style.height = size + 'px'; }
+        }, 400);
+        return;
+      }
+
+      // Fallback
+      const logoSize = Math.floor(size * 0.18);
+      wrap.innerHTML = `
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=${size*4}x${size*4}&data=${encodeURIComponent(url)}&margin=8&ecc=H"
              style="width:${size}px;height:${size}px;display:block;" />
         <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
                     width:${logoSize+8}px;height:${logoSize+8}px;background:#fff;border-radius:6px;
