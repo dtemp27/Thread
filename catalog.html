@@ -53,7 +53,7 @@
     .cat-card:hover { transform:translateY(-6px); border-color:rgba(108,99,255,0.3); box-shadow:0 20px 50px rgba(0,0,0,0.4); }
 
     /* ── CAROUSEL ── */
-    .carousel { position:relative; background:radial-gradient(ellipse at 60% 40%, #1a1a1a, #050505); aspect-ratio:1/1; overflow:hidden; }
+    .carousel { position:relative; background:#2a2a2a; aspect-ratio:1/1; overflow:hidden; }
     .carousel-track { display:flex; height:100%; transition:transform 0.35s cubic-bezier(0.4,0,0.2,1); }
     .carousel-slide { min-width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
     .carousel-slide img { width:100%; height:100%; object-fit:contain; object-position:center; }
@@ -479,6 +479,62 @@
     }
     card._tx = null;
   }, { passive:true });
+
+  /* ── PROMO CODE ── */
+  function applyPromo() {
+    const input = document.getElementById('promoInput');
+    const code  = (input?.value || '').trim().toUpperCase();
+    if (!code) return;
+
+    const cart   = getCart();
+    const promos = { 'THREAD10': 10, 'WEAR20': 20, 'FIRST15': 15, 'SCAN25': 25 };
+    let discount = 0;
+    let msg = '';
+
+    if (code === 'BOGOEGG') {
+      const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
+      const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
+      if (!hasTee || !hasHoodie) { showCatalogToast('Add a hoodie + tee to use BOGOEGG', true); return; }
+      const teeItem = cart.items.find(i => (i.type || 'hoodie') === 'tee');
+      discount = parseFloat((teeItem.price * 0.5).toFixed(2));
+      msg = '🥚 Tee is 50% off!';
+    } else if (code === 'BIGBIRD') {
+      const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
+      const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
+      if (hasTee && hasHoodie) { discount = 60; msg = '$60 off tee + hoodie'; }
+      else if (hasHoodie)      { discount = 32; msg = '$32 off your hoodie'; }
+      else if (hasTee)         { discount = 28; msg = '$28 off your tee'; }
+      else { showCatalogToast('Add items first', true); return; }
+    } else if (promos[code]) {
+      discount = promos[code];
+      msg = `$${discount} off`;
+    } else {
+      showCatalogToast('Invalid promo code', true); return;
+    }
+
+    cart.promoCode = code;
+    cart.discount  = discount;
+    saveCart(cart);
+    renderCartDrawer();
+    if (input) input.value = '';
+    showCatalogToast(`✓ ${code} — ${msg}`);
+  }
+
+  function showCatalogToast(msg, isError) {
+    let toast = document.getElementById('catalogToast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'catalogToast';
+      toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 22px;border-radius:10px;font-family:\'Space Grotesk\',sans-serif;font-size:14px;font-weight:600;z-index:9999;transition:opacity .3s;pointer-events:none;';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.background = isError ? '#ef4444' : '#22c55e';
+    toast.style.color = '#fff';
+    toast.style.opacity = '1';
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => { toast.style.opacity = '0'; }, 2500);
+  }
 
   render();
   </script>
