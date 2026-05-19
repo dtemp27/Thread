@@ -376,16 +376,21 @@ function renderCustomers() {
     const referredBy = referrer
       ? `<span style="font-weight:600">${referrer.name || '—'}</span><br><span style="font-size:11px;color:#888">${referrer.email || ''}</span>`
       : (c.referred_by ? `<code style="font-size:11px">${c.referred_by}</code>` : '<span style="color:#555">—</span>');
+    const code = c.referral_code || c.referralCode || '';
+    const qrBtn = code
+      ? `<button class="ad-action-btn" onclick="downloadQR('${escapeHtml(code)}','${escapeHtml(c.name || code)}')">⬇ QR</button>`
+      : '<span style="color:#555">—</span>';
     return `<tr>
       <td><strong>${c.name || '—'}</strong></td>
       <td>${c.email || '—'}</td>
       <td>${referredBy}</td>
-      <td><code style="font-size:11px">${c.referral_code || c.referralCode || '—'}</code></td>
+      <td><code style="font-size:11px">${code || '—'}</code></td>
       <td>${customerOrders.length}</td>
       <td style="font-family:var(--mono)">$${spent.toFixed(2)}</td>
       <td>${joined}</td>
+      <td>${qrBtn}</td>
     </tr>`;
-  }).join('') : '<tr><td colspan="7" class="ad-empty">No customers</td></tr>';
+  }).join('') : '<tr><td colspan="8" class="ad-empty">No customers</td></tr>';
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -478,4 +483,33 @@ async function setStatus(status) {
   closeStatusModal();
   renderOverview();
   renderOrders();
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   QR CODE DOWNLOAD
+   Generates a 600×600 QR linking to mythread.shop/?ref=CODE and downloads
+   it as a PNG you can drop straight onto the hoodie/tee print file.
+───────────────────────────────────────────────────────────────────────── */
+function downloadQR(code, name) {
+  if (!window.QRious) {
+    alert('QR library not loaded — please refresh and try again.');
+    return;
+  }
+  const url    = `https://mythread.shop/?ref=${encodeURIComponent(code)}`;
+  const canvas = document.createElement('canvas');
+  new QRious({
+    element:    canvas,
+    value:      url,
+    size:       600,
+    background: '#ffffff',
+    foreground: '#000000',
+    level:      'H',   // High error correction — still readable if partially covered by logo
+    padding:    20,
+  });
+
+  const link      = document.createElement('a');
+  const safeName  = (name || code).replace(/[^a-zA-Z0-9_-]/g, '_');
+  link.download   = `THREAD-QR-${safeName}.png`;
+  link.href       = canvas.toDataURL('image/png');
+  link.click();
 }
