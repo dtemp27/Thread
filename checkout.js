@@ -136,6 +136,9 @@ function renderSummary() {
     document.getElementById('coPromoApplied').style.display = '';
     document.getElementById('coPromoCode').textContent      = data.promoCode || '';
     document.getElementById('coPromoSaving').textContent    = data.discount.toFixed(2);
+    // Pre-fill the promo input so the user can see which code is active
+    const promoInput = document.getElementById('coPromoInput');
+    if (promoInput && data.promoCode && !promoInput.value) promoInput.value = data.promoCode;
   }
 
   // Referral attribution. Keep this optional so checkout still works if db.js
@@ -425,5 +428,47 @@ function showError(msg) {
   el.textContent = msg;
   el.style.display = 'block';
   el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/* ─── Promo code at checkout ──────────────────────────────────────────────── */
+function applyCheckoutPromo() {
+  const code = (document.getElementById('coPromoInput')?.value || '').trim().toUpperCase();
+  if (!code) return;
+
+  const flatPromos = { 'THREAD10': 10, 'WEAR20': 20, 'FIRST15': 15, 'SCAN25': 25 };
+
+  if (code === 'BOGOEGG' || code === 'HIDDEN20') {
+    const hoodies = checkoutData.items.filter(i => (i.type || 'hoodie') !== 'tee');
+    const tees    = checkoutData.items.filter(i => i.type === 'tee');
+    if (!hoodies.length) { showPromoMsg('Add a sweatshirt to use this code', 'error'); return; }
+    if (!tees.length)    { showPromoMsg('Add a tee to use this code', 'error'); return; }
+    const cheapestTee = Math.min(...tees.map(i => i.price));
+    checkoutData.promoCode = code;
+    checkoutData.discount  = parseFloat((cheapestTee * 0.5).toFixed(2));
+    recalcCheckout();
+    renderSummary();
+    showPromoMsg(`✓ "${code}" applied — tee 50% off!`, 'success');
+    return;
+  }
+
+  if (flatPromos[code]) {
+    checkoutData.promoCode = code;
+    checkoutData.discount  = flatPromos[code];
+    recalcCheckout();
+    renderSummary();
+    showPromoMsg(`✓ "${code}" applied — $${flatPromos[code]} off!`, 'success');
+  } else {
+    showPromoMsg('Invalid promo code', 'error');
+  }
+}
+
+function showPromoMsg(msg, type) {
+  const el = document.getElementById('coPromoMsg');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'co-promo-msg co-promo-msg-' + type;
+  el.style.display = 'block';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { if (type !== 'success') el.style.display = 'none'; }, 3000);
 }
 

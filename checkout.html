@@ -39,6 +39,13 @@
         <!-- populated by JS -->
       </div>
 
+      <!-- Promo code input -->
+      <div class="co-promo-input-wrap" id="coPromoInputWrap">
+        <input type="text" id="coPromoInput" class="co-promo-field" placeholder="Promo code" onkeydown="if(event.key==='Enter')applyCheckoutPromo()">
+        <button type="button" class="co-promo-apply-btn" onclick="applyCheckoutPromo()">Apply</button>
+      </div>
+      <div class="co-promo-msg" id="coPromoMsg" style="display:none"></div>
+
       <!-- Promo applied banner -->
       <div class="co-promo-applied" id="coPromoApplied" style="display:none">
         <span class="promo-tag">🏷 <span id="coPromoCode"></span></span>
