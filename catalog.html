@@ -53,7 +53,7 @@
     .cat-card:hover { transform:translateY(-6px); border-color:rgba(108,99,255,0.3); box-shadow:0 20px 50px rgba(0,0,0,0.4); }
 
     /* ── CAROUSEL ── */
-    .carousel { position:relative; background:#fff; aspect-ratio:1/1; overflow:hidden; }
+    .carousel { position:relative; background:radial-gradient(ellipse at 60% 40%, #1a1a1a, #050505); aspect-ratio:1/1; overflow:hidden; }
     .carousel-track { display:flex; height:100%; transition:transform 0.35s cubic-bezier(0.4,0,0.2,1); }
     .carousel-slide { min-width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
     .carousel-slide img { width:100%; height:100%; object-fit:contain; object-position:center; }
@@ -387,20 +387,64 @@
     overlay.style.display = open ? 'none' : 'block';
   }
 
+  /* ── SIZE PICKER MODAL ── */
   function addToCart(name, price, btn) {
-    const cart = getCart();
-    const existing = cart.items.find(i => i.name === name);
     const product = PRODUCTS.find(p => p.name === name);
-    const type = product ? product.type : 'hoodie';
+    const type    = product ? product.type : 'hoodie';
+    showSizePicker(name, price, type, btn);
+  }
+
+  function showSizePicker(name, price, type, btn) {
+    const existing = document.getElementById('sizePickerModal');
+    if (existing) existing.remove();
+
+    const sizes = ['XS','S','M','L','XL','XXL'];
+    const modal = document.createElement('div');
+    modal.id = 'sizePickerModal';
+    modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;`;
+    modal.innerHTML = `
+      <div style="background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:32px 28px;max-width:360px;width:100%;text-align:center;">
+        <h3 style="font-size:18px;font-weight:700;margin-bottom:4px;">${name}</h3>
+        <p style="font-size:13px;color:#888;margin-bottom:24px;">Select your size</p>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;">
+          ${sizes.map(s => `
+            <button onclick="confirmAddToCart('${name}',${price},'${type}','${s}')"
+              style="padding:14px 8px;background:#1a1a1a;border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#f0f0f0;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:.2s;"
+              onmouseover="this.style.background='#6C63FF';this.style.borderColor='#6C63FF';"
+              onmouseout="this.style.background='#1a1a1a';this.style.borderColor='rgba(255,255,255,0.08)';">
+              ${s}
+            </button>`).join('')}
+        </div>
+        <button onclick="document.getElementById('sizePickerModal').remove()"
+          style="width:100%;padding:12px;background:transparent;border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#888;font-family:'Space Grotesk',sans-serif;font-size:14px;cursor:pointer;">
+          Cancel
+        </button>
+      </div>`;
+
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+    document.body.appendChild(modal);
+    // store btn ref to update after confirmation
+    modal._btn = btn;
+    modal._price = price;
+  }
+
+  function confirmAddToCart(name, price, type, size) {
+    const modal = document.getElementById('sizePickerModal');
+    const btn   = modal?._btn;
+    modal?.remove();
+
+    const cart = getCart();
+    const existing = cart.items.find(i => i.name === name && i.size === size);
     if (existing) { existing.qty = (existing.qty||1) + 1; }
-    else { cart.items.push({name, price:parseFloat(price), qty:1, size:'M', type}); }
+    else { cart.items.push({name, price:parseFloat(price), qty:1, size, type}); }
     saveCart(cart);
     renderCartDrawer();
+
     if (btn) {
-      btn.textContent = '✓ Added!';
+      btn.textContent = `✓ Size ${size} Added!`;
       btn.style.background = '#22c55e';
       btn.style.color = '#fff';
-      setTimeout(() => { btn.textContent = `Add to Cart — $${price}`; btn.style.background = ''; btn.style.color = ''; }, 1400);
+      setTimeout(() => { btn.textContent = `Add to Cart — $${price}`; btn.style.background = ''; btn.style.color = ''; }, 1600);
     }
   }
 

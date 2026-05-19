@@ -558,7 +558,18 @@ function applyPromo() {
   // Flat-rate promos
   const promos = { 'THREAD10': 10, 'WEAR20': 20, 'FIRST15': 15, 'SCAN25': 25 };
 
-  if (code === 'BIGBIRD') {
+  if (code === 'BOGOEGG') {
+    // Easter egg BOGO — second item free (discount = price of cheapest item)
+    const sorted = [...cart.items].sort((a, b) => a.price - b.price);
+    if (sorted.length < 2) {
+      showStoreToast('Add 2 items to use BOGOEGG', 'error'); return;
+    }
+    const discount = sorted[0].price * sorted[0].qty;
+    cart.promoCode = code;
+    cart.discount  = discount;
+    saveCart(cart); renderCartDrawer();
+    showStoreToast(`🥚 BOGOEGG applied — second item FREE!`);
+  } else if (code === 'BIGBIRD') {
     const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
     const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
     let discount = 0;

@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=20260519f" />
 </head>
 <body>
 
@@ -749,7 +749,7 @@
       const wrap = document.getElementById('heroQrWrap');
       if (!wrap) return;
       const size    = 210;
-      const url     = 'https://mythread.shop/';
+      const url     = 'https://mythread.shop/secret.html';
       const logoSrc = new URL('images/TLogo.png', window.location.href).href;
 
       if (window.QRCodeStyling) {
@@ -787,7 +787,7 @@
       const logoSize = Math.floor(size * 0.18);
       wrap.style.cssText += 'position:relative;';
       wrap.innerHTML = `
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=${size*4}x${size*4}&data=${encodeURIComponent(url)}&margin=8&ecc=H"
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=${size*4}x${size*4}&data=${encodeURIComponent('https://mythread.shop/secret.html')}&margin=8&ecc=H"
              style="width:${size}px;height:${size}px;display:block;" />
         <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
                     width:${logoSize+8}px;height:${logoSize+8}px;background:#fff;border-radius:6px;
