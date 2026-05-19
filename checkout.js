@@ -130,11 +130,13 @@ function applyCheckoutPromo() {
   let label = '';
 
   if (code === 'BOGOEGG') {
-    // Easter egg BOGO — cheapest item free
-    const sorted = [...items].sort((a, b) => a.price - b.price);
-    if (sorted.length < 2) { setMsg('Add 2 items to use this code.', 'error'); return; }
-    discount = sorted[0].price * sorted[0].qty;
-    label    = 'second item FREE 🥚';
+    // Easter egg — buy a hoodie, get a tee 50% off
+    const hasTee    = items.some(i => (i.type || 'hoodie') === 'tee');
+    const hasHoodie = items.some(i => (i.type || 'hoodie') !== 'tee');
+    if (!hasTee || !hasHoodie) { setMsg('Add a hoodie + tee to use this code.', 'error'); return; }
+    const teeItem = items.find(i => (i.type || 'hoodie') === 'tee');
+    discount = parseFloat((teeItem.price * 0.5).toFixed(2));
+    label    = 'tee 50% off 🥚';
   } else if (code === 'BIGBIRD') {
     const hasTee    = items.some(i => (i.type || 'hoodie') === 'tee');
     const hasHoodie = items.some(i => (i.type || 'hoodie') !== 'tee');

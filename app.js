@@ -559,16 +559,18 @@ function applyPromo() {
   const promos = { 'THREAD10': 10, 'WEAR20': 20, 'FIRST15': 15, 'SCAN25': 25 };
 
   if (code === 'BOGOEGG') {
-    // Easter egg BOGO — second item free (discount = price of cheapest item)
-    const sorted = [...cart.items].sort((a, b) => a.price - b.price);
-    if (sorted.length < 2) {
-      showStoreToast('Add 2 items to use BOGOEGG', 'error'); return;
+    // Easter egg — buy a hoodie, get a tee 50% off
+    const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
+    const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
+    if (!hasTee || !hasHoodie) {
+      showStoreToast('Add a hoodie + tee to use BOGOEGG', 'error'); return;
     }
-    const discount = sorted[0].price * sorted[0].qty;
+    const teeItem = cart.items.find(i => (i.type || 'hoodie') === 'tee');
+    const discount = parseFloat((teeItem.price * 0.5).toFixed(2));
     cart.promoCode = code;
     cart.discount  = discount;
     saveCart(cart); renderCartDrawer();
-    showStoreToast(`🥚 BOGOEGG applied — second item FREE!`);
+    showStoreToast(`🥚 BOGOEGG applied — tee is 50% off!`);
   } else if (code === 'BIGBIRD') {
     const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
     const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
