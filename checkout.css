@@ -200,7 +200,7 @@ body {
 .co-promo-input:focus { border-color: var(--accent); }
 .co-promo-btn {
   padding: 11px 18px;
-  background: var(--accent);
+  background: #7c3aed;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -211,7 +211,7 @@ body {
   transition: background 0.2s;
   white-space: nowrap;
 }
-.co-promo-btn:hover { background: #a78bfa; }
+.co-promo-btn:hover { background: #6d28d9; }
 .co-promo-msg { font-size: 12px; margin-top: 6px; min-height: 16px; }
 .co-promo-msg.error { color: #f87171; }
 .co-promo-msg.success { color: #22c55e; }
@@ -258,8 +258,9 @@ body {
 }
 .co-row span:last-child { color: #fff; font-family: var(--mono); }
 .free-tag { color: var(--green) !important; font-family: var(--mono); font-size: 13px !important; }
-.co-discount-row { color: var(--green); }
-.discount-val { color: var(--green) !important; }
+.co-discount-row { color: var(--green) !important; }
+.co-discount-row span { color: var(--green) !important; }
+.discount-val { color: var(--green) !important; font-family: var(--mono); }
 .co-total-row {
   padding-top: 10px;
   border-top: 1px solid var(--border);

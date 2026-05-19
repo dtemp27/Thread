@@ -165,8 +165,12 @@ function removeCheckoutPromo() {
   checkoutData.promoCode = null;
   recalcCheckout();
   renderSummary();
-  const msgEl = document.getElementById('coPromoMsg');
-  if (msgEl) { msgEl.textContent = ''; msgEl.className = 'co-promo-msg'; }
+  // Clear message + input so it looks like nothing was ever entered
+  const msgEl   = document.getElementById('coPromoMsg');
+  const inputEl = document.getElementById('coPromoInput');
+  if (msgEl)   { msgEl.textContent = ''; msgEl.className = 'co-promo-msg'; }
+  if (inputEl) { inputEl.value = ''; }
+  // Sync cart
   try {
     const cart = JSON.parse(localStorage.getItem('thread_cart') || '{}');
     cart.discount  = 0;
@@ -221,6 +225,9 @@ function renderSummary() {
     document.getElementById('coPromoApplied').style.display = '';
     document.getElementById('coPromoCode').textContent      = data.promoCode || '';
     document.getElementById('coPromoSaving').textContent    = data.discount.toFixed(2);
+  } else {
+    document.getElementById('coDiscountRow').style.display  = 'none';
+    document.getElementById('coPromoApplied').style.display = 'none';
   }
 
   // Referral attribution. Keep this optional so checkout still works if db.js
