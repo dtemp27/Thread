@@ -76,6 +76,16 @@ function recalcCheckout() {
   } catch(_) {}
 }
 
+/* ─── Change size from checkout page ────────────────────────────────────── */
+const CO_SIZES = ['XS','S','M','L','XL','XXL'];
+
+function changeCheckoutSize(idx, size) {
+  if (!checkoutData?.items?.[idx]) return;
+  checkoutData.items[idx].size = size;
+  recalcCheckout();
+  renderSummary();
+}
+
 /* ─── Update qty from checkout page ─────────────────────────────────────── */
 function updateCheckoutQty(idx, delta) {
   if (!checkoutData?.items?.[idx]) return;
@@ -180,7 +190,13 @@ function renderSummary() {
       <div class="co-item-thumb">${miniHoodieSVG(item.name, item.type)}</div>
       <div class="co-item-info">
         <div class="co-item-name">${displayName}</div>
-        <div class="co-item-meta">${typeLabel} — Size ${item.size || 'M'}</div>
+        <div class="co-item-meta">${typeLabel}</div>
+        <div class="co-size-row">
+          ${CO_SIZES.map(s => {
+            const active = (item.size || 'M') === s;
+            return `<button class="co-size-btn${active ? ' active' : ''}" onclick="changeCheckoutSize(${idx},'${s}')">${s}</button>`;
+          }).join('')}
+        </div>
       </div>
       <div class="co-item-right">
         <div class="co-item-price">$${(item.price * item.qty).toFixed(2)}</div>

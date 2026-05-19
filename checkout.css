@@ -117,7 +117,23 @@ body {
 
 .co-item-info { flex: 1; }
 .co-item-name { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
-.co-item-meta { font-size: 12px; color: #666; }
+.co-item-meta { font-size: 12px; color: #666; margin-bottom: 6px; }
+
+/* Size selector row on checkout */
+.co-size-row { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 4px; }
+.co-size-btn {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #aaa;
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all .15s;
+}
+.co-size-btn:hover { border-color: #7c3aed; color: #fff; }
+.co-size-btn.active { background: #7c3aed; border-color: #7c3aed; color: #fff; font-weight: 600; }
 
 .co-item-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 .co-item-price { font-size: 15px; font-weight: 700; font-family: var(--mono); }
