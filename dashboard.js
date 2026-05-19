@@ -872,16 +872,17 @@ function renderPurchases() {
   };
   grid.innerHTML = filtered.map(p => {
     const isTee = (p.type || '').toLowerCase() === 'tee' || (p.name||'').toLowerCase().includes('tee');
+    const cleanName = (p.name || '').replace(/\s+(Tee|Hoodie)$/i, '').trim();
     const slug = isTee
-      ? (TEE_PHOTO_SLUGS[p.name] || p.name.toLowerCase().replace(/\s+/g,'-'))
-      : (HOODIE_PHOTO_SLUGS[p.name] || 'phantom-black');
+      ? (TEE_PHOTO_SLUGS[cleanName] || cleanName.toLowerCase().replace(/\s+/g,'-'))
+      : (HOODIE_PHOTO_SLUGS[cleanName] || 'phantom-black');
     const imgSrc = isTee
       ? `images/tee-${slug}-front.png?v=tee-20260517`
       : `hoodie-variants/${slug}-front.png?v=hoodie-20260517`;
     return `
     <div class="purchase-card">
       <div class="pc-img">
-        <img src="${imgSrc}" alt="${p.name}" style="width:100%;height:100%;object-fit:contain;object-position:center;background:#0a0a0a">
+        <img src="${imgSrc}" alt="${cleanName}" style="width:100%;height:100%;object-fit:contain;object-position:center top;background:#0a0a0a">
       </div>
       <div class="pc-info">
         <h3>${p.name}</h3>
