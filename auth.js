@@ -47,28 +47,54 @@ let _pendingSignup = null;
   const params = new URLSearchParams(window.location.search);
   if (params.get('tab') === 'signin') switchTab('signin');
 
+  // Detect password reset link (Supabase puts type=recovery in the URL hash)
+  const hash = window.location.hash;
+  if (hash.includes('type=recovery') || hash.includes('type=signup')) {
+    switchTab('reset');
+  }
+
   // Prevent future dates in the DOB picker
   const dobInput = document.getElementById('signupDob');
   if (dobInput) dobInput.max = new Date().toISOString().split('T')[0];
+
+  // Live password requirement indicators
+  function watchPassword(inputId, lenId, specId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    input.addEventListener('input', () => {
+      const val = input.value;
+      const lenOk  = val.length >= 7;
+      const specOk = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(val);
+      const lenEl  = document.getElementById(lenId);
+      const specEl = document.getElementById(specId);
+      if (lenEl)  { lenEl.textContent  = (lenOk  ? '✓' : '✗') + ' At least 7 characters';           lenEl.className  = 'req' + (lenOk  ? ' met' : ''); }
+      if (specEl) { specEl.textContent = (specOk ? '✓' : '✗') + ' One special character (!@#$%^&*)'; specEl.className = 'req' + (specOk ? ' met' : ''); }
+    });
+  }
+  watchPassword('signupPassword', 'pwLen', 'pwSpec');
+  watchPassword('resetPassword',  'pwLenReset', 'pwSpecReset');
 })();
 
 /* ─── TAB SWITCHER ───────────────────────────────────────────────────────── */
 function switchTab(tab) {
-  const signupForm = document.getElementById('signupForm');
-  const signinForm = document.getElementById('signinForm');
-  const tabSignup  = document.getElementById('tabSignup');
-  const tabSignin  = document.getElementById('tabSignin');
+  const forms = ['signupForm','signinForm','forgotForm','resetForm'];
+  forms.forEach(id => document.getElementById(id)?.classList.add('hidden'));
+
+  const tabSignup = document.getElementById('tabSignup');
+  const tabSignin = document.getElementById('tabSignin');
+  tabSignup?.classList.remove('active');
+  tabSignin?.classList.remove('active');
 
   if (tab === 'signup') {
-    signupForm.classList.remove('hidden');
-    signinForm.classList.add('hidden');
-    tabSignup.classList.add('active');
-    tabSignin.classList.remove('active');
-  } else {
-    signinForm.classList.remove('hidden');
-    signupForm.classList.add('hidden');
-    tabSignin.classList.add('active');
-    tabSignup.classList.remove('active');
+    document.getElementById('signupForm')?.classList.remove('hidden');
+    tabSignup?.classList.add('active');
+  } else if (tab === 'signin') {
+    document.getElementById('signinForm')?.classList.remove('hidden');
+    tabSignin?.classList.add('active');
+  } else if (tab === 'forgot') {
+    document.getElementById('forgotForm')?.classList.remove('hidden');
+  } else if (tab === 'reset') {
+    document.getElementById('resetForm')?.classList.remove('hidden');
   }
   clearErrors();
 }
@@ -81,6 +107,13 @@ function clearErrors() {
 }
 
 function showFormError(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function showFormSuccess(id, msg) {
   const el = document.getElementById(id);
   if (!el) return;
   el.textContent = msg;
@@ -115,7 +148,8 @@ async function handleSignUp(event) {
   if (age < 13)  { showFormError('signupError', 'You must be at least 13 years old to create an account.'); return; }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showFormError('signupError', 'Please enter a valid email.'); return; }
-  if (password.length < 6)  { showFormError('signupError', 'Password must be at least 6 characters.'); return; }
+  if (password.length < 7)  { showFormError('signupError', 'Password must be at least 7 characters.'); return; }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) { showFormError('signupError', 'Password must include at least one special character (e.g. !@#$%).'); return; }
   if (password !== confirm)  { showFormError('signupError', 'Passwords do not match.'); return; }
   if (!terms)    { showFormError('signupError', 'You must agree to the terms to continue.'); return; }
 
@@ -295,6 +329,67 @@ async function handleSignIn(event) {
   } catch(e) {
     setLoading('signin', false);
     showFormError('signinError', e.message || 'Invalid email or password.');
+  }
+}
+
+/* ─── FORGOT PASSWORD ────────────────────────────────────────────────────── */
+async function handleForgotPassword(event) {
+  event.preventDefault();
+  clearErrors();
+
+  const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
+  if (!email) { showFormError('forgotError', 'Please enter your email.'); return; }
+
+  setLoading('forgot', true);
+  try {
+    const sb = getSB();
+    if (!sb) throw new Error('Service unavailable.');
+
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://mythread.shop/auth?tab=reset'
+    });
+    if (error) throw new Error(error.message);
+
+    setLoading('forgot', false);
+    const successEl = document.getElementById('forgotSuccess');
+    if (successEl) {
+      successEl.textContent = '✓ Reset link sent! Check your inbox at ' + email;
+      successEl.classList.add('show');
+    }
+  } catch(e) {
+    setLoading('forgot', false);
+    showFormError('forgotError', e.message || 'Something went wrong. Please try again.');
+  }
+}
+
+/* ─── RESET PASSWORD ─────────────────────────────────────────────────────── */
+async function handleResetPassword(event) {
+  event.preventDefault();
+  clearErrors();
+
+  const password = document.getElementById('resetPassword').value;
+  const confirm  = document.getElementById('resetConfirm').value;
+
+  if (password.length < 7) { showFormError('resetError', 'Password must be at least 7 characters.'); return; }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) { showFormError('resetError', 'Password must include at least one special character (e.g. !@#$%).'); return; }
+  if (password !== confirm) { showFormError('resetError', 'Passwords do not match.'); return; }
+
+  setLoading('reset', true);
+  try {
+    const sb = getSB();
+    if (!sb) throw new Error('Service unavailable.');
+
+    const { error } = await sb.auth.updateUser({ password });
+    if (error) throw new Error(error.message);
+
+    setLoading('reset', false);
+    // Show success then redirect to dashboard
+    const btn = document.getElementById('resetBtn');
+    if (btn) btn.innerHTML = '<span class="btn-text">✓ Password updated! Redirecting…</span>';
+    setTimeout(() => window.location.href = 'dashboard.html', 1800);
+  } catch(e) {
+    setLoading('reset', false);
+    showFormError('resetError', e.message || 'Something went wrong. Please try again.');
   }
 }
 
