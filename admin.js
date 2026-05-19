@@ -406,11 +406,19 @@ function renderReferrals() {
   document.getElementById('refConvRate').textContent     = `${convRate}% conversion rate`;
   document.getElementById('refCommPaid').textContent     = '$' + commTotal.toFixed(2);
 
+  // Helper: look up readable label for a referrer from allCustomers
+  function referrerLabel(referrerId, referralCode) {
+    const cust = allCustomers.find(c => c.id === referrerId || c.user_id === referrerId)
+               || allCustomers.find(c => (c.referral_code || c.referralCode) === referralCode);
+    if (!cust) return referralCode || referrerId || '—';
+    return cust.name && cust.name.trim() ? cust.name : (cust.email || referralCode || '—');
+  }
+
   // Group by referrer
   const byReferrer = {};
   allScans.forEach(s => {
     const key  = s.referrer_id || s.referral_code;
-    const name = s.profiles?.name || s.referral_code || key;
+    const name = referrerLabel(s.referrer_id, s.referral_code);
     if (!byReferrer[key]) byReferrer[key] = { name, code: s.referral_code, scans: 0, convs: 0, earned: 0, pending: 0 };
     byReferrer[key].scans++;
     if (s.converted) {
@@ -430,7 +438,7 @@ function renderReferrals() {
   // Top referrers table
   const topBody = document.getElementById('topReferrersBody');
   topBody.innerHTML = sorted.length ? sorted.slice(0, 20).map(r => `<tr>
-    <td><strong>${r.name}</strong></td>
+    <td><strong>${escapeHtml(r.name)}</strong></td>
     <td><code style="font-size:11px">${r.code}</code></td>
     <td>${r.scans}</td>
     <td>${r.convs}</td>
@@ -445,9 +453,10 @@ function renderReferrals() {
     const when = s.created_at
       ? new Date(s.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
       : '—';
+    const rLabel = referrerLabel(s.referrer_id, s.referral_code);
     return `<tr>
       <td style="white-space:nowrap">${when}</td>
-      <td>${s.profiles?.name || '—'}</td>
+      <td>${escapeHtml(rLabel)}</td>
       <td><code style="font-size:11px">${s.referral_code || '—'}</code></td>
       <td>${s.city || '—'}</td>
       <td>${s.converted
