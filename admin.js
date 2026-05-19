@@ -377,12 +377,14 @@ function renderCustomers() {
       ? `<span style="font-weight:600">${referrer.name || '—'}</span><br><span style="font-size:11px;color:#888">${referrer.email || ''}</span>`
       : (c.referred_by ? `<code style="font-size:11px">${c.referred_by}</code>` : '<span style="color:#555">—</span>');
     const code = c.referral_code || c.referralCode || '';
+    const username = c.username ? `<span style="color:#a78bfa;font-weight:600">@${escapeHtml(c.username)}</span>` : '<span style="color:#444">—</span>';
     const qrBtn = code
       ? `<button class="ad-action-btn" onclick="downloadQR('${escapeHtml(code)}','${escapeHtml(c.name || code)}')">⬇ QR</button>`
       : '<span style="color:#555">—</span>';
     return `<tr>
       <td><strong>${c.name || '—'}</strong></td>
       <td>${c.email || '—'}</td>
+      <td>${username}</td>
       <td>${referredBy}</td>
       <td><code style="font-size:11px">${code || '—'}</code></td>
       <td>${customerOrders.length}</td>
@@ -390,7 +392,7 @@ function renderCustomers() {
       <td>${joined}</td>
       <td>${qrBtn}</td>
     </tr>`;
-  }).join('') : '<tr><td colspan="8" class="ad-empty">No customers</td></tr>';
+  }).join('') : '<tr><td colspan="9" class="ad-empty">No customers</td></tr>';
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
