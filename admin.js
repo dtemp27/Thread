@@ -535,13 +535,35 @@ async function downloadQR(code, name) {
     dotsOptions:          { color: '#000000', type: 'dots' },
     cornersSquareOptions: { color: '#000000', type: 'extra-rounded' },
     cornersDotOptions:    { color: '#000000', type: 'dot' },
-    backgroundOptions:    { color: '#ffffff' },
+    backgroundOptions:    { color: '#00000000' },
     ...(logoDataUrl ? {
       image: logoDataUrl,
       imageOptions: { margin: 8, imageSize: 0.25, hideBackgroundDots: true }
     } : {})
   });
 
-  // QRCodeStyling's built-in download handles the canvas-to-PNG step
-  qr.download({ name: `THREAD-QR-${safeName}`, extension: 'png' });
+  // Append to a hidden div, grab the canvas, clear the background, then download
+  const hidden = document.createElement('div');
+  hidden.style.cssText = 'position:fixed;left:-9999px;top:-9999px;';
+  document.body.appendChild(hidden);
+  qr.append(hidden);
+
+  setTimeout(() => {
+    const canvas = hidden.querySelector('canvas');
+    if (!canvas) { qr.download({ name: `THREAD-QR-${safeName}`, extension: 'png' }); hidden.remove(); return; }
+
+    // Copy to a new canvas with transparent background
+    const out = document.createElement('canvas');
+    out.width  = canvas.width;
+    out.height = canvas.height;
+    const ctx  = out.getContext('2d');
+    ctx.clearRect(0, 0, out.width, out.height); // fully transparent
+    ctx.drawImage(canvas, 0, 0);
+
+    const link = document.createElement('a');
+    link.download = `THREAD-QR-${safeName}.png`;
+    link.href = out.toDataURL('image/png');
+    link.click();
+    hidden.remove();
+  }, 800);
 }
