@@ -422,13 +422,12 @@ function showSuccessOverlay(name, code) {
         <div style="width:100%;background:#1a1a1a;border-radius:8px;height:4px;margin-bottom:8px;overflow:hidden">
           <div id="successBar" style="height:100%;background:#fff;width:0%;transition:width 3s linear;border-radius:8px"></div>
         </div>
-        <p style="color:#555;font-size:12px">Taking you to your dashboard…</p>
+        <p style="color:#555;font-size:12px">Check your email to verify your account…</p>
       </div>`;
     document.body.appendChild(el);
     setTimeout(() => { const bar = document.getElementById('successBar'); if (bar) bar.style.width = '100%'; }, 50);
   }
-  const next = new URLSearchParams(window.location.search).get('next');
-  setTimeout(() => window.location.href = next || 'dashboard.html', 3200);
+  setTimeout(() => window.location.href = 'verify.html', 3200);
 }
 
 /* ─── PASSWORD TOGGLE ────────────────────────────────────────────────────── */
