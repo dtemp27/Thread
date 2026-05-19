@@ -430,8 +430,10 @@ const TEE_PHOTO_SLUG = {
 };
 
 function productThumb(item) {
-  const name = item.name || item;
+  const rawName  = item.name || item;
   const isHoodie = (item.type || 'hoodie') !== 'tee';
+  // Strip type suffix from name in case it was stored as "Raw Stone Tee" or "Phantom Black Hoodie"
+  const name = rawName.replace(/\s+(Tee|Hoodie)$/i, '').trim();
   const slug = isHoodie
     ? (HOODIE_PHOTO_SLUG[name] || 'phantom-black')
     : (TEE_PHOTO_SLUG[name] || name.toLowerCase().replace(/\s+/g,'-'));
@@ -510,7 +512,7 @@ function renderCartDrawer() {
   if (discEl && discount) discEl.textContent = '−$' + discount.toFixed(2);
 
   // write to checkout storage
-  localStorage.setItem('thread_checkout', JSON.stringify({ items: cart.items, subtotal, discount, total, ref: localStorage.getItem('thread_ref') }));
+  localStorage.setItem('thread_checkout', JSON.stringify({ items: cart.items, subtotal, discount, total, promoCode: cart.promoCode || null, ref: localStorage.getItem('thread_ref') }));
 }
 
 function addToCart(name, price, size = 'M', type = 'hoodie') {

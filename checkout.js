@@ -47,13 +47,15 @@ const TEE_SLUGS = {
 
 function miniHoodieSVG(name, type) {
   const isTee = (type || 'hoodie') === 'tee';
+  // Strip type suffix in case name was stored as "Raw Stone Tee" or "Phantom Black Hoodie"
+  const cleanName = name.replace(/\s+(Tee|Hoodie)$/i, '').trim();
   const slug = isTee
-    ? (TEE_SLUGS[name] || name.toLowerCase().replace(/\s+/g, '-'))
-    : (HOODIE_SLUGS[name] || 'phantom-black');
+    ? (TEE_SLUGS[cleanName] || cleanName.toLowerCase().replace(/\s+/g, '-'))
+    : (HOODIE_SLUGS[cleanName] || 'phantom-black');
   const src = isTee
     ? `images/tee-${slug}-front.png?v=tee-20260517`
     : `hoodie-variants/${slug}-front.png?v=hoodie-20260517`;
-  return `<img src="${src}" alt="${name}" style="width:56px;height:56px;object-fit:cover;object-position:center top;border-radius:8px;background:#111">`;
+  return `<img src="${src}" alt="${cleanName}" style="width:56px;height:56px;object-fit:cover;object-position:center top;border-radius:8px;background:#111">`;
 }
 
 /* ─── Recalculate totals and save ────────────────────────────────────────── */
@@ -106,7 +108,8 @@ function renderSummary() {
   container.innerHTML = data.items.map((item, idx) => {
     const isTee = (item.type || 'hoodie') === 'tee';
     const typeLabel = isTee ? 'Oversized Tee' : 'Oversized Heavyweight';
-    const displayName = isTee ? `${item.name} Tee` : `${item.name} Hoodie`;
+    const baseName = item.name.replace(/\s+(Tee|Hoodie)$/i, '').trim();
+    const displayName = isTee ? `${baseName} Tee` : `${baseName} Hoodie`;
     return `
     <div class="co-item">
       <div class="co-item-thumb">${miniHoodieSVG(item.name, item.type)}</div>
