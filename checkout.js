@@ -244,7 +244,7 @@ function renderSummary() {
     window.DB.profiles.getByReferralCode(refCode).then(referrer => {
       if (referrer) {
         document.getElementById('coRefNotice').style.display = 'flex';
-        document.getElementById('coRefName').textContent     = referrer.name;
+        document.getElementById('coRefName').textContent     = referrer.username ? '@' + referrer.username : referrer.name;
       }
     }).catch(() => {});
   }
@@ -480,7 +480,7 @@ async function finalizeOrder(orderId, customerEmail = '') {
       await window.DB.referrals.markConverted(effectiveRefCode, orderId, commission);
       const referrer = await window.DB.profiles.getByReferralCode(effectiveRefCode);
       if (referrer) {
-        refResult = { name: referrer.name, commission, tier: tier.name };
+        refResult = { name: referrer.username ? '@' + referrer.username : referrer.name, commission, tier: tier.name };
       }
       console.log('[checkout] Credited referrer:',
         { code: effectiveRefCode, tier: tier.name, perSale: tier.perSale, itemCount, commission });

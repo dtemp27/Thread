@@ -85,7 +85,7 @@ if (document.readyState === 'loading') {
   const referrer = await window.DB?.profiles?.getByReferralCode(ref).catch(() => null);
   const banner = document.createElement('div');
   banner.className = 'ref-banner';
-  const handle = referrer?.username ? `@${referrer.username}` : (referrer?.name ? referrer.name.split(' ')[0] : null);
+  const handle = referrer?.username ? `@${referrer.username}` : null;
   banner.innerHTML = handle
     ? `👕 You were referred by <span>${handle}</span> — they earn when you buy!`
     : `👕 You arrived via a THREAD referral link — they earn when you buy!`;
