@@ -155,7 +155,7 @@ function renderSummary() {
 
   if (data.discount > 0) {
     document.getElementById('coDiscountRow').style.display  = '';
-    document.getElementById('coDiscount').textContent       = data.discount.toFixed(2);
+    document.getElementById('coDiscount').textContent       = '–$' + data.discount.toFixed(2);
     document.getElementById('coPromoApplied').style.display = '';
     document.getElementById('coPromoCode').textContent      = data.promoCode || '';
     document.getElementById('coPromoSaving').textContent    = data.discount.toFixed(2);
@@ -242,6 +242,23 @@ async function handleCheckout(e) {
   await launchStripeCheckout(email);
 }
 
+/* ─── Bake discount into item prices before sending to Stripe ─────────────── */
+function buildStripeItems(items, discount, promoCode) {
+  if (!discount || discount <= 0) return items;
+  const adjusted = items.map(i => ({ ...i }));
+  if (promoCode === 'BOGOEGG') {
+    const teeIdxs = adjusted.reduce((acc, item, idx) => { if (item.type === 'tee') acc.push(idx); return acc; }, []);
+    if (teeIdxs.length) {
+      const minIdx = teeIdxs.reduce((a, b) => adjusted[a].price <= adjusted[b].price ? a : b);
+      adjusted[minIdx] = { ...adjusted[minIdx], price: parseFloat((adjusted[minIdx].price * 0.5).toFixed(2)) };
+    }
+  } else {
+    const maxIdx = adjusted.reduce((a, _, i) => adjusted[i].price > adjusted[a].price ? i : a, 0);
+    adjusted[maxIdx] = { ...adjusted[maxIdx], price: parseFloat(Math.max(0.01, adjusted[maxIdx].price - discount).toFixed(2)) };
+  }
+  return adjusted;
+}
+
 /* ─── Launch Stripe Checkout ──────────────────────────────────────────────── */
 async function launchStripeCheckout(email) {
   const btn  = document.getElementById('btnPayNow');
@@ -256,12 +273,13 @@ async function launchStripeCheckout(email) {
   try {
     const orderId = genOrderId();
     const base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '');
+    const stripeItems = buildStripeItems(checkoutData.items, checkoutData.discount || 0, checkoutData.promoCode || '');
     const res  = await fetch(window.THREAD_CONFIG.stripeFunctionUrl, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({
-        items:        checkoutData.items,
-        discount:     checkoutData.discount || 0,
+        items:        stripeItems,
+        discount:     0,
         total:        checkoutData.total,
         orderId:      orderId,
         customerEmail: email || '',

@@ -319,6 +319,15 @@ a { color: var(--accent2); text-decoration: none; cursor: pointer; }
 }
 .dash-cart-btn:hover { background: var(--surface); border-color: var(--accent); color: var(--accent); }
 .dash-cart-btn svg { flex-shrink: 0; opacity: 0.85; width: 13px; height: 13px; }
+.topbar-home-btn {
+  display: flex; align-items: center;
+  padding: 5px 12px; border-radius: 7px;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); text-decoration: none;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.3px;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+}
+.topbar-home-btn:hover { background: var(--surface); border-color: var(--accent); color: var(--accent); }
 .dash-cart-count {
   position: absolute; top: -6px; right: -6px;
   background: var(--accent); color: white;
