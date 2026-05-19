@@ -490,26 +490,47 @@ async function setStatus(status) {
    Generates a 600×600 QR linking to mythread.shop/?ref=CODE and downloads
    it as a PNG you can drop straight onto the hoodie/tee print file.
 ───────────────────────────────────────────────────────────────────────── */
-function downloadQR(code, name) {
-  if (!window.QRious) {
+async function downloadQR(code, name) {
+  if (!window.QRCodeStyling) {
     alert('QR library not loaded — please refresh and try again.');
     return;
   }
-  const url    = `https://mythread.shop/?ref=${encodeURIComponent(code)}`;
-  const canvas = document.createElement('canvas');
-  new QRious({
-    element:    canvas,
-    value:      url,
-    size:       600,
-    background: '#ffffff',
-    foreground: '#000000',
-    level:      'H',   // High error correction — still readable if partially covered by logo
-    padding:    20,
+
+  const url      = `https://mythread.shop/?ref=${encodeURIComponent(code)}`;
+  const safeName = (name || code).replace(/[^a-zA-Z0-9_-]/g, '_');
+
+  // Fetch the THREAD logo as a data URL so canvas doesn't get tainted
+  let logoDataUrl = null;
+  try {
+    const base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '');
+    const r = await fetch(`${base}/images/TLogo.png`);
+    if (r.ok) {
+      const blob = await r.blob();
+      logoDataUrl = await new Promise(res => {
+        const fr = new FileReader();
+        fr.onloadend = () => res(fr.result);
+        fr.readAsDataURL(blob);
+      });
+    }
+  } catch(_) {}
+
+  const qr = new QRCodeStyling({
+    width:  1200,
+    height: 1200,
+    type:   'canvas',
+    data:   url,
+    margin: 40,
+    qrOptions:            { errorCorrectionLevel: 'H' },
+    dotsOptions:          { color: '#000000', type: 'dots' },
+    cornersSquareOptions: { color: '#000000', type: 'extra-rounded' },
+    cornersDotOptions:    { color: '#000000', type: 'dot' },
+    backgroundOptions:    { color: '#ffffff' },
+    ...(logoDataUrl ? {
+      image: logoDataUrl,
+      imageOptions: { margin: 8, imageSize: 0.25, hideBackgroundDots: true }
+    } : {})
   });
 
-  const link      = document.createElement('a');
-  const safeName  = (name || code).replace(/[^a-zA-Z0-9_-]/g, '_');
-  link.download   = `THREAD-QR-${safeName}.png`;
-  link.href       = canvas.toDataURL('image/png');
-  link.click();
+  // QRCodeStyling's built-in download handles the canvas-to-PNG step
+  qr.download({ name: `THREAD-QR-${safeName}`, extension: 'png' });
 }
