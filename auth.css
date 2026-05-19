@@ -313,6 +313,38 @@ a:hover { text-decoration: underline; }
   margin-top: 4px;
 }
 
+/* ─── USERNAME FIELD ─── */
+.label-public {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent2);
+  background: rgba(108,99,255,0.12);
+  border: 1px solid rgba(108,99,255,0.2);
+  border-radius: 20px;
+  padding: 2px 8px;
+  margin-left: 8px;
+  vertical-align: middle;
+  letter-spacing: 0.3px;
+}
+.input-prefix {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--accent2);
+  font-weight: 700;
+  font-size: 16px;
+  pointer-events: none;
+  z-index: 1;
+}
+.input-wrap { position: relative; }
+.input-hint {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
 /* ─── PASSWORD REQUIREMENTS ─── */
 .pw-reqs {
   display: flex;

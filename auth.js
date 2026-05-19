@@ -141,7 +141,13 @@ async function handleSignUp(event) {
   const confirm  = document.getElementById('signupConfirm').value;
   const terms    = document.getElementById('agreeTerms').checked;
 
+  const username = document.getElementById('signupUsername').value.trim().toLowerCase().replace(/^@/, '');
+
   if (!name)     { showFormError('signupError', 'Please enter your full name.'); return; }
+  if (!username) { showFormError('signupError', 'Please choose a username.'); return; }
+  if (username.length < 3) { showFormError('signupError', 'Username must be at least 3 characters.'); return; }
+  if (username.length > 20) { showFormError('signupError', 'Username must be 20 characters or less.'); return; }
+  if (!/^[a-z0-9_]+$/.test(username)) { showFormError('signupError', 'Username can only contain letters, numbers, and underscores.'); return; }
   if (!dob)      { showFormError('signupError', 'Please enter your date of birth.'); return; }
 
   const age = calculateAge(dob);
@@ -154,37 +160,42 @@ async function handleSignUp(event) {
   if (!terms)    { showFormError('signupError', 'You must agree to the terms to continue.'); return; }
 
   if (age < 18) {
-    showParentalConsentModal({ name, dob, email, password });
+    showParentalConsentModal({ name, username, dob, email, password });
     return;
   }
 
-  await completeSignUp({ name, dob, email, password });
+  await completeSignUp({ name, username, dob, email, password });
 }
 
-async function completeSignUp({ name, dob, email, password, parentEmail = null }) {
+async function completeSignUp({ name, username, dob, email, password, parentEmail = null }) {
   setLoading('signup', true);
   try {
     const sb = getSB();
     if (!sb) throw new Error('Service unavailable. Please try again.');
+
+    // Check username availability
+    const { data: available } = await sb.rpc('check_username_available', { p_username: username });
+    if (available === false) {
+      setLoading('signup', false);
+      showFormError('signupError', 'That username is already taken. Please choose another.');
+      return;
+    }
 
     const referralCode = generateReferralCode(name);
     const referredBy   = (localStorage.getItem('thread_ref') || '').trim() || null;
 
     const { data, error } = await sb.auth.signUp({
       email, password,
-      options: { data: { name } }   // stored in raw_user_meta_data so the DB trigger picks it up
+      options: { data: { name, username } }
     });
     if (error) throw new Error(error.message);
 
-    // When email confirmation is required, data.user can be null until verified.
-    // Save pending profile data to localStorage so we can upsert it on first sign-in.
-    const pendingProfile = { name, dob, email, referralCode, referredBy, parentEmail };
+    const pendingProfile = { name, username, dob, email, referralCode, referredBy, parentEmail };
     localStorage.setItem('thread_pending_profile', JSON.stringify(pendingProfile));
 
     if (data.user) {
-      // User returned immediately (confirmation disabled or already confirmed)
       const profileData = {
-        id: data.user.id, email, name,
+        id: data.user.id, email, name, username,
         referral_code: referralCode,
         referred_by:   referredBy,
         date_of_birth: dob,
@@ -289,17 +300,29 @@ async function handleSignIn(event) {
   event.preventDefault();
   clearErrors();
 
-  const email    = document.getElementById('signinEmail').value.trim().toLowerCase();
-  const password = document.getElementById('signinPassword').value;
+  let emailOrUser = document.getElementById('signinEmail').value.trim().toLowerCase().replace(/^@/, '');
+  const password  = document.getElementById('signinPassword').value;
 
-  if (!email)    { showFormError('signinError', 'Please enter your email.'); return; }
-  if (!password) { showFormError('signinError', 'Please enter your password.'); return; }
+  if (!emailOrUser) { showFormError('signinError', 'Please enter your email or username.'); return; }
+  if (!password)    { showFormError('signinError', 'Please enter your password.'); return; }
 
   setLoading('signin', true);
 
   try {
     const sb = getSB();
     if (!sb) throw new Error('Service unavailable. Please try again.');
+
+    // If not an email, look up email by username
+    let email = emailOrUser;
+    if (!emailOrUser.includes('@')) {
+      const { data: lookedUp } = await sb.rpc('get_email_by_username', { p_username: emailOrUser });
+      if (!lookedUp) {
+        setLoading('signin', false);
+        showFormError('signinError', 'No account found with that username.');
+        return;
+      }
+      email = lookedUp;
+    }
 
     const { data, error } = await sb.auth.signInWithPassword({ email, password });
     if (error) throw new Error(error.message);
@@ -312,6 +335,7 @@ async function handleSignIn(event) {
           id: data.user.id,
           email: pending.email,
           name: pending.name,
+          username: pending.username || null,
           referral_code: pending.referralCode,
           referred_by: pending.referredBy,
           date_of_birth: pending.dob,

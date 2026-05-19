@@ -57,6 +57,14 @@
             <input type="text" id="signupName" placeholder="Jordan Williams" required autocomplete="name" />
           </div>
           <div class="form-group">
+            <label>Username <span class="label-public">🌐 Public</span></label>
+            <div class="input-wrap">
+              <span class="input-prefix">@</span>
+              <input type="text" id="signupUsername" placeholder="jordanw" required autocomplete="username" maxlength="20" style="padding-left:36px" />
+            </div>
+            <p class="input-hint">Shown when someone scans your QR code. Letters, numbers, underscores only.</p>
+          </div>
+          <div class="form-group">
             <label>Date of Birth</label>
             <input type="date" id="signupDob" required autocomplete="bday" />
           </div>
@@ -97,8 +105,8 @@
         <!-- SIGN IN FORM -->
         <form id="signinForm" class="auth-form hidden" onsubmit="handleSignIn(event)">
           <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="signinEmail" placeholder="jordan@email.com" required autocomplete="email" />
+            <label>Email or Username</label>
+            <input type="text" id="signinEmail" placeholder="jordan@email.com or @jordanw" required autocomplete="email" />
           </div>
           <div class="form-group">
             <label>Password</label>

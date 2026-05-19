@@ -55,7 +55,8 @@ let _sb  = null;
           user = {
             id:           profile.id,
             email:        profile.email,
-            name:         profile.name  || '',
+            name:         profile.name     || '',
+            username:     profile.username || '',
             referralCode: profile.referral_code || '',
             avatar:       (profile.name || profile.email || 'U').slice(0, 2).toUpperCase(),
             stats:        { totalScans: 0, conversions: 0, pendingEarnings: 0, totalEarned: 0, scanHistory: [] },
@@ -163,7 +164,8 @@ function bootUI() {
   document.getElementById('qcdValue').textContent      = user.referralCode;
   document.getElementById('qcdUrl').textContent        = refURL;
   document.getElementById('miniCodeLabel').textContent = user.referralCode;
-  document.getElementById('welcomeMsg').textContent    = `Welcome back, ${(user.name||'').split(' ')[0] || 'there'}! 👋`;
+  const displayHandle = user.username ? `@${user.username}` : ((user.name||'').split(' ')[0] || 'there');
+  document.getElementById('welcomeMsg').textContent    = `Welcome back, ${displayHandle}! 👋`;
   document.getElementById('welcomeSub').textContent    = `Here's how your referrals are performing today.`;
   document.getElementById('topbarDate').textContent    = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
 
@@ -1204,4 +1206,30 @@ function renderAll() {
   renderTransactions();
   renderPurchases();
   loadPayoutMethod();
+  renderLeaderboard();
+}
+
+async function renderLeaderboard() {
+  const el = document.getElementById('leaderboardList');
+  if (!el) return;
+  try {
+    const sb = _sb;
+    if (!sb) { el.innerHTML = '<div class="lb-empty">Sign in to see leaderboard.</div>'; return; }
+    const { data, error } = await sb.rpc('get_leaderboard', { limit_count: 10 });
+    if (error || !data?.length) { el.innerHTML = '<div class="lb-empty">No data yet — be the first on the board!</div>'; return; }
+    const medals = ['🥇','🥈','🥉'];
+    el.innerHTML = data.map((row, i) => {
+      const isYou = row.username && user?.username && row.username.toLowerCase() === user.username.toLowerCase();
+      return `<div class="lb-row">
+        <div class="lb-rank ${i < 3 ? '' : 'top'}">${medals[i] || (i+1)}</div>
+        <div class="lb-user">
+          <div class="lb-username${isYou ? ' is-you' : ''}">@${row.username || 'anonymous'}</div>
+          <div class="lb-convs">${row.conversions} sale${row.conversions !== 1 ? 's' : ''}</div>
+        </div>
+        <div class="lb-earned">$${parseFloat(row.total_earned||0).toFixed(2)}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div class="lb-empty">Leaderboard unavailable.</div>';
+  }
 }
