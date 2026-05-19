@@ -370,15 +370,22 @@ function renderCustomers() {
     const joined = c.created_at
       ? new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
       : '—';
+    const referrer = c.referred_by
+      ? allCustomers.find(r => r.referral_code === c.referred_by)
+      : null;
+    const referredBy = referrer
+      ? `<span style="font-weight:600">${referrer.name || '—'}</span><br><span style="font-size:11px;color:#888">${referrer.email || ''}</span>`
+      : (c.referred_by ? `<code style="font-size:11px">${c.referred_by}</code>` : '<span style="color:#555">—</span>');
     return `<tr>
       <td><strong>${c.name || '—'}</strong></td>
       <td>${c.email || '—'}</td>
+      <td>${referredBy}</td>
       <td><code style="font-size:11px">${c.referral_code || c.referralCode || '—'}</code></td>
       <td>${customerOrders.length}</td>
       <td style="font-family:var(--mono)">$${spent.toFixed(2)}</td>
       <td>${joined}</td>
     </tr>`;
-  }).join('') : '<tr><td colspan="6" class="ad-empty">No customers</td></tr>';
+  }).join('') : '<tr><td colspan="7" class="ad-empty">No customers</td></tr>';
 }
 
 /* ─────────────────────────────────────────────────────────────────────────

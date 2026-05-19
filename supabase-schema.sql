@@ -66,8 +66,9 @@ alter table public.orders add column if not exists pod_service    text;
 alter table public.orders add column if not exists pod_order_id   text;
 alter table public.orders add column if not exists order_number   text;
 alter table public.orders add column if not exists email_sent_at  timestamptz;
-alter table public.orders add column if not exists delivered_at   timestamptz;
-alter table public.referral_scans add column if not exists clears_at timestamptz;
+alter table public.orders add column if not exists delivered_at        timestamptz;
+alter table public.orders add column if not exists payment_intent_id   text;
+alter table public.referral_scans add column if not exists clears_at   timestamptz;
 
 create unique index if not exists idx_orders_order_number_unique
   on public.orders(order_number);

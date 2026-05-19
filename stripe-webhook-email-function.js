@@ -41,6 +41,8 @@ Deno.serve(async (req) => {
 
     if (event.type === 'checkout.session.completed') {
       await handleCheckoutCompleted(event.data.object);
+    } else if (event.type === 'charge.refunded') {
+      await handleRefund(event.data.object);
     }
 
     return json({ received: true });
@@ -92,19 +94,20 @@ async function handleCheckoutCompleted(session) {
 
   // Save to Supabase orders table
   await upsertPaidOrder({
-    order_number:      orderNumber,
-    stripe_session_id: session.id,
+    order_number:       orderNumber,
+    stripe_session_id:  session.id,
+    payment_intent_id:  session.payment_intent || null,
     items,
     subtotal,
     discount,
     total,
-    promo_code:        promoCode,
-    referral_code:     referralCode,
-    customer_email:    customerEmail,
-    customer_name:     customerName,
-    shipping_address:  shippingAddress,
-    status:            'paid',
-    email_sent_at:     new Date().toISOString(),
+    promo_code:         promoCode,
+    referral_code:      referralCode,
+    customer_email:     customerEmail,
+    customer_name:      customerName,
+    shipping_address:   shippingAddress,
+    status:             'paid',
+    email_sent_at:      new Date().toISOString(),
   });
 
   // Send confirmation email
@@ -121,6 +124,57 @@ async function handleCheckoutCompleted(session) {
   });
 
   console.log(`[stripe-webhook] Order ${orderNumber} saved & email sent to ${customerEmail}`);
+}
+
+/* ─── Refund handler ────────────────────────────────────────────────────── */
+async function handleRefund(charge) {
+  const supabaseUrl = mustEnv('SUPABASE_URL');
+  const serviceKey  = mustEnv('SUPABASE_SERVICE_ROLE_KEY');
+  const paymentIntent = charge.payment_intent;
+
+  if (!paymentIntent) {
+    console.warn('[stripe-webhook] charge.refunded missing payment_intent — skipping');
+    return;
+  }
+
+  // Find the order by payment_intent_id
+  const findRes = await fetch(
+    `${supabaseUrl}/rest/v1/orders?payment_intent_id=eq.${paymentIntent}&select=id,referral_code,order_number`,
+    { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+  );
+  const orders = await findRes.json();
+  if (!orders?.length) {
+    console.warn('[stripe-webhook] no order found for payment_intent:', paymentIntent);
+    return;
+  }
+
+  const order = orders[0];
+
+  // Mark order refunded
+  await fetch(`${supabaseUrl}/rest/v1/orders?id=eq.${order.id}`, {
+    method:  'PATCH',
+    headers: {
+      apikey:         serviceKey,
+      Authorization:  `Bearer ${serviceKey}`,
+      'Content-Type': 'application/json',
+      Prefer:         'return=minimal',
+    },
+    body: JSON.stringify({ status: 'refunded' }),
+  });
+
+  // Cancel any pending referral commission tied to this order
+  await fetch(`${supabaseUrl}/rest/v1/referral_scans?order_id=eq.${order.id}&status=eq.pending`, {
+    method:  'PATCH',
+    headers: {
+      apikey:         serviceKey,
+      Authorization:  `Bearer ${serviceKey}`,
+      'Content-Type': 'application/json',
+      Prefer:         'return=minimal',
+    },
+    body: JSON.stringify({ status: 'cancelled', commission: 0 }),
+  });
+
+  console.log(`[stripe-webhook] Order ${order.order_number} marked refunded, commission cancelled`);
 }
 
 /* ─── Stripe helpers ────────────────────────────────────────────────────── */
