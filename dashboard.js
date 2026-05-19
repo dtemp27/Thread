@@ -884,7 +884,7 @@ function renderPurchases() {
     return `
     <div class="purchase-card">
       <div class="pc-img">
-        <img src="${imgSrc}" alt="${cleanName}" style="width:100%;height:auto;display:block;background:#0a0a0a">
+        <img src="${imgSrc}" alt="${cleanName}" style="width:100%;height:auto;display:block;background:#1a1a1a">
       </div>
       <div class="pc-info">
         <h3>${p.name}</h3>
