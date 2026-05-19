@@ -95,6 +95,7 @@ let _sb  = null;
             user.purchases = orders.flatMap(o =>
               (o.items || []).map(item => ({
                 name:  item.name,
+                type:  item.type || 'hoodie',
                 price: item.price || 0,
                 date:  o.created_at || new Date().toISOString()
               }))
@@ -329,7 +330,7 @@ function switchSection(name) {
   const nav = document.querySelector(`.nav-item[data-section="${name}"]`);
   if (sec) sec.classList.add('active');
   if (nav) nav.classList.add('active');
-  const titles = { overview:'Overview', qrcode:'My QR Code', earnings:'Earnings', activity:'Activity', purchases:'My Purchases' };
+  const titles = { overview:'Overview', qrcode:'My QR Code', earnings:'Earnings', activity:'Activity', purchases:'My Closet' };
   document.getElementById('topbarTitle').textContent = titles[name] || 'Dashboard';
   document.getElementById('sidebar').classList.remove('open');
 }
@@ -783,6 +784,25 @@ function renderTransactions() {
 /* ═══════════════════════════════════════════════
    PURCHASES / WARDROBE
 ═══════════════════════════════════════════════ */
+const PRODUCT_SLUGS = {
+  'Phantom Black': 'phantom-black', 'Midnight Navy': 'midnight-navy',
+  'Ember Crimson': 'ember-crimson', 'Forest Shadow': 'forest-shadow',
+  'Ash Stone':     'ash-stone',     'Ivory Pure':    'ivory-pure',
+  'Silver Mist':   'silver-mist',   'Bone':          'bone',
+  'Tawny Dusk':    'tawny-dusk',    'Jet Black':     'jet-black',
+  'Deep Navy':     'deep-navy',     'Slate Grey':    'slate-grey',
+  'Raw Stone':     'raw-stone',     'Clean White':   'clean-white',
+};
+
+function productCardImg(name, type) {
+  const isHoodie = (type || 'hoodie') !== 'tee';
+  const slug = PRODUCT_SLUGS[name] || name.toLowerCase().replace(/\s+/g, '-');
+  const src = isHoodie
+    ? `hoodie-variants/${slug}-front.png`
+    : `images/tee-${slug}-front.png`;
+  return `<img src="${src}" alt="${name}" style="width:100%;height:100%;object-fit:cover;object-position:center top;">`;
+}
+
 const HOODIE_COLORS = {
   'Phantom Black':{ body:'#1c1c1c', hood:'#111',    cord:'#555' },
   'Midnight Navy':{ body:'#0d1b35', hood:'#091428', cord:'#4a7dc4' },
@@ -838,7 +858,7 @@ function renderPurchases() {
   const grid = document.getElementById('purchasesGrid');
   if (!grid) return;
   const filtered = user.purchases.filter(p => {
-    const isTee = (p.name || '').toLowerCase().includes('tee');
+    const isTee = (p.type || 'hoodie') === 'tee';
     return _wardrobeTab === 'tee' ? isTee : !isTee;
   });
   if (!filtered.length) {
@@ -850,7 +870,7 @@ function renderPurchases() {
   }
   grid.innerHTML = filtered.map(p => `
     <div class="purchase-card">
-      <div class="pc-img">${hoodieSVG(p.name)}</div>
+      <div class="pc-img">${productCardImg(p.name, p.type)}</div>
       <div class="pc-info">
         <h3>${p.name}</h3>
         <p>Ordered ${new Date(p.date).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</p>
@@ -1097,8 +1117,8 @@ function loadDemoData() {
     }
   }
   user.purchases = [
-    { name:'Phantom Black', price:89, date:new Date(now-25*86400000).toISOString() },
-    { name:'Midnight Navy', price:89, date:new Date(now-10*86400000).toISOString() }
+    { name:'Phantom Black', type:'hoodie', price:89, date:new Date(now-25*86400000).toISOString() },
+    { name:'Midnight Navy', type:'hoodie', price:89, date:new Date(now-10*86400000).toISOString() }
   ];
   const convItems = history.filter(h=>h.converted&&h.status==='completed');
   const pending   = history.filter(h=>h.converted&&h.status==='pending');

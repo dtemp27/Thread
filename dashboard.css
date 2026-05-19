@@ -604,8 +604,9 @@ a { color: var(--accent2); text-decoration: none; cursor: pointer; }
 .purchases-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; margin-bottom: 24px; }
 .purchase-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: var(--t); }
 .purchase-card:hover { transform: translateY(-4px); border-color: rgba(108,99,255,0.3); }
-.pc-img { height: 190px; position: relative; }
+.pc-img { height: 190px; position: relative; overflow: hidden; }
 .pc-img svg { width: 100%; height: 100%; }
+.pc-img img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
 .pc-info { padding: 14px 16px; }
 .pc-info h3 { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
 .pc-info p { font-size: 11px; color: var(--text2); margin-bottom: 8px; }
