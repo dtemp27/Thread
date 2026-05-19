@@ -553,9 +553,27 @@ function removeCartItem(idx) {
 
 function applyPromo() {
   const code = document.getElementById('promoInput')?.value.trim().toUpperCase();
-  const promos = { 'THREAD10': 10, 'WEAR20': 20, 'FIRST15': 15, 'SCAN25': 25 };
   const cart = getCart();
-  if (promos[code]) {
+
+  // Flat-rate promos
+  const promos = { 'THREAD10': 10, 'WEAR20': 20, 'FIRST15': 15, 'SCAN25': 25 };
+
+  if (code === 'BIGBIRD') {
+    const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
+    const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
+    let discount = 0;
+    let msg = '';
+    if (hasTee && hasHoodie) { discount = 60; msg = '$60 off your tee + hoodie'; }
+    else if (hasHoodie)      { discount = 32; msg = '$32 off your hoodie'; }
+    else if (hasTee)         { discount = 28; msg = '$28 off your tee'; }
+    else {
+      showStoreToast('Add items to your cart first', 'error'); return;
+    }
+    cart.promoCode = code;
+    cart.discount  = discount;
+    saveCart(cart); renderCartDrawer();
+    showStoreToast(`✓ BIGBIRD applied — ${msg}!`);
+  } else if (promos[code]) {
     cart.promoCode = code;
     cart.discount  = promos[code];
     saveCart(cart); renderCartDrawer();
