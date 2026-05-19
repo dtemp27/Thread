@@ -129,7 +129,16 @@ function applyCheckoutPromo() {
   let discount = 0;
   let label = '';
 
-  if (code === 'BOGOEGG') {
+  if (code === 'VIVINT') {
+    // 1 free hoodie + 1 free tee
+    const hasTee    = items.some(i => (i.type || 'hoodie') === 'tee');
+    const hasHoodie = items.some(i => (i.type || 'hoodie') !== 'tee');
+    if (!hasTee || !hasHoodie) { setMsg('Add a hoodie + tee to use VIVINT.', 'error'); return; }
+    const hoodie = items.find(i => (i.type || 'hoodie') !== 'tee');
+    const tee    = items.find(i => (i.type || 'hoodie') === 'tee');
+    discount = parseFloat((hoodie.price + tee.price).toFixed(2));
+    label    = '1 hoodie + 1 tee FREE 🎉';
+  } else if (code === 'BOGOEGG') {
     // Easter egg — buy a hoodie, get a tee 50% off
     const hasTee    = items.some(i => (i.type || 'hoodie') === 'tee');
     const hasHoodie = items.some(i => (i.type || 'hoodie') !== 'tee');

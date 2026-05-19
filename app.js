@@ -558,7 +558,21 @@ function applyPromo() {
   // Flat-rate promos
   const promos = { 'THREAD10': 10, 'WEAR20': 20, 'FIRST15': 15, 'SCAN25': 25 };
 
-  if (code === 'BOGOEGG') {
+  if (code === 'VIVINT') {
+    // 1 free hoodie + 1 free tee — both must be in cart
+    const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
+    const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
+    if (!hasTee || !hasHoodie) {
+      showStoreToast('Add a hoodie + tee to use VIVINT', 'error'); return;
+    }
+    const hoodie  = cart.items.find(i => (i.type || 'hoodie') !== 'tee');
+    const tee     = cart.items.find(i => (i.type || 'hoodie') === 'tee');
+    const discount = parseFloat((hoodie.price + tee.price).toFixed(2));
+    cart.promoCode = code;
+    cart.discount  = discount;
+    saveCart(cart); renderCartDrawer();
+    showStoreToast(`✓ VIVINT applied — hoodie + tee FREE!`);
+  } else if (code === 'BOGOEGG') {
     // Easter egg — buy a hoodie, get a tee 50% off
     const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
     const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');

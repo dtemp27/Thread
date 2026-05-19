@@ -491,7 +491,15 @@
     let discount = 0;
     let msg = '';
 
-    if (code === 'BOGOEGG') {
+    if (code === 'VIVINT') {
+      const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
+      const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
+      if (!hasTee || !hasHoodie) { showCatalogToast('Add a hoodie + tee to use VIVINT', true); return; }
+      const hoodie  = cart.items.find(i => (i.type || 'hoodie') !== 'tee');
+      const tee     = cart.items.find(i => (i.type || 'hoodie') === 'tee');
+      discount = parseFloat((hoodie.price + tee.price).toFixed(2));
+      msg = '🎉 Hoodie + tee FREE!';
+    } else if (code === 'BOGOEGG') {
       const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
       const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
       if (!hasTee || !hasHoodie) { showCatalogToast('Add a hoodie + tee to use BOGOEGG', true); return; }
