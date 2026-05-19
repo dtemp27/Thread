@@ -483,7 +483,7 @@ function renderCartDrawer() {
       <div class="cd-item-info">
         <div class="cd-item-name">${item.name}</div>
         <div class="cd-item-type">${typeLabel}</div>
-        <div class="cd-item-size">Size: ${item.size || 'M'}</div>
+        <div class="cd-item-size">Size: ${item.size || 'M'} · <button onclick="changeItemSize(${idx})" style="background:none;border:none;color:var(--accent,#6C63FF);cursor:pointer;font-size:11px;padding:0;font-family:inherit;text-decoration:underline;">Change</button></div>
         <div class="cd-item-price">$${item.price}</div>
       </div>
       <div class="cd-item-controls">
@@ -534,13 +534,27 @@ function removeCartItem(idx) {
 
 function applyPromo() {
   const code = document.getElementById('promoInput')?.value.trim().toUpperCase();
-  const promos = { 'THREAD10': 10, 'WEAR20': 20, 'FIRST15': 15, 'SCAN25': 25 };
+  const flatPromos = { 'THREAD10': 10, 'WEAR20': 20, 'FIRST15': 15, 'SCAN25': 25 };
   const cart = getCart();
-  if (promos[code]) {
+
+  if (code === 'BOGOEGG' || code === 'HIDDEN20') {
+    const hoodies = cart.items.filter(i => (i.type || 'hoodie') !== 'tee');
+    const tees    = cart.items.filter(i => i.type === 'tee');
+    if (!hoodies.length) { showStoreToast('Add a sweatshirt to use this code', 'error'); return; }
+    if (!tees.length)    { showStoreToast('Add a tee to use this code', 'error'); return; }
+    const cheapestTee = Math.min(...tees.map(i => i.price));
     cart.promoCode = code;
-    cart.discount  = promos[code];
+    cart.discount  = parseFloat((cheapestTee * 0.5).toFixed(2));
     saveCart(cart); renderCartDrawer();
-    showStoreToast(`✓ Promo "${code}" applied — $${promos[code]} off!`);
+    showStoreToast(`✓ "${code}" applied — tee 50% off!`);
+    return;
+  }
+
+  if (flatPromos[code]) {
+    cart.promoCode = code;
+    cart.discount  = flatPromos[code];
+    saveCart(cart); renderCartDrawer();
+    showStoreToast(`✓ Promo "${code}" applied — $${flatPromos[code]} off!`);
   } else {
     showStoreToast('Invalid promo code', 'error');
   }
@@ -605,7 +619,7 @@ function openSizeModal(name, price, type = 'hoodie') {
   const overlay    = document.getElementById('sizeModalOverlay');
   const modal      = document.getElementById('sizeModal');
   const confirmBtn = document.getElementById('sizeModalConfirm');
-  if (productEl) productEl.textContent = name + ' Hoodie';
+  if (productEl) productEl.textContent = name + (type === 'tee' ? ' Tee' : ' Hoodie');
   document.querySelectorAll('.size-pill').forEach(p => p.classList.remove('selected'));
   if (confirmBtn) confirmBtn.disabled = true;
   overlay?.classList.add('open');
@@ -628,6 +642,16 @@ document.getElementById('sizeModalConfirm')?.addEventListener('click', () => {
   const selected = document.querySelector('.size-pill.selected');
   if (!selected || !_pendingProduct) return;
   const size = selected.dataset.size;
+
+  if (_pendingProduct.editIdx !== undefined) {
+    const cart = getCart();
+    cart.items[_pendingProduct.editIdx].size = size;
+    saveCart(cart);
+    renderCartDrawer();
+    closeSizeModal();
+    return;
+  }
+
   addToCart(_pendingProduct.name, _pendingProduct.price, size, _pendingProduct.type || 'hoodie');
   const productName = _pendingProduct.name;
   closeSizeModal();
@@ -640,6 +664,22 @@ document.getElementById('sizeModalConfirm')?.addEventListener('click', () => {
     toastTimer = setTimeout(() => cartToast.classList.remove('show'), 2200);
   }
 });
+
+function changeItemSize(idx) {
+  const cart = getCart();
+  const item = cart.items[idx];
+  if (!item) return;
+  _pendingProduct = { name: item.name, price: item.price, type: item.type || 'hoodie', editIdx: idx };
+  const productEl  = document.getElementById('sizeModalProduct');
+  const overlay    = document.getElementById('sizeModalOverlay');
+  const modal      = document.getElementById('sizeModal');
+  const confirmBtn = document.getElementById('sizeModalConfirm');
+  if (productEl) productEl.textContent = item.name + (item.type === 'tee' ? ' Tee' : ' Hoodie');
+  document.querySelectorAll('.size-pill').forEach(p => p.classList.toggle('selected', p.dataset.size === item.size));
+  if (confirmBtn) confirmBtn.disabled = false;
+  overlay?.classList.add('open');
+  modal?.classList.add('open');
+}
 // ESC closes the modal
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeSizeModal();

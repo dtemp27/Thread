@@ -85,6 +85,11 @@
     .stars span { color:var(--text2); font-size:11px; }
     .btn-cart { width:100%; padding:12px; border-radius:50px; background:#fff; color:#111; font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700; border:none; cursor:pointer; transition:var(--transition); }
     .btn-cart:hover { background:var(--accent); color:#fff; }
+
+    /* ── Size picker modal ── */
+    .cat-size-pill { padding:10px 16px; border:1px solid rgba(255,255,255,0.15); background:transparent; color:#888; border-radius:50px; font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:all 0.15s ease; }
+    .cat-size-pill.selected, .cat-size-pill:hover { border-color:var(--accent); background:var(--accent); color:#fff; }
+    #catSizeConfirm:not([disabled]) { opacity:1 !important; }
   </style>
 </head>
 <body>
@@ -116,6 +121,12 @@
       </div>
     </div>
     <div id="cdFooter" style="display:none;padding:20px 24px;border-top:1px solid rgba(255,255,255,0.08);">
+      <div id="cartMsg" style="display:none;font-size:12px;margin-bottom:10px;text-align:center;padding:6px 10px;border-radius:8px;"></div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <input id="promoInput" type="text" placeholder="Promo code" onkeydown="if(event.key==='Enter')applyPromo()" style="flex:1;padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:50px;color:#f0f0f0;font-family:'Space Grotesk',sans-serif;font-size:13px;outline:none;">
+        <button onclick="applyPromo()" style="padding:10px 16px;background:#6C63FF;color:#fff;border:none;border-radius:50px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">Apply</button>
+      </div>
+      <div id="cdDiscountRow" style="display:none;justify-content:space-between;margin-bottom:6px;font-size:13px;color:#22c55e;"><span id="cdPromoLabel">Promo</span><span>−$<span id="cdDiscount">0.00</span></span></div>
       <div style="display:flex;justify-content:space-between;margin-bottom:8px;color:#888;font-size:14px;"><span>Subtotal</span><span id="cdSubtotal">$0.00</span></div>
       <div style="display:flex;justify-content:space-between;margin-bottom:16px;font-size:16px;font-weight:700;color:#f0f0f0;"><span>Total</span><span id="cdTotal">$0.00</span></div>
       <button onclick="goToCheckout()" style="display:block;width:100%;padding:14px;background:#6C63FF;color:#fff;text-align:center;border-radius:50px;font-weight:700;font-size:15px;border:none;cursor:pointer;">Checkout →</button>
@@ -135,6 +146,23 @@
   </div>
 
   <div class="catalog-grid" id="catalogGrid"></div>
+
+  <!-- ─── SIZE PICKER MODAL ─── -->
+  <div id="catSizeOverlay" onclick="closeSizeModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:1100;backdrop-filter:blur(4px);"></div>
+  <div id="catSizeModal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#161616;border:1px solid rgba(255,255,255,0.12);border-radius:24px;padding:32px 28px;z-index:1101;width:340px;max-width:92vw;box-shadow:0 24px 64px rgba(0,0,0,0.7);">
+    <p style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);font-family:'Space Mono',monospace;margin-bottom:8px;text-align:center;">SELECT SIZE</p>
+    <h3 id="catSizeProductName" style="font-size:17px;font-weight:700;color:#f0f0f0;margin-bottom:22px;text-align:center;"></h3>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:24px;">
+      <button class="cat-size-pill" data-size="XS">XS</button>
+      <button class="cat-size-pill" data-size="S">S</button>
+      <button class="cat-size-pill" data-size="M">M</button>
+      <button class="cat-size-pill" data-size="L">L</button>
+      <button class="cat-size-pill" data-size="XL">XL</button>
+      <button class="cat-size-pill" data-size="XXL">XXL</button>
+    </div>
+    <button id="catSizeConfirm" onclick="confirmCatSize()" disabled style="width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:50px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:opacity 0.2s;opacity:0.45;">Add to Cart →</button>
+    <button onclick="closeSizeModal()" style="display:block;width:100%;margin-top:10px;padding:10px;background:transparent;color:#666;border:none;font-family:'Space Grotesk',sans-serif;font-size:14px;cursor:pointer;">Cancel</button>
+  </div>
 
   <script>
   const PRODUCTS = [
@@ -223,12 +251,16 @@
   });
 
   const CART_KEY='thread_cart';
-  function getCart(){ try{ const c=JSON.parse(localStorage.getItem(CART_KEY)); return c&&c.items?c:{items:[],discount:0}; }catch(e){return{items:[],discount:0};} }
+  function getCart(){ try{ const c=JSON.parse(localStorage.getItem(CART_KEY)); return c&&c.items?c:{items:[],promoCode:null,discount:0}; }catch(e){return{items:[],promoCode:null,discount:0};} }
   function saveCart(c){ localStorage.setItem(CART_KEY,JSON.stringify(c)); }
+
+  const slugMap={'Phantom Black':'phantom-black','Midnight Navy':'midnight-navy','Ember Crimson':'ember-crimson','Forest Shadow':'forest-shadow','Ash Stone':'ash-stone','Ivory Pure':'ivory-pure','Silver Mist':'silver-mist','Bone':'bone','Tawny Dusk':'tawny-dusk','Clean White':'clean-white','Raw Stone':'raw-stone','Jet Black':'jet-black','Deep Navy':'deep-navy','Slate Grey':'slate-grey'};
 
   function renderCartDrawer() {
     const cart=getCart();
-    const total=cart.items.reduce((s,i)=>s+i.price*(i.qty||1),0);
+    const subtotal=cart.items.reduce((s,i)=>s+i.price*(i.qty||1),0);
+    const discount=cart.discount||0;
+    const total=Math.max(0,subtotal-discount);
     const count=cart.items.reduce((s,i)=>s+(i.qty||1),0);
     const countEl=document.getElementById('cartCount');
     const cdCount=document.getElementById('cdCount');
@@ -242,7 +274,6 @@
       if(cdFooter) cdFooter.style.display='none';
       return;
     }
-    const slugMap={'Phantom Black':'phantom-black','Midnight Navy':'midnight-navy','Ember Crimson':'ember-crimson','Forest Shadow':'forest-shadow','Ash Stone':'ash-stone','Ivory Pure':'ivory-pure','Silver Mist':'silver-mist','Bone':'bone','Tawny Dusk':'tawny-dusk','Clean White':'clean-white','Raw Stone':'raw-stone','Jet Black':'jet-black','Deep Navy':'deep-navy','Slate Grey':'slate-grey'};
     cdItems.innerHTML=cart.items.map((item,idx)=>{
       const isHoodie=(item.type||'hoodie')!=='tee';
       const typeLabel=isHoodie?'Oversized Heavyweight':'Oversized Tee';
@@ -253,7 +284,7 @@
         <div style="flex:1;min-width:0;">
           <div style="font-weight:600;color:#f0f0f0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name}</div>
           <div style="font-size:11px;color:#6C63FF;margin-top:1px;font-weight:500;">${typeLabel}</div>
-          <div style="font-size:11px;color:#888;margin-top:2px;">Size: ${item.size||'M'} · $${item.price}</div>
+          <div style="font-size:11px;color:#888;margin-top:2px;">Size: ${item.size||'M'} · <button onclick="changeSizeCat(${idx})" style="background:none;border:none;color:#6C63FF;cursor:pointer;font-size:11px;padding:0;font-family:'Space Grotesk',sans-serif;text-decoration:underline;">Change</button> · $${item.price}</div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
           <button onclick="updateQty(${idx},-1)" style="background:rgba(255,255,255,0.08);border:none;color:#f0f0f0;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:16px;">−</button>
@@ -264,8 +295,14 @@
       </div>`;
     }).join('');
     if(cdFooter) cdFooter.style.display='block';
-    const sub=document.getElementById('cdSubtotal'); if(sub) sub.textContent='$'+total.toFixed(2);
-    const tot=document.getElementById('cdTotal'); if(tot) tot.textContent='$'+total.toFixed(2);
+    const subEl=document.getElementById('cdSubtotal'); if(subEl) subEl.textContent='$'+subtotal.toFixed(2);
+    const totEl=document.getElementById('cdTotal'); if(totEl) totEl.textContent='$'+total.toFixed(2);
+    const discRow=document.getElementById('cdDiscountRow');
+    const discEl=document.getElementById('cdDiscount');
+    const promoLabel=document.getElementById('cdPromoLabel');
+    if(discRow) discRow.style.display=discount?'flex':'none';
+    if(discEl&&discount) discEl.textContent=discount.toFixed(2);
+    if(promoLabel&&cart.promoCode) promoLabel.textContent=cart.promoCode;
   }
 
   function updateQty(idx,delta){ const cart=getCart(); cart.items[idx].qty=Math.max(1,(cart.items[idx].qty||1)+delta); saveCart(cart); renderCartDrawer(); }
@@ -279,15 +316,115 @@
     overlay.style.display=open?'none':'block';
   }
 
+  /* ── Size modal ── */
+  let _catPending=null, _catPendingBtn=null;
+
   function addToCart(name,price,btn){
-    const cart=getCart();
-    const existing=cart.items.find(i=>i.name===name);
     const product=PRODUCTS.find(p=>p.name===name);
     const type=product?product.type:'hoodie';
+    _catPending={name,price,type};
+    _catPendingBtn=btn;
+    const el=document.getElementById('catSizeProductName');
+    if(el) el.textContent=name+(type==='tee'?' Tee':' Hoodie');
+    document.querySelectorAll('.cat-size-pill').forEach(p=>p.classList.remove('selected'));
+    const confirmBtn=document.getElementById('catSizeConfirm');
+    if(confirmBtn){confirmBtn.disabled=true;confirmBtn.style.opacity='0.45';confirmBtn.textContent='Add to Cart →';}
+    document.getElementById('catSizeOverlay').style.display='block';
+    document.getElementById('catSizeModal').style.display='block';
+  }
+
+  function changeSizeCat(idx){
+    const cart=getCart();
+    const item=cart.items[idx];
+    if(!item) return;
+    _catPending={name:item.name,price:item.price,type:item.type||'hoodie',editIdx:idx};
+    _catPendingBtn=null;
+    const el=document.getElementById('catSizeProductName');
+    if(el) el.textContent=item.name+(item.type==='tee'?' Tee':' Hoodie');
+    document.querySelectorAll('.cat-size-pill').forEach(p=>p.classList.toggle('selected',p.dataset.size===item.size));
+    const confirmBtn=document.getElementById('catSizeConfirm');
+    if(confirmBtn){confirmBtn.disabled=false;confirmBtn.style.opacity='1';confirmBtn.textContent='Update Size →';}
+    document.getElementById('catSizeOverlay').style.display='block';
+    document.getElementById('catSizeModal').style.display='block';
+  }
+
+  function closeSizeModal(){
+    document.getElementById('catSizeOverlay').style.display='none';
+    document.getElementById('catSizeModal').style.display='none';
+    _catPending=null; _catPendingBtn=null;
+  }
+
+  function confirmCatSize(){
+    const selected=document.querySelector('.cat-size-pill.selected');
+    if(!selected||!_catPending) return;
+    const size=selected.dataset.size;
+    if(_catPending.editIdx!==undefined){
+      const cart=getCart();
+      cart.items[_catPending.editIdx].size=size;
+      saveCart(cart); renderCartDrawer(); closeSizeModal(); return;
+    }
+    const cart=getCart();
+    const {name,price,type}=_catPending;
+    const existing=cart.items.find(i=>i.name===name&&i.size===size);
     if(existing){existing.qty=(existing.qty||1)+1;}
-    else{cart.items.push({name,price:parseFloat(price),qty:1,size:'M',type});}
+    else{cart.items.push({name,price:parseFloat(price),qty:1,size,type});}
     saveCart(cart); renderCartDrawer();
-    if(btn){ btn.textContent='✓ Added!'; btn.style.background='#22c55e'; btn.style.color='#fff'; setTimeout(()=>{btn.textContent=`Add to Cart — $${price}`;btn.style.background='';btn.style.color='';},1400); }
+    const btn=_catPendingBtn;
+    if(btn){btn.textContent='✓ Added!';btn.style.background='#22c55e';btn.style.color='#fff';setTimeout(()=>{btn.textContent=`Add to Cart — $${price}`;btn.style.background='';btn.style.color='';},1400);}
+    const drawer=document.getElementById('cartDrawer');
+    const overlay=document.getElementById('cartOverlay');
+    if(drawer) drawer.style.right='0px';
+    if(overlay) overlay.style.display='block';
+    closeSizeModal();
+  }
+
+  document.querySelectorAll('.cat-size-pill').forEach(pill=>{
+    pill.addEventListener('click',()=>{
+      document.querySelectorAll('.cat-size-pill').forEach(p=>p.classList.remove('selected'));
+      pill.classList.add('selected');
+      const btn=document.getElementById('catSizeConfirm');
+      if(btn){btn.disabled=false;btn.style.opacity='1';}
+    });
+  });
+
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSizeModal(); });
+
+  /* ── Promo codes ── */
+  function applyPromo(){
+    const code=(document.getElementById('promoInput')?.value||'').trim().toUpperCase();
+    const flatPromos={'THREAD10':10,'WEAR20':20,'FIRST15':15,'SCAN25':25};
+    const cart=getCart();
+    if(code==='BOGOEGG'||code==='HIDDEN20'){
+      const hoodies=cart.items.filter(i=>(i.type||'hoodie')!=='tee');
+      const tees=cart.items.filter(i=>i.type==='tee');
+      if(!hoodies.length){showCartMsg('Add a sweatshirt to use this code','error');return;}
+      if(!tees.length){showCartMsg('Add a tee to use this code','error');return;}
+      const cheapestTee=Math.min(...tees.map(i=>i.price));
+      cart.promoCode=code;
+      cart.discount=parseFloat((cheapestTee*0.5).toFixed(2));
+      saveCart(cart); renderCartDrawer();
+      showCartMsg(`✓ "${code}" applied — tee 50% off!`);
+      return;
+    }
+    if(flatPromos[code]){
+      cart.promoCode=code;
+      cart.discount=flatPromos[code];
+      saveCart(cart); renderCartDrawer();
+      showCartMsg(`✓ Promo "${code}" applied — $${flatPromos[code]} off!`);
+    } else {
+      showCartMsg('Invalid promo code','error');
+    }
+  }
+
+  function showCartMsg(msg,type=''){
+    const el=document.getElementById('cartMsg');
+    if(!el) return;
+    el.textContent=msg;
+    el.style.color=type==='error'?'#ef4444':'#22c55e';
+    el.style.background=type==='error'?'rgba(239,68,68,0.1)':'rgba(34,197,94,0.1)';
+    el.style.display='block';
+    clearTimeout(el._t);
+    el._t=setTimeout(()=>{el.style.display='none';},2500);
   }
 
   renderCartDrawer();
