@@ -429,6 +429,18 @@ const TEE_PHOTO_SLUG = {
   'Deep Navy':   'deep-navy',
 };
 
+// Silently preload all product images so cart/checkout never waits on a first fetch
+(function preloadProductImages() {
+  const hoodieSlugs = Object.values(HOODIE_PHOTO_SLUG);
+  const teeSlugs    = Object.values(TEE_PHOTO_SLUG);
+  const ver = { hoodie: 'hoodie-20260517', tee: 'tee-20260517' };
+  const srcs = [
+    ...hoodieSlugs.map(s => `hoodie-variants/${s}-front.png?v=${ver.hoodie}`),
+    ...teeSlugs.map(s    => `images/tee-${s}-front.png?v=${ver.tee}`),
+  ];
+  srcs.forEach(src => { const img = new Image(); img.src = src; });
+})();
+
 function productThumb(item) {
   const rawName  = item.name || item;
   const isHoodie = (item.type || 'hoodie') !== 'tee';
