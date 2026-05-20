@@ -285,7 +285,7 @@
       return null;
     },
 
-    async markConverted(referralCode, orderId, commission) {
+    async markConverted(referralCode, orderId, commission, orderTotal) {
       if (isLive()) {
         const uuidLike = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         const updatePayload = { converted: true, commission, status: 'pending' };
@@ -293,9 +293,10 @@
 
         // Call RPC — runs as SECURITY DEFINER so it bypasses RLS
         const { error: rpcErr } = await getSB().rpc('convert_referral_scan', {
-          ref_code:     referralCode,
-          p_order_id:   String(orderId || ''),
-          p_commission: commission
+          ref_code:       referralCode,
+          p_order_id:     String(orderId || ''),
+          p_order_total:  Number(orderTotal || 0),
+          p_commission:   commission
         });
         if (rpcErr) console.warn('[db] convert_referral_scan rpc error:', rpcErr);
         return;

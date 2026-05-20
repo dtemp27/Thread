@@ -491,16 +491,11 @@ async function finalizeOrder(orderId, customerEmail = '') {
       // 1. Count the referrer's past converted sales BEFORE crediting this new one
       const pastConversions = await window.DB.referrals.countConvertedForCode(effectiveRefCode);
 
-      // 2. Look up their current tier from that count
-      const tier = window.ThreadTiers
-        ? window.ThreadTiers.getTierForReferrals(pastConversions)
-        : { perSale: 20, name: 'Starter' };
+      // Commission = 20% of order total (server also enforces this via RPC)
+      const orderTotal = parseFloat(checkoutData.total || 0);
+      const commission = parseFloat((orderTotal * 0.20).toFixed(2));
 
-      // 3. Commission = per-sale amount × number of hoodies in this order
-      const itemCount  = checkoutData.items.reduce((s, i) => s + i.qty, 0);
-      const commission = parseFloat((tier.perSale * itemCount).toFixed(2));
-
-      await window.DB.referrals.markConverted(effectiveRefCode, orderId, commission);
+      await window.DB.referrals.markConverted(effectiveRefCode, orderId, commission, orderTotal);
       const referrer = await window.DB.profiles.getByReferralCode(effectiveRefCode);
       if (referrer) {
         refResult = { name: referrer.username ? '@' + referrer.username : referrer.name, commission, tier: tier.name };
