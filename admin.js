@@ -728,13 +728,10 @@ async function loadAnalytics() {
     }
     const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
 
-    const { data, error } = await sb.from('page_events')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(200);
+    const { data, error } = await sb.rpc('get_all_analytics');
 
     if (error || !data) {
-      body.innerHTML = '<tr><td colspan="5" class="ad-empty">Could not load analytics</td></tr>';
+      body.innerHTML = `<tr><td colspan="5" class="ad-empty">Could not load analytics${error ? ': ' + error.message : ''}</td></tr>`;
       return;
     }
 
