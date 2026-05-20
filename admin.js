@@ -506,8 +506,24 @@ async function downloadQR(code, name) {
     alert('QR library not loaded — please refresh and try again.');
     return;
   }
+
   const url      = `https://mythread.shop/?ref=${encodeURIComponent(code)}`;
   const safeName = (name || code).replace(/[^a-zA-Z0-9_-]/g, '_');
+
+  // Fetch the THREAD logo as a data URL so canvas doesn't get tainted
+  let logoDataUrl = null;
+  try {
+    const r = await fetch(`${window.location.origin}/images/Transparent-Logo.png`);
+    if (r.ok) {
+      const blob = await r.blob();
+      logoDataUrl = await new Promise(res => {
+        const fr = new FileReader();
+        fr.onloadend = () => res(fr.result);
+        fr.readAsDataURL(blob);
+      });
+    }
+  } catch(_) {}
+
   const qr = new QRCodeStyling({
     width:  1200,
     height: 1200,
@@ -518,7 +534,33 @@ async function downloadQR(code, name) {
     dotsOptions:          { color: '#000000', type: 'dots' },
     cornersSquareOptions: { color: '#000000', type: 'extra-rounded' },
     cornersDotOptions:    { color: '#000000', type: 'dot' },
-    backgroundOptions:    { color: '#ffffff' }
+    backgroundOptions:    { color: '#00000000' },
+    ...(logoDataUrl ? {
+      image: logoDataUrl,
+      imageOptions: { margin: 8, imageSize: 0.25, hideBackgroundDots: true }
+    } : {})
   });
-  qr.download({ name: `THREAD-QR-${safeName}`, extension: 'png' });
+
+  const hidden = document.createElement('div');
+  hidden.style.cssText = 'position:fixed;left:-9999px;top:-9999px;';
+  document.body.appendChild(hidden);
+  qr.append(hidden);
+
+  setTimeout(() => {
+    const canvas = hidden.querySelector('canvas');
+    if (!canvas) { qr.download({ name: `THREAD-QR-${safeName}`, extension: 'png' }); hidden.remove(); return; }
+
+    const out = document.createElement('canvas');
+    out.width  = canvas.width;
+    out.height = canvas.height;
+    const ctx  = out.getContext('2d');
+    ctx.clearRect(0, 0, out.width, out.height);
+    ctx.drawImage(canvas, 0, 0);
+
+    const link = document.createElement('a');
+    link.download = `THREAD-QR-${safeName}.png`;
+    link.href = out.toDataURL('image/png');
+    link.click();
+    hidden.remove();
+  }, 1000);
 }
