@@ -461,13 +461,27 @@ async function finalizeOrder(orderId, customerEmail = '') {
   //   2. localStorage thread_ref       — current-browser session fallback
   //   3. URL ?ref= param               — if they're checking out directly from a scan
   let refResult = null;
-  let effectiveRefCode = refCode;  // starts as localStorage value
+  // Always prefer the localStorage ref (direct from QR scan URL).
+  // Only fall back to profile.referred_by when localStorage has nothing.
+  // Also: if referred_by looks like a UUID (user ID not a code), resolve it
+  // to the actual referral_code string via a profile lookup.
+  let effectiveRefCode = refCode;
+  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   try {
-    const buyer = await window.DB.auth.getUser();
-    if (buyer) {
-      const profile = await window.DB.profiles.get(buyer.id);
-      if (profile?.referredBy || profile?.referred_by) {
-        effectiveRefCode = profile.referredBy || profile.referred_by;
+    if (!effectiveRefCode) {
+      const buyer = await window.DB.auth.getUser();
+      if (buyer) {
+        const profile = await window.DB.profiles.get(buyer.id);
+        const stored = profile?.referredBy || profile?.referred_by;
+        if (stored) {
+          if (uuidRe.test(stored)) {
+            // stored is a user ID — look up their referral code
+            const referrerProfile = await window.DB.profiles.get(stored).catch(() => null);
+            effectiveRefCode = referrerProfile?.referralCode || referrerProfile?.referral_code || stored;
+          } else {
+            effectiveRefCode = stored;
+          }
+        }
       }
     }
   } catch(_) {}
