@@ -411,7 +411,7 @@ async function drawQR(canvasId, text, size) {
 
   // Render at 4x for crisp high-res display, scaled down via CSS
   const renderSize  = size * 4;
-  const logoDataUrl = await _imgToDataURL(new URL('images/TLogo.png', window.location.href).href);
+  const logoDataUrl = await _imgToDataURL(new URL('images/Transparent-Logo.png', window.location.href).href);
 
   if (window.QRCodeStyling) {
     const qrOpts = {
@@ -450,7 +450,7 @@ async function drawQR(canvasId, text, size) {
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
                 width:${logoSize+8}px;height:${logoSize+8}px;background:#fff;border-radius:6px;
                 display:flex;align-items:center;justify-content:center;">
-      <img src="images/TLogo.png" style="width:${logoSize}px;height:${logoSize}px;display:block;object-fit:contain;" />
+      <img src="images/Transparent-Logo.png" style="width:${logoSize}px;height:${logoSize}px;display:block;object-fit:contain;" />
     </div>`;
 }
 
@@ -985,7 +985,7 @@ async function downloadQR() {
     const lx = (size - logoSize) / 2, ly = (size - logoSize) / 2;
     try {
       const logo = new Image();
-      await new Promise((resolve, reject) => { logo.onload = resolve; logo.onerror = reject; logo.src = 'images/TLogo.png'; });
+      await new Promise((resolve, reject) => { logo.onload = resolve; logo.onerror = reject; logo.src = 'images/Transparent-Logo.png'; });
       ctx.fillStyle = '#fff';
       ctx.fillRect(lx - 4, ly - 4, logoSize + 8, logoSize + 8);
       ctx.drawImage(logo, lx, ly, logoSize, logoSize);
