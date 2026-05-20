@@ -357,8 +357,7 @@
     /* Admin: all scans */
     async getAll() {
       if (isLive()) {
-        const { data } = await getSB().from('referral_scans')
-          .select('*').order('created_at', { ascending: false }).limit(200);
+        const { data } = await getSB().rpc('get_all_referral_scans');
         return data || [];
       }
       return [];
