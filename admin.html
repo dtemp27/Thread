@@ -360,6 +360,33 @@
     </main>
   </div>
 
+  <!-- Clear account data modal -->
+  <div class="ad-modal-overlay" id="clearModal" style="display:none" onclick="if(event.target===this)closeClearModal()">
+    <div class="ad-modal" style="max-width:400px">
+      <h3 style="margin:0 0 4px">Clear Account Data</h3>
+      <p id="clearModalLabel" style="color:#888;font-size:13px;margin:0 0 20px"></p>
+      <p style="font-size:13px;color:#ccc;margin:0 0 14px">Select what to delete:</p>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px">
+          <input type="checkbox" id="clearOrders" checked style="width:16px;height:16px;accent-color:#7c3aed">
+          <span>Orders <span style="color:#888;font-size:12px">(purchase history)</span></span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px">
+          <input type="checkbox" id="clearScans" checked style="width:16px;height:16px;accent-color:#7c3aed">
+          <span>Referral Scans <span style="color:#888;font-size:12px">(scans + conversions)</span></span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px">
+          <input type="checkbox" id="clearEvents" style="width:16px;height:16px;accent-color:#7c3aed">
+          <span>Analytics Events <span style="color:#888;font-size:12px">(visits + add-to-carts)</span></span>
+        </label>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="ad-action-btn" onclick="closeClearModal()" style="background:#333;color:#fff">Cancel</button>
+        <button class="ad-action-btn" onclick="confirmClearData()" style="background:#dc2626;color:#fff">🗑 Delete Selected</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Order status modal -->
   <div class="ad-modal-overlay" id="statusModal" style="display:none" onclick="if(event.target===this)closeStatusModal()">
     <div class="ad-modal">

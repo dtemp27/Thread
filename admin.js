@@ -640,20 +640,45 @@ async function downloadQR(code, name, color) {
 }
 
 /* ─── CLEAR ACCOUNT DATA ───────────────────────────────────────────────── */
-async function clearAccountData(userId, email, name) {
-  const label = name || email || userId;
-  if (!confirm('Clear data for ' + label + '?
+let _clearTarget = null;
 
-This will delete their orders and referral scans.
-Cannot be undone.')) return;
+function clearAccountData(userId, email, name) {
+  _clearTarget = { userId, email, name };
+  document.getElementById('clearModalLabel').textContent = name || email || userId;
+  document.getElementById('clearOrders').checked = true;
+  document.getElementById('clearScans').checked  = true;
+  document.getElementById('clearEvents').checked = false;
+  document.getElementById('clearModal').style.display = 'flex';
+}
+
+function closeClearModal() {
+  document.getElementById('clearModal').style.display = 'none';
+  _clearTarget = null;
+}
+
+async function confirmClearData() {
+  if (!_clearTarget) return;
+  const { userId, email, name } = _clearTarget;
+  const doOrders = document.getElementById('clearOrders').checked;
+  const doScans  = document.getElementById('clearScans').checked;
+  const doEvents = document.getElementById('clearEvents').checked;
+  if (!doOrders && !doScans && !doEvents) { alert('Select at least one option.'); return; }
+
   try {
     const cfg = window.THREAD_CONFIG;
     if (!cfg?.supabaseUrl || !window.supabase) { alert('Supabase not connected'); return; }
     const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
-    const { error } = await sb.rpc('clear_account_data', { p_user_id: userId, p_email: email });
+    const { error } = await sb.rpc('clear_account_data', {
+      p_user_id:    userId,
+      p_email:      email,
+      p_orders:     doOrders,
+      p_scans:      doScans,
+      p_events:     doEvents
+    });
     if (error) { alert('Clear failed: ' + error.message); return; }
+    closeClearModal();
     await loadAllData();
-    alert('Data cleared for ' + label);
+    alert('Done — data cleared for ' + (name || email));
   } catch(e) { alert('Error: ' + e.message); }
 }
 
