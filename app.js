@@ -106,9 +106,10 @@ if (document.readyState === 'loading') {
       const cfg = window.THREAD_CONFIG;
       if (cfg?.supabaseUrl && window.supabase) {
         const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
-        const { error } = await sb.rpc('log_referral_scan', { ref_code: ref, scan_city: null });
+        const { data: rpcData, error } = await sb.rpc('log_referral_scan', { ref_code: ref, scan_city: null });
+        console.log('[THREAD] scan log result - ref:', ref, 'data:', rpcData, 'error:', error);
         if (!error) sessionStorage.setItem(scanKey, '1');
-        else console.warn('[ref] rpc scan log failed:', error);
+        else console.error('[THREAD] scan log FAILED:', JSON.stringify(error));
       }
     } catch(e) { console.warn('[ref] scan log failed:', e); }
   }
