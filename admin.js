@@ -512,18 +512,25 @@ async function downloadQR(code, name) {
 
   // Fetch the THREAD logo as a data URL so canvas doesn't get tainted
   let logoDataUrl = null;
-  try {
-    const base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '');
-    const r = await fetch(`${base}/images/TLogo.png`);
-    if (r.ok) {
-      const blob = await r.blob();
-      logoDataUrl = await new Promise(res => {
-        const fr = new FileReader();
-        fr.onloadend = () => res(fr.result);
-        fr.readAsDataURL(blob);
-      });
-    }
-  } catch(_) {}
+  const logoPaths = [
+    `${window.location.origin}/images/Transparent-Logo.png`,
+    `${window.location.origin}/clothing-store/images/Transparent-Logo.png`,
+    'images/Transparent-Logo.png'
+  ];
+  for (const path of logoPaths) {
+    try {
+      const r = await fetch(path);
+      if (r.ok) {
+        const blob = await r.blob();
+        logoDataUrl = await new Promise(res => {
+          const fr = new FileReader();
+          fr.onloadend = () => res(fr.result);
+          fr.readAsDataURL(blob);
+        });
+        if (logoDataUrl) break;
+      }
+    } catch(_) {}
+  }
 
   const qr = new QRCodeStyling({
     width:  1200,
@@ -565,5 +572,5 @@ async function downloadQR(code, name) {
     link.href = out.toDataURL('image/png');
     link.click();
     hidden.remove();
-  }, 800);
+  }, 1400);
 }
