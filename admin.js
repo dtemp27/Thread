@@ -518,9 +518,11 @@ async function downloadQR(code, name, color) {
   const safeName = (name || code).replace(/[^a-zA-Z0-9_-]/g, '_');
   const label    = isWhite ? 'WHITE' : 'BLACK';
 
+  // Black QR uses Transparent-Logo.png, White QR uses No-background-t-Logo.png
+  const logoFile = isWhite ? 'No-background-t-Logo.png' : 'Transparent-Logo.png';
   let logoDataUrl = null;
   try {
-    const r = await fetch(`${window.location.origin}/images/Transparent-Logo.png`);
+    const r = await fetch(`${window.location.origin}/images/${logoFile}`);
     if (r.ok) {
       const blob = await r.blob();
       logoDataUrl = await new Promise(res => {
