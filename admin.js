@@ -336,6 +336,10 @@ function orderRow(o, showAction) {
   const idShort = displayId.length > 16 ? displayId.slice(0, 16) + '...' : displayId;
   const ref     = o.referral_code ? `<code style="font-size:11px">${o.referral_code}</code>` : '—';
 
+  const buyerCode = o.buyer_qr_code || o.referral_code || '';
+  const qrDownload = showAction && buyerCode
+    ? `<button class="ad-action-btn" style="background:#111;color:#fff;margin-right:4px" onclick="downloadQR('${escapeHtml(buyerCode)}','${escapeHtml(o.customer_email||buyerCode)}','black')">⬛ QR</button>`
+    : '';
   const action = showAction
     ? `<button class="ad-action-btn" onclick="openStatusModal('${o.id}')">Edit</button>`
     : '';
@@ -349,7 +353,7 @@ function orderRow(o, showAction) {
     ${showAction ? `<td>${ref}</td>` : ''}
     <td><span class="status-pill s-${o.status||'pending'}">${o.status||'pending'}</span></td>
     <td style="white-space:nowrap">${date}</td>
-    ${showAction ? `<td>${action}</td>` : ''}
+    ${showAction ? `<td>${qrDownload}${action}</td>` : ''}
   </tr>`;
 }
 
