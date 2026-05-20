@@ -291,27 +291,13 @@
         const updatePayload = { converted: true, commission, status: 'pending' };
         if (uuidLike.test(String(orderId))) updatePayload.order_id = orderId;
 
-        // Try to mark the most recent unconverted scan for this referral code
-        const { data } = await getSB().from('referral_scans')
-          .select('id').eq('referral_code', referralCode).eq('converted', false)
-          .order('created_at', { ascending: false }).limit(1);
-        if (data?.length) {
-          // Existing scan found — mark it converted
-          await getSB().from('referral_scans')
-            .update(updatePayload)
-            .eq('id', data[0].id);
-        } else {
-          // No pre-existing scan — insert a new converted record so the sale is always credited
-          const insertPayload = {
-            referral_code: referralCode,
-            converted: true,
-            commission,
-            status: 'pending',
-            scanned_at: new Date().toISOString()
-          };
-          if (uuidLike.test(String(orderId))) insertPayload.order_id = orderId;
-          await getSB().from('referral_scans').insert(insertPayload);
-        }
+        // Call RPC — runs as SECURITY DEFINER so it bypasses RLS
+        const { error: rpcErr } = await getSB().rpc('convert_referral_scan', {
+          ref_code:     referralCode,
+          p_order_id:   String(orderId || ''),
+          p_commission: commission
+        });
+        if (rpcErr) console.warn('[db] convert_referral_scan rpc error:', rpcErr);
         return;
       }
       // Fallback: update referrer's localStorage stats
