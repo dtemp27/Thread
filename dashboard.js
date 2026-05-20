@@ -906,8 +906,8 @@ const PAYOUT_META = {
   paypal:   { label: 'Your PayPal email',         placeholder: 'you@email.com',       hint: 'The email address on your PayPal account' },
   zelle:    { label: 'Your Zelle phone or email', placeholder: '(801) 555-0000',      hint: 'Phone number or email linked to your Zelle account' },
   cashapp:  { label: 'Your Cash App $Cashtag',    placeholder: '$cashtag',            hint: 'e.g. $jordanw' },
-  giftcard: { label: 'Preferred gift card brand', placeholder: 'Amazon, Nike, Apple…', hint: 'We'll send a digital gift card to your email on file' },
-  other:    { label: 'Describe your preference',  placeholder: 'e.g. Bitcoin, Venmo…', hint: 'We'll reach out to confirm the best way to pay you' },
+  giftcard: { label: 'Preferred gift card brand', placeholder: 'Amazon, Nike, Apple...', hint: "We'll send a digital gift card to your email on file" },
+  other:    { label: 'Describe your preference',  placeholder: 'e.g. Bitcoin, Venmo...', hint: "We'll reach out to confirm the best way to pay you" },
 };
 
 let _selectedPayoutMethod = null;
