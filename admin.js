@@ -100,10 +100,7 @@ async function loadAllData() {
   if (!refresh.textContent.startsWith('ERROR')) refresh.textContent = 'Updated ' + new Date().toLocaleTimeString();
 }
 
-// Auto-refresh every 30 seconds so conversions, scans and orders appear live
-setInterval(() => {
-  if (sessionStorage.getItem(ADMIN_KEY) === '1') loadAllData();
-}, 30000);
+// Auto-refresh removed — refresh manually
 
 /* ─────────────────────────────────────────────────────────────────────────
    DROP BOX QUEUE  (tier-up physical reward fulfillment)
@@ -444,8 +441,9 @@ function renderCustomers() {
       <td style="font-family:var(--mono)">$${spent.toFixed(2)}</td>
       <td>${joined}</td>
       <td>${qrBtn}</td>
+      <td><button class="ad-action-btn" style="background:#7f1d1d;color:#fca5a5;font-size:11px" onclick="clearAccountData('${escapeHtml(c.id || '')}','${escapeHtml(c.email || '')}','${escapeHtml(c.name || '')}')">🗑 Clear</button></td>
     </tr>`;
-  }).join('') : '<tr><td colspan="9" class="ad-empty">No customers</td></tr>';
+  }).join('') : '<tr><td colspan="10" class="ad-empty">No customers</td></tr>';
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -639,6 +637,24 @@ async function downloadQR(code, name, color) {
     link.click();
     hidden.remove();
   }, 1000);
+}
+
+/* ─── CLEAR ACCOUNT DATA ───────────────────────────────────────────────── */
+async function clearAccountData(userId, email, name) {
+  const label = name || email || userId;
+  if (!confirm('Clear data for ' + label + '?
+
+This will delete their orders and referral scans.
+Cannot be undone.')) return;
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) { alert('Supabase not connected'); return; }
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const { error } = await sb.rpc('clear_account_data', { p_user_id: userId, p_email: email });
+    if (error) { alert('Clear failed: ' + error.message); return; }
+    await loadAllData();
+    alert('Data cleared for ' + label);
+  } catch(e) { alert('Error: ' + e.message); }
 }
 
 /* ─── ANALYTICS ────────────────────────────────────────────────────────────── */
