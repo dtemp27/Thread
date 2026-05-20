@@ -509,13 +509,15 @@ async function downloadQR(code, name, color) {
 
   const isWhite  = color === 'white';
   const dotColor = isWhite ? '#ffffff' : '#000000';
-  const bgColor  = isWhite ? '#111111' : '#ffffff';
+  // Use a chroma-key background that won't appear in the dots or logo:
+  // black QR  → cyan bg  (#00ffff) → strip R<50 & G>200 & B>200
+  // white QR  → lime bg  (#00ff00) → strip R<50 & G>200 & B<50
+  const bgColor  = isWhite ? '#00ff00' : '#00ffff';
 
   const url      = `https://mythread.shop/?ref=${encodeURIComponent(code)}`;
   const safeName = (name || code).replace(/[^a-zA-Z0-9_-]/g, '_');
   const label    = isWhite ? 'WHITE' : 'BLACK';
 
-  // Fetch the THREAD logo as a data URL so canvas doesn't get tainted
   let logoDataUrl = null;
   try {
     const r = await fetch(`${window.location.origin}/images/Transparent-Logo.png`);
@@ -561,6 +563,20 @@ async function downloadQR(code, name, color) {
     const ctx  = out.getContext('2d');
     ctx.clearRect(0, 0, out.width, out.height);
     ctx.drawImage(canvas, 0, 0);
+
+    // Strip chroma-key background only — leaves dots and logo untouched
+    const imgData = ctx.getImageData(0, 0, out.width, out.height);
+    const d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      if (isWhite) {
+        // Remove lime green: R<50, G>200, B<50
+        if (d[i] < 50 && d[i+1] > 200 && d[i+2] < 50) d[i+3] = 0;
+      } else {
+        // Remove cyan: R<50, G>200, B>200
+        if (d[i] < 50 && d[i+1] > 200 && d[i+2] > 200) d[i+3] = 0;
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
 
     const link = document.createElement('a');
     link.download = `THREAD-QR-${label}-${safeName}.png`;
