@@ -30,7 +30,7 @@
     sessionStorage.setItem('thread_visit_logged', '1');
   } catch(_) {}
 })();
-─ AUTH STATE + GLOBAL NAV ─── */
+/* ─── AUTH STATE + GLOBAL NAV ─── */
 async function renderNavAuth() {
   const actions = document.getElementById('navActions');
   const navLinks = document.querySelector('#navbar .nav-links');
