@@ -138,6 +138,12 @@ function applyCheckoutPromo() {
     const tee    = items.find(i => (i.type || 'hoodie') === 'tee');
     discount = parseFloat((hoodie.price + tee.price).toFixed(2));
     label    = '1 hoodie + 1 tee FREE 🎉';
+  } else if (code === 'DTEMPER') {
+    // 90% off a tee
+    const teeItem = items.find(i => (i.type || 'hoodie') === 'tee');
+    if (!teeItem) { setMsg('Add a t-shirt to use DTEMPER.', 'error'); return; }
+    discount = parseFloat((teeItem.price * 0.90).toFixed(2));
+    label    = '90% off a tee 🔥';
   } else if (code === 'BOGOEGG') {
     // Easter egg — buy a hoodie, get a tee 50% off
     const hasTee    = items.some(i => (i.type || 'hoodie') === 'tee');

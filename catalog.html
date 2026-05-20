@@ -499,6 +499,11 @@
       const tee     = cart.items.find(i => (i.type || 'hoodie') === 'tee');
       discount = parseFloat((hoodie.price + tee.price).toFixed(2));
       msg = '🎉 Hoodie + tee FREE!';
+    } else if (code === 'DTEMPER') {
+      const teeItem = cart.items.find(i => (i.type || 'hoodie') === 'tee');
+      if (!teeItem) { showCatalogToast('Add a t-shirt to use DTEMPER', true); return; }
+      discount = parseFloat((teeItem.price * 0.90).toFixed(2));
+      msg = '90% off your tee 🔥';
     } else if (code === 'BOGOEGG') {
       const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
       const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
