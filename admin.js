@@ -510,27 +510,24 @@ async function downloadQR(code, name) {
   const url      = `https://mythread.shop/?ref=${encodeURIComponent(code)}`;
   const safeName = (name || code).replace(/[^a-zA-Z0-9_-]/g, '_');
 
-  // Fetch the THREAD logo as a data URL so canvas doesn't get tainted
-  let logoDataUrl = null;
-  const logoPaths = [
-    `${window.location.origin}/images/Transparent-Logo.png`,
-    `${window.location.origin}/clothing-store/images/Transparent-Logo.png`,
-    'images/Transparent-Logo.png'
-  ];
-  for (const path of logoPaths) {
-    try {
-      const r = await fetch(path);
-      if (r.ok) {
-        const blob = await r.blob();
-        logoDataUrl = await new Promise(res => {
-          const fr = new FileReader();
-          fr.onloadend = () => res(fr.result);
-          fr.readAsDataURL(blob);
-        });
-        if (logoDataUrl) break;
+  // Load logo via Image element — same-origin so canvas never gets tainted
+  const logoDataUrl = await new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const c = document.createElement('canvas');
+        c.width  = img.naturalWidth  || 400;
+        c.height = img.naturalHeight || 400;
+        c.getContext('2d').drawImage(img, 0, 0);
+        resolve(c.toDataURL('image/png'));
+      } catch(e) {
+        resolve(null);
       }
-    } catch(_) {}
-  }
+    };
+    img.onerror = () => resolve(null);
+    // Try absolute path first, fall back to relative
+    img.src = `${window.location.origin}/images/Transparent-Logo.png?v=${Date.now()}`;
+  });
 
   const qr = new QRCodeStyling({
     width:  1200,
@@ -542,14 +539,14 @@ async function downloadQR(code, name) {
     dotsOptions:          { color: '#000000', type: 'dots' },
     cornersSquareOptions: { color: '#000000', type: 'extra-rounded' },
     cornersDotOptions:    { color: '#000000', type: 'dot' },
-    backgroundOptions:    { color: '#00000000' },
+    backgroundOptions:    { color: '#ffffff' },
     ...(logoDataUrl ? {
       image: logoDataUrl,
-      imageOptions: { margin: 8, imageSize: 0.25, hideBackgroundDots: true }
+      imageOptions: { margin: 10, imageSize: 0.3, hideBackgroundDots: true }
     } : {})
   });
 
-  // Append to a hidden div, grab the canvas, clear the background, then download
+  // Append to a hidden div, grab the canvas, strip the white background, then download
   const hidden = document.createElement('div');
   hidden.style.cssText = 'position:fixed;left:-9999px;top:-9999px;';
   document.body.appendChild(hidden);
@@ -559,18 +556,28 @@ async function downloadQR(code, name) {
     const canvas = hidden.querySelector('canvas');
     if (!canvas) { qr.download({ name: `THREAD-QR-${safeName}`, extension: 'png' }); hidden.remove(); return; }
 
-    // Copy to a new canvas with transparent background
+    // Copy to a new canvas and make the white background transparent
     const out = document.createElement('canvas');
     out.width  = canvas.width;
     out.height = canvas.height;
     const ctx  = out.getContext('2d');
-    ctx.clearRect(0, 0, out.width, out.height); // fully transparent
+    ctx.clearRect(0, 0, out.width, out.height);
     ctx.drawImage(canvas, 0, 0);
+
+    // Walk pixels: turn pure white (255,255,255) transparent
+    const imgData = ctx.getImageData(0, 0, out.width, out.height);
+    const d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i] > 240 && d[i+1] > 240 && d[i+2] > 240) {
+        d[i+3] = 0; // fully transparent
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
 
     const link = document.createElement('a');
     link.download = `THREAD-QR-${safeName}.png`;
     link.href = out.toDataURL('image/png');
     link.click();
     hidden.remove();
-  }, 1400);
+  }, 1800);
 }
