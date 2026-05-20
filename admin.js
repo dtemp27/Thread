@@ -384,7 +384,7 @@ async function deleteSelectedOrders() {
     const cfg = window.THREAD_CONFIG;
     if (cfg?.supabaseUrl && window.supabase) {
       const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
-      const { error } = await sb.from('orders').delete().in('id', ids);
+      const { error } = await sb.rpc('delete_orders_by_ids', { order_ids: ids });
       if (error) { alert('Delete failed: ' + error.message); return; }
     } else {
       // localStorage fallback
