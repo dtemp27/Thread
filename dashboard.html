@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="dashboard.css?v=20260520c" />
+  <link rel="stylesheet" href="dashboard.css?v=20260520e" />
 </head>
 <body>
 
@@ -48,12 +48,16 @@
     </nav>
     <div class="sidebar-bottom">
       <div class="sidebar-user">
-        <div class="su-avatar" id="suAvatar"></div>
+        <div class="su-avatar-wrap" onclick="triggerAvatarUpload()" title="Change profile picture">
+          <div class="su-avatar" id="suAvatar"></div>
+          <div class="su-avatar-overlay">📷</div>
+        </div>
         <div class="su-info">
           <strong id="suName"></strong>
           <span id="suEmail"></span>
         </div>
       </div>
+      <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)" />
       <button class="signout-btn" onclick="signOut()">Sign Out</button>
     </div>
   </aside>
@@ -587,6 +591,6 @@
   <script src="config.js?v=20260519c"></script>
   <script src="db.js?v=20260519c"></script>
   <script src="tiers.js?v=20260519c"></script>
-  <script src="dashboard.js?v=20260520d"></script>
+  <script src="dashboard.js?v=20260520e"></script>
 </body>
 </html>

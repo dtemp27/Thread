@@ -59,6 +59,7 @@ let _sb  = null;
             username:     profile.username || '',
             referralCode: profile.referral_code || '',
             avatar:       (profile.name || profile.email || 'U').slice(0, 2).toUpperCase(),
+            avatar_url:   profile.avatar_url || null,
             stats:        { totalScans: 0, conversions: 0, pendingEarnings: 0, totalEarned: 0, scanHistory: [] },
             purchases:    []
           };
@@ -155,10 +156,9 @@ function bootUI() {
   const refURL  = baseURL + '?ref=' + user.referralCode;
 
   /* ─── INIT STATIC UI ─── */
-  document.getElementById('suAvatar').textContent      = user.avatar;
+  renderOwnAvatar();
   document.getElementById('suName').textContent        = user.name;
   document.getElementById('suEmail').textContent       = user.email;
-  document.getElementById('topbarAvatar').textContent  = user.avatar;
   document.getElementById('tcValue').textContent       = user.referralCode;
   document.getElementById('refLinkInput').value        = refURL;
   document.getElementById('qcdValue').textContent      = user.referralCode;
@@ -899,6 +899,68 @@ function renderPurchases() {
 }
 
 /* ═══════════════════════════════════════════════
+   PROFILE PICTURE
+═══════════════════════════════════════════════ */
+function renderOwnAvatar() {
+  const sideEl   = document.getElementById('suAvatar');
+  const topEl    = document.getElementById('topbarAvatar');
+  const imgStyle = 'width:100%;height:100%;object-fit:cover;border-radius:50%';
+  if (user.avatar_url) {
+    if (sideEl) sideEl.innerHTML = `<img src="${user.avatar_url}" style="${imgStyle}" onerror="this.parentElement.textContent='${user.avatar}'" />`;
+    if (topEl)  topEl.innerHTML  = `<img src="${user.avatar_url}" style="${imgStyle};border-radius:50%" onerror="this.parentElement.textContent='${user.avatar}'" />`;
+  } else {
+    if (sideEl) sideEl.textContent = user.avatar;
+    if (topEl)  topEl.textContent  = user.avatar;
+  }
+}
+
+function triggerAvatarUpload() {
+  document.getElementById('avatarFileInput')?.click();
+}
+
+async function handleAvatarUpload(input) {
+  const file = input.files?.[0];
+  if (!file || !_sb || !user?.id) return;
+
+  // Resize to max 400px using canvas before upload
+  const img = new Image();
+  const reader = new FileReader();
+  reader.onload = e => {
+    img.onload = async () => {
+      const MAX = 400;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(async blob => {
+        try {
+          showToast('Uploading…', 'success');
+          const path = `${user.id}.jpg`;
+          const { error: upErr } = await _sb.storage.from('avatars').upload(path, blob, {
+            contentType: 'image/jpeg', upsert: true
+          });
+          if (upErr) throw new Error(upErr.message);
+
+          const { data: urlData } = _sb.storage.from('avatars').getPublicUrl(path);
+          const publicUrl = urlData.publicUrl + '?t=' + Date.now();
+
+          const { error: dbErr } = await _sb.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id);
+          if (dbErr) throw new Error(dbErr.message);
+
+          user.avatar_url = publicUrl;
+          renderOwnAvatar();
+          showToast('Profile picture updated', 'success');
+        } catch(e) { showToast('Upload failed: ' + e.message, 'error'); }
+      }, 'image/jpeg', 0.88);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+/* ═══════════════════════════════════════════════
    PAYOUT
 ═══════════════════════════════════════════════ */
 const PAYOUT_META = {
@@ -1374,7 +1436,7 @@ function renderFollowingList(list) {
   }
   el.innerHTML = list.map(f => `
     <div class="fw-row">
-      <div class="fw-avatar">${(f.name||'?')[0].toUpperCase()}</div>
+      <div class="fw-avatar">${f.avatar_url ? `<img src="${f.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />` : (f.name||'?')[0].toUpperCase()}</div>
       <div class="fw-info">
         <div class="fw-name">${escFw(f.name || '—')}</div>
         <div class="fw-handle">@${escFw(f.username || '—')}</div>

@@ -274,7 +274,10 @@ a { color: var(--accent2); text-decoration: none; cursor: pointer; }
 
 .sidebar-bottom { padding: 14px 10px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
 .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 9px; background: var(--surface2); }
-.su-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; }
+.su-avatar-wrap { position: relative; width: 34px; height: 34px; flex-shrink: 0; cursor: pointer; }
+.su-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; overflow: hidden; }
+.su-avatar-overlay { position: absolute; inset: 0; border-radius: 50%; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; font-size: 13px; opacity: 0; transition: opacity .2s; }
+.su-avatar-wrap:hover .su-avatar-overlay { opacity: 1; }
 .su-info { overflow: hidden; }
 .su-info strong { display: block; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .su-info span { font-size: 11px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
