@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terms & Conditions — THREAD</title>
+  <link rel="icon" href="favicon.ico?v=4" sizes="any" />
+  <link rel="shortcut icon" href="favicon.ico?v=4" />
+  <link rel="icon" type="image/png" href="images/BrowserLogo.png?v=4" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0a0a0a;
+      --surface: #111111;
+      --border:  #1e1e1e;
+      --text:    #e8e8e8;
+      --muted:   #888;
+      --accent:  #7c3aed;
+      --mono:    'Space Mono', monospace;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,10,10,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-family: var(--mono);
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+    .logo span { color: var(--accent); }
+    .nav-back {
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color .2s;
+    }
+    .nav-back:hover { color: #fff; }
+
+    /* ── Layout ── */
+    .page-wrap {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 60px 24px 100px;
+    }
+
+    /* ── Header ── */
+    .page-header {
+      margin-bottom: 48px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+    .page-header h1 {
+      font-family: var(--mono);
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 10px;
+    }
+    .page-header h1 span { color: var(--accent); }
+    .page-header p {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* ── Sections ── */
+    .tc-section {
+      margin-bottom: 44px;
+    }
+    .tc-section h2 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tc-num {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+      background: rgba(124,58,237,0.12);
+      border: 1px solid rgba(124,58,237,0.25);
+      border-radius: 4px;
+      padding: 2px 7px;
+    }
+    .tc-section p {
+      color: #bbb;
+      margin-bottom: 10px;
+    }
+    .tc-section ul {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .tc-section ul li {
+      color: #bbb;
+      padding-left: 18px;
+      position: relative;
+    }
+    .tc-section ul li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-size: 11px;
+      top: 3px;
+    }
+
+    /* ── Highlight box ── */
+    .highlight-box {
+      background: rgba(124,58,237,0.08);
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin: 16px 0 20px;
+    }
+    .highlight-box p {
+      color: #d4b8ff !important;
+      margin: 0;
+      font-size: 14px;
+    }
+    .highlight-box strong {
+      color: #fff;
+    }
+
+    /* ── Warning box ── */
+    .warning-box {
+      background: rgba(220,38,38,0.08);
+      border: 1px solid rgba(220,38,38,0.3);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin: 16px 0 20px;
+    }
+    .warning-box p {
+      color: #fca5a5 !important;
+      margin: 0;
+      font-size: 14px;
+    }
+    .warning-box strong {
+      color: #fff;
+    }
+
+    /* ── Return policy callout ── */
+    .return-callout {
+      background: #111;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 0 10px 10px 0;
+      padding: 20px 24px;
+      margin: 20px 0;
+    }
+    .return-callout .rc-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .return-callout p {
+      color: #ccc !important;
+      margin: 0;
+      font-size: 14px;
+    }
+    .return-callout strong { color: #fff; }
+
+    /* ── Footer ── */
+    .tc-footer {
+      margin-top: 60px;
+      padding-top: 28px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .tc-footer p { color: var(--muted); font-size: 12px; margin: 0; }
+    .tc-footer a { color: var(--accent); text-decoration: none; }
+    .tc-footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html" class="logo">THREAD<span>.</span></a>
+      <a href="index.html" class="nav-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Store
+      </a>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+
+    <!-- Header -->
+    <div class="page-header">
+      <h1>Terms &amp; Conditions<span>.</span></h1>
+      <p>Last updated: May 20, 2026 &nbsp;·&nbsp; mythread.shop</p>
+    </div>
+
+    <!-- 1. Acceptance -->
+    <div class="tc-section">
+      <h2><span class="tc-num">01</span> Acceptance of Terms</h2>
+      <p>By accessing or purchasing from <strong>mythread.shop</strong> ("THREAD," "we," "us," or "our"), you agree to be bound by these Terms and Conditions. If you do not agree, please do not use our site or services.</p>
+      <p>We reserve the right to update these terms at any time. Continued use of the site after changes are posted constitutes your acceptance of the revised terms.</p>
+    </div>
+
+    <!-- 2. Products -->
+    <div class="tc-section">
+      <h2><span class="tc-num">02</span> Products &amp; Orders</h2>
+      <p>All products are made to order through our print-on-demand production partner. As a result:</p>
+      <ul>
+        <li>Production typically takes <strong>3–7 business days</strong> before shipping</li>
+        <li>Shipping times vary by location (typically 5–10 business days after production)</li>
+        <li>Colors may vary slightly from screen to screen due to monitor calibration</li>
+        <li>Order confirmation emails are sent automatically — check your spam folder if not received</li>
+        <li>We reserve the right to cancel orders suspected of fraud or abuse</li>
+      </ul>
+    </div>
+
+    <!-- 3. Returns & Refunds — THE KEY SECTION -->
+    <div class="tc-section">
+      <h2><span class="tc-num">03</span> Returns &amp; Refund Policy</h2>
+
+      <div class="return-callout">
+        <div class="rc-label">Return Window</div>
+        <p><strong>All return requests must be submitted within 3 days of delivery.</strong> Requests made after this window will not be accepted, regardless of reason.</p>
+      </div>
+
+      <p>We offer a <strong>3-day return window</strong> from the date of confirmed delivery. This strict window exists to maintain the integrity of our referral and earnings program — preventing abuse where commissions are collected and then orders are reversed after payout.</p>
+
+      <p>To be eligible for a return:</p>
+      <ul>
+        <li>The item must be <strong>unworn, unwashed, and in original condition</strong> with tags intact</li>
+        <li>Return must be requested <strong>within 3 calendar days of the delivery date</strong> shown in your tracking</li>
+        <li>You must contact us at <strong>support@mythread.shop</strong> with your order number and reason</li>
+        <li>Items returned without prior approval will not be refunded</li>
+      </ul>
+
+      <div class="highlight-box">
+        <p><strong>Eligible reasons for return:</strong> Defective item, wrong item shipped, or significant color/print discrepancy from product listing.</p>
+      </div>
+
+      <div class="warning-box">
+        <p><strong>The following are not eligible for return or refund:</strong> Change of mind, incorrect size ordered, minor color variation, or requests made after the 3-day window.</p>
+      </div>
+
+      <p>Approved refunds are issued to the original payment method within <strong>5–10 business days</strong>. Shipping costs are non-refundable.</p>
+
+      <p><strong>Exchanges:</strong> We do not offer direct exchanges at this time. If your item qualifies for a return, you may place a new order after your refund is approved.</p>
+    </div>
+
+    <!-- 4. Referral Program -->
+    <div class="tc-section">
+      <h2><span class="tc-num">04</span> Referral &amp; Earnings Program</h2>
+      <p>THREAD operates a referral program that allows customers ("Wearers") to earn commissions on purchases made by others who scan their unique QR code. By participating in the program, you agree to the following:</p>
+
+      <ul>
+        <li>Commissions are earned at a rate of <strong>20% of the referred order subtotal</strong></li>
+        <li>Commissions are placed in <strong>pending status</strong> immediately after a referred purchase</li>
+        <li>Commissions <strong>clear 72 hours after confirmed delivery</strong> of the referred order</li>
+        <li>If a referred order is <strong>returned or refunded</strong>, any associated pending commission is voided and will not be paid out</li>
+        <li>Commissions already cleared before a valid return is processed may be clawed back at our discretion</li>
+        <li>We reserve the right to <strong>suspend or terminate</strong> any account found manipulating the referral system</li>
+      </ul>
+
+      <div class="warning-box">
+        <p><strong>Abuse of the referral program</strong> — including self-referrals, coordinated fake purchases, or purchasing items solely to generate commission then returning them — will result in immediate account termination, forfeiture of all pending earnings, and potential legal action.</p>
+      </div>
+
+      <p>Referral codes are personal and non-transferable. You may not sell, trade, or distribute your referral code in deceptive ways.</p>
+    </div>
+
+    <!-- 5. Pricing -->
+    <div class="tc-section">
+      <h2><span class="tc-num">05</span> Pricing &amp; Payment</h2>
+      <ul>
+        <li>All prices are listed in <strong>USD</strong> and are subject to change without notice</li>
+        <li>Sales tax is applied where required by law</li>
+        <li>We accept major credit/debit cards and other payment methods shown at checkout</li>
+        <li>Payment is processed securely — we do not store your full card details</li>
+        <li>Orders are not confirmed until payment is successfully processed</li>
+      </ul>
+    </div>
+
+    <!-- 6. Promo Codes -->
+    <div class="tc-section">
+      <h2><span class="tc-num">06</span> Promotional Codes</h2>
+      <ul>
+        <li>Promo codes are single-use, non-transferable, and cannot be combined with other offers</li>
+        <li>We reserve the right to expire or disable any promo code at any time</li>
+        <li>Misuse of promo codes will result in order cancellation</li>
+        <li>Promo codes have no cash value</li>
+      </ul>
+    </div>
+
+    <!-- 7. Intellectual Property -->
+    <div class="tc-section">
+      <h2><span class="tc-num">07</span> Intellectual Property</h2>
+      <p>All content on this website — including logos, graphics, product designs, copy, and code — is the property of THREAD and is protected by applicable copyright and trademark laws. You may not reproduce, distribute, or use any content without our explicit written consent.</p>
+    </div>
+
+    <!-- 8. Limitation of Liability -->
+    <div class="tc-section">
+      <h2><span class="tc-num">08</span> Limitation of Liability</h2>
+      <p>To the fullest extent permitted by law, THREAD shall not be liable for any indirect, incidental, special, or consequential damages arising from the use of our site or products, including but not limited to lost profits, lost data, or shipping delays caused by third-party carriers.</p>
+      <p>Our total liability for any claim related to a purchase shall not exceed the amount paid for that specific order.</p>
+    </div>
+
+    <!-- 9. Privacy -->
+    <div class="tc-section">
+      <h2><span class="tc-num">09</span> Privacy</h2>
+      <p>We collect personal information (name, email, shipping address) solely to fulfill orders and operate the referral program. We do not sell your data to third parties. By placing an order, you consent to receiving transactional emails related to your order.</p>
+      <p>Anonymous analytics (page visits, add-to-cart events) are collected via IP address to improve the shopping experience. No personally identifiable information is tied to these events.</p>
+    </div>
+
+    <!-- 10. Governing Law -->
+    <div class="tc-section">
+      <h2><span class="tc-num">10</span> Governing Law</h2>
+      <p>These Terms are governed by the laws of the <strong>State of Utah, United States</strong>. Any disputes shall be resolved in the courts of Utah, and you consent to personal jurisdiction in that venue.</p>
+    </div>
+
+    <!-- 11. Contact -->
+    <div class="tc-section">
+      <h2><span class="tc-num">11</span> Contact Us</h2>
+      <p>For questions about these Terms, returns, or your account, contact us at:</p>
+      <p style="margin-top:10px">
+        <strong>Email:</strong> support@mythread.shop<br>
+        <strong>Website:</strong> mythread.shop
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="tc-footer">
+      <p>© 2026 THREAD. All rights reserved.</p>
+      <p><a href="index.html">← Back to Store</a></p>
+    </div>
+
+  </div>
+
+</body>
+</html>
