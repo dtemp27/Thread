@@ -153,18 +153,22 @@
             <button class="ad-filter" data-filter="shipped"   onclick="filterOrders('shipped',this)">Shipped</button>
             <button class="ad-filter" data-filter="delivered" onclick="filterOrders('delivered',this)">Delivered</button>
           </div>
-          <input type="text" class="ad-search" id="orderSearch"
-            placeholder="Search by email, order ID…" oninput="filterOrders(currentOrderFilter, null)">
+          <div style="display:flex;gap:10px;align-items:center">
+            <input type="text" class="ad-search" id="orderSearch"
+              placeholder="Search by email, order ID…" oninput="filterOrders(currentOrderFilter, null)">
+            <button id="deleteOrdersBtn" class="ad-action-btn" style="background:#dc2626;color:#fff;white-space:nowrap;display:none" onclick="deleteSelectedOrders()">🗑 Delete Selected</button>
+          </div>
         </div>
 
         <div class="ad-card">
           <table class="ad-table ad-table-orders" id="ordersTable">
             <thead><tr>
+              <th><input type="checkbox" id="selectAllOrders" onclick="toggleAllOrders(this)" title="Select all"></th>
               <th>Order ID</th><th>Customer</th><th>Items</th>
               <th>Total</th><th>Referral</th><th>Status</th><th>Date</th><th>Action</th>
             </tr></thead>
             <tbody id="ordersBody">
-              <tr><td colspan="8" class="ad-empty">Loading orders…</td></tr>
+              <tr><td colspan="9" class="ad-empty">Loading orders…</td></tr>
             </tbody>
           </table>
         </div>

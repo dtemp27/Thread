@@ -324,7 +324,7 @@ function renderOrders() {
 
   const tbody = document.getElementById('ordersBody');
   tbody.innerHTML = filtered.length ? filtered.map(o => orderRow(o, true)).join('') :
-    '<tr><td colspan="8" class="ad-empty">No orders match</td></tr>';
+    '<tr><td colspan="9" class="ad-empty">No orders match</td></tr>';
 }
 
 function orderRow(o, showAction) {
@@ -344,6 +344,7 @@ function orderRow(o, showAction) {
     : '';
 
   return `<tr>
+    <td><input type="checkbox" class="order-checkbox" data-id="${o.id}" onchange="updateDeleteBtn()"></td>
     <td><code style="font-size:11px">${idShort}</code></td>
     <td>${customer}</td>
     <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${items}</td>
@@ -353,6 +354,52 @@ function orderRow(o, showAction) {
     <td style="white-space:nowrap">${date}</td>
     ${showAction ? `<td>${action}</td>` : ''}
   </tr>`;
+}
+
+function toggleAllOrders(cb) {
+  document.querySelectorAll('.order-checkbox').forEach(c => c.checked = cb.checked);
+  updateDeleteBtn();
+}
+
+function updateDeleteBtn() {
+  const any = document.querySelectorAll('.order-checkbox:checked').length > 0;
+  const btn = document.getElementById('deleteOrdersBtn');
+  if (btn) btn.style.display = any ? '' : 'none';
+  const selectAll = document.getElementById('selectAllOrders');
+  if (selectAll) {
+    const all  = document.querySelectorAll('.order-checkbox').length;
+    const chk  = document.querySelectorAll('.order-checkbox:checked').length;
+    selectAll.indeterminate = chk > 0 && chk < all;
+    selectAll.checked = all > 0 && chk === all;
+  }
+}
+
+async function deleteSelectedOrders() {
+  const checked = [...document.querySelectorAll('.order-checkbox:checked')];
+  if (!checked.length) return;
+  const ids = checked.map(c => c.dataset.id);
+  if (!confirm(`Delete ${ids.length} order${ids.length > 1 ? 's' : ''}? This cannot be undone.`)) return;
+
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (cfg?.supabaseUrl && window.supabase) {
+      const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+      const { error } = await sb.from('orders').delete().in('id', ids);
+      if (error) { alert('Delete failed: ' + error.message); return; }
+    } else {
+      // localStorage fallback
+      const stored = JSON.parse(localStorage.getItem('thread_orders') || '[]');
+      localStorage.setItem('thread_orders', JSON.stringify(stored.filter(o => !ids.includes(o.id))));
+    }
+    // Remove from local array and re-render
+    allOrders = allOrders.filter(o => !ids.includes(o.id));
+    renderOrders();
+    renderOverview();
+    document.getElementById('deleteOrdersBtn').style.display = 'none';
+    document.getElementById('selectAllOrders').checked = false;
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
