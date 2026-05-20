@@ -327,7 +327,7 @@ function renderOrders() {
 function orderRow(o, showAction) {
   const customer = o.profiles?.name || o.customer_email || '—';
   const items    = Array.isArray(o.items)
-    ? o.items.map(i => `${i.name}${i.size ? " ("+i.size+")" : ""} ×${i.qty}`).join(", ")
+    ? o.items.map(i => { const type = i.type === "tee" ? "Tee" : "Hoodie"; return `${i.name} ${type}${i.size ? " ("+i.size+")" : ""} ×${i.qty}`; }).join(", ")
     : '—';
   const date = o.created_at
     ? new Date(o.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
