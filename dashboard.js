@@ -1268,30 +1268,166 @@ function renderAll() {
   renderTransactions();
   renderPurchases();
   loadPayoutMethod();
-  renderLeaderboard();
+  loadFollowing();
 }
 
-async function renderLeaderboard() {
-  const el = document.getElementById('leaderboardList');
-  if (!el) return;
+/* ═══════════════════════════════════════════════
+   FOLLOWING
+═══════════════════════════════════════════════ */
+let _followTab = 'following';
+let _followSearchTimer = null;
+
+function switchFollowTab(tab) {
+  _followTab = tab;
+  document.getElementById('fwTabFollowing').classList.toggle('active', tab === 'following');
+  document.getElementById('fwTabRequests').classList.toggle('active', tab === 'requests');
+  document.getElementById('followingList').style.display  = tab === 'following' ? '' : 'none';
+  document.getElementById('requestsList').style.display   = tab === 'requests'  ? '' : 'none';
+  document.getElementById('followSearchResults').style.display = 'none';
+  document.getElementById('followSearchInput').value = '';
+}
+
+function followSearch(query) {
+  clearTimeout(_followSearchTimer);
+  const results = document.getElementById('followSearchResults');
+  if (!query.trim()) { results.style.display = 'none'; return; }
+  _followSearchTimer = setTimeout(() => doFollowSearch(query.trim()), 350);
+}
+
+async function doFollowSearch(query) {
+  const results = document.getElementById('followSearchResults');
+  results.style.display = 'block';
+  results.innerHTML = '<div style="padding:8px 16px;color:#666;font-size:13px">Searching…</div>';
   try {
-    const sb = _sb;
-    if (!sb) { el.innerHTML = '<div class="lb-empty">Sign in to see leaderboard.</div>'; return; }
-    const { data, error } = await sb.rpc('get_leaderboard', { limit_count: 10 });
-    if (error || !data?.length) { el.innerHTML = '<div class="lb-empty">No data yet — be the first on the board!</div>'; return; }
-    const medals = ['🥇','🥈','🥉'];
-    el.innerHTML = data.map((row, i) => {
-      const isYou = row.username && user?.username && row.username.toLowerCase() === user.username.toLowerCase();
-      return `<div class="lb-row">
-        <div class="lb-rank ${i < 3 ? '' : 'top'}">${medals[i] || (i+1)}</div>
-        <div class="lb-user">
-          <div class="lb-username${isYou ? ' is-you' : ''}">@${row.username || 'anonymous'}</div>
-          <div class="lb-convs">${row.conversions} sale${row.conversions !== 1 ? 's' : ''}</div>
+    if (!_sb) { results.innerHTML = '<div style="padding:8px 16px;color:#666;font-size:13px">Not connected</div>'; return; }
+    const q = query.replace(/^@/, '').toLowerCase();
+    const { data, error } = await _sb.rpc('search_users_for_follow', { p_query: q, p_self_id: user.id });
+    if (error || !data?.length) {
+      results.innerHTML = '<div style="padding:10px 16px;color:#555;font-size:13px">No users found</div>';
+      return;
+    }
+    results.innerHTML = data.map(u => {
+      const statusMap = { accepted: 'Following', pending: 'Requested', incoming: 'Accept?' };
+      const status = u.follow_status;
+      const btnHtml = status === 'accepted'
+        ? `<button class="fw-action-btn fw-unfollow" onclick="unfollowUser('${u.id}','${escFw(u.name)}')">Unfollow</button>`
+        : status === 'pending'
+        ? `<button class="fw-action-btn" style="opacity:.5;cursor:default">Requested</button>`
+        : status === 'incoming'
+        ? `<button class="fw-action-btn fw-accept" onclick="acceptFollowFromSearch('${u.follow_id}')">Accept</button>`
+        : `<button class="fw-action-btn fw-follow" onclick="sendFollowRequest('${u.id}','${escFw(u.name)}',this)">Follow</button>`;
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #1a1a1a">
+        <div>
+          <div style="font-weight:600;font-size:14px">${escFw(u.name || 'Unknown')}</div>
+          <div style="font-size:12px;color:#7c3aed">@${escFw(u.username || '—')}</div>
         </div>
-        <div class="lb-earned">$${parseFloat(row.total_earned||0).toFixed(2)}</div>
+        ${btnHtml}
       </div>`;
     }).join('');
   } catch(e) {
-    el.innerHTML = '<div class="lb-empty">Leaderboard unavailable.</div>';
+    results.innerHTML = `<div style="padding:8px 16px;color:#f87171;font-size:13px">Error: ${e.message}</div>`;
   }
 }
+
+async function sendFollowRequest(targetId, targetName, btn) {
+  if (!_sb || !user?.id) return;
+  if (btn) { btn.textContent = '…'; btn.disabled = true; }
+  try {
+    const { error } = await _sb.rpc('send_follow_request', { p_target_id: targetId });
+    if (error) throw new Error(error.message);
+    if (btn) { btn.textContent = 'Requested'; btn.disabled = true; btn.style.opacity = '.5'; }
+    showToast(`Follow request sent to ${targetName}`, 'success');
+  } catch(e) {
+    if (btn) { btn.textContent = 'Follow'; btn.disabled = false; }
+    showToast('Failed: ' + e.message, 'error');
+  }
+}
+
+async function acceptFollowFromSearch(followId) {
+  await respondToRequest(followId, true);
+  doFollowSearch(document.getElementById('followSearchInput').value);
+}
+
+async function loadFollowing() {
+  if (!_sb || !user?.id) {
+    document.getElementById('followingList').innerHTML = '<div class="lb-empty">Sign in to use following</div>';
+    return;
+  }
+  try {
+    // Load following
+    const { data: following } = await _sb.rpc('get_my_following', { p_user_id: user.id });
+    renderFollowingList(following || []);
+
+    // Load incoming requests
+    const { data: requests } = await _sb.rpc('get_my_follow_requests', { p_user_id: user.id });
+    renderRequestsList(requests || []);
+  } catch(e) {
+    document.getElementById('followingList').innerHTML = `<div class="lb-empty">Error loading</div>`;
+  }
+}
+
+function renderFollowingList(list) {
+  const el = document.getElementById('followingList');
+  if (!list.length) {
+    el.innerHTML = '<div class="lb-empty">Not following anyone yet — search a username above to send a request</div>';
+    return;
+  }
+  el.innerHTML = list.map(f => `
+    <div class="fw-row">
+      <div class="fw-avatar">${(f.name||'?')[0].toUpperCase()}</div>
+      <div class="fw-info">
+        <div class="fw-name">${escFw(f.name || '—')}</div>
+        <div class="fw-handle">@${escFw(f.username || '—')}</div>
+      </div>
+      <div class="fw-stats">
+        <div class="fw-stat"><span class="fw-stat-val">${f.total_scans || 0}</span><span class="fw-stat-label">scans</span></div>
+        <div class="fw-stat"><span class="fw-stat-val green">$${parseFloat(f.total_earned||0).toFixed(0)}</span><span class="fw-stat-label">earned</span></div>
+      </div>
+      <button class="fw-action-btn fw-unfollow" onclick="unfollowUser('${f.following_id}','${escFw(f.name)}')">Unfollow</button>
+    </div>
+  `).join('');
+}
+
+function renderRequestsList(list) {
+  const badge = document.getElementById('fwRequestBadge');
+  if (badge) { badge.textContent = list.length; badge.style.display = list.length ? 'inline' : 'none'; }
+  const el = document.getElementById('requestsList');
+  if (!list.length) { el.innerHTML = '<div class="lb-empty">No pending requests</div>'; return; }
+  el.innerHTML = list.map(r => `
+    <div class="fw-row">
+      <div class="fw-avatar">${(r.name||'?')[0].toUpperCase()}</div>
+      <div class="fw-info">
+        <div class="fw-name">${escFw(r.name || '—')}</div>
+        <div class="fw-handle">@${escFw(r.username || '—')}</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="fw-action-btn fw-accept" onclick="respondToRequest('${r.follow_id}', true)">Accept</button>
+        <button class="fw-action-btn fw-decline" onclick="respondToRequest('${r.follow_id}', false)">Decline</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function respondToRequest(followId, accept) {
+  if (!_sb) return;
+  try {
+    const { error } = await _sb.rpc('respond_to_follow_request', { p_follow_id: followId, p_accept: accept });
+    if (error) throw new Error(error.message);
+    showToast(accept ? 'Follow request accepted' : 'Request declined', 'success');
+    loadFollowing();
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function unfollowUser(targetId, targetName) {
+  if (!_sb || !user?.id) return;
+  if (!confirm(`Unfollow ${targetName}?`)) return;
+  try {
+    const { error } = await _sb.rpc('unfollow_user', { p_target_id: targetId });
+    if (error) throw new Error(error.message);
+    showToast(`Unfollowed ${targetName}`, 'success');
+    loadFollowing();
+    doFollowSearch(document.getElementById('followSearchInput').value);
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+function escFw(s) { return String(s||'').replace(/'/g,"&#39;").replace(/"/g,"&quot;"); }
