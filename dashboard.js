@@ -901,17 +901,79 @@ function renderPurchases() {
 /* ═══════════════════════════════════════════════
    PAYOUT
 ═══════════════════════════════════════════════ */
-function loadPayoutMethod() {
-  const m = user.payoutMethod || 'cash';
-  const r = document.querySelector(`input[name="payout"][value="${m}"]`);
-  if (r) r.checked = true;
+const PAYOUT_META = {
+  venmo:    { label: 'Your Venmo username',       placeholder: '@username',           hint: 'e.g. @jordanw — the handle people use to send you money' },
+  paypal:   { label: 'Your PayPal email',         placeholder: 'you@email.com',       hint: 'The email address on your PayPal account' },
+  zelle:    { label: 'Your Zelle phone or email', placeholder: '(801) 555-0000',      hint: 'Phone number or email linked to your Zelle account' },
+  cashapp:  { label: 'Your Cash App $Cashtag',    placeholder: '$cashtag',            hint: 'e.g. $jordanw' },
+  giftcard: { label: 'Preferred gift card brand', placeholder: 'Amazon, Nike, Apple…', hint: 'We'll send a digital gift card to your email on file' },
+  other:    { label: 'Describe your preference',  placeholder: 'e.g. Bitcoin, Venmo…', hint: 'We'll reach out to confirm the best way to pay you' },
+};
+
+let _selectedPayoutMethod = null;
+
+function selectPayoutMethod(method) {
+  _selectedPayoutMethod = method;
+
+  // Highlight selected pill
+  document.querySelectorAll('.pp-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.method === method);
+  });
+
+  const meta  = PAYOUT_META[method] || PAYOUT_META.other;
+  const wrap  = document.getElementById('payoutHandleWrap');
+  const label = document.getElementById('payoutHandleLabel');
+  const input = document.getElementById('payoutHandleInput');
+  const hint  = document.getElementById('payoutHandleHint');
+
+  label.textContent       = meta.label;
+  input.placeholder       = meta.placeholder;
+  hint.textContent        = meta.hint;
+  wrap.style.display      = 'block';
+  input.focus();
 }
-function savePayoutMethod() {
-  const s = document.querySelector('input[name="payout"]:checked');
-  if (!s) return;
-  user.payoutMethod = s.value;
-  updateUser(user);
-  showToast('✓ Payout preference saved', 'success');
+
+function loadPayoutMethod() {
+  const method = user.payout_method || user.payoutMethod || null;
+  const handle = user.payout_handle || null;
+  if (!method) return;
+
+  // Pre-select pill
+  selectPayoutMethod(method);
+
+  // Pre-fill handle
+  const input = document.getElementById('payoutHandleInput');
+  if (input && handle) input.value = handle;
+
+  // Show saved badge
+  const badge = document.getElementById('payoutSavedBadge');
+  if (badge && handle) badge.style.display = 'inline-flex';
+}
+
+async function savePayoutMethod() {
+  if (!_selectedPayoutMethod) { showToast('Select a payout method first', 'error'); return; }
+  const handle = (document.getElementById('payoutHandleInput')?.value || '').trim();
+  if (!handle) { showToast('Enter your payout details', 'error'); return; }
+
+  try {
+    const sb = getSB();
+    if (sb && user.id) {
+      const { error } = await sb.from('profiles').update({
+        payout_method: _selectedPayoutMethod,
+        payout_handle: handle,
+      }).eq('id', user.id);
+      if (error) throw new Error(error.message);
+    }
+    // Update local cache
+    user.payout_method = _selectedPayoutMethod;
+    user.payout_handle = handle;
+
+    const badge = document.getElementById('payoutSavedBadge');
+    if (badge) badge.style.display = 'inline-flex';
+    showToast('✓ Payout method saved', 'success');
+  } catch(e) {
+    showToast('Save failed: ' + e.message, 'error');
+  }
 }
 
 /* ═══════════════════════════════════════════════

@@ -443,6 +443,7 @@ function renderCustomers() {
       <td><code style="font-size:11px">${code || '—'}</code></td>
       <td>${customerOrders.length}</td>
       <td style="font-family:var(--mono)">$${spent.toFixed(2)}</td>
+      <td>${c.payout_method ? `<span style="font-size:12px;color:#a78bfa;font-weight:600">${c.payout_method}</span><br><span style="font-size:11px;color:#888">${c.payout_handle || '—'}</span>` : '<span style="color:#444">—</span>'}</td>
       <td>${joined}</td>
       <td>${qrBtn}</td>
       <td><button class="ad-action-btn" style="background:#7f1d1d;color:#fca5a5;font-size:11px" onclick="clearAccountData('${escapeHtml(c.id || '')}','${escapeHtml(c.email || '')}','${escapeHtml(c.name || '')}')">🗑 Clear</button></td>
