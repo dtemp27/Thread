@@ -99,6 +99,11 @@ async function loadAllData() {
   if (!refresh.textContent.startsWith('ERROR')) refresh.textContent = 'Updated ' + new Date().toLocaleTimeString();
 }
 
+// Auto-refresh every 30 seconds so conversions, scans and orders appear live
+setInterval(() => {
+  if (sessionStorage.getItem(ADMIN_KEY) === '1') loadAllData();
+}, 30000);
+
 /* ─────────────────────────────────────────────────────────────────────────
    DROP BOX QUEUE  (tier-up physical reward fulfillment)
 ───────────────────────────────────────────────────────────────────────── */
