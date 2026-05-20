@@ -291,14 +291,26 @@
         const updatePayload = { converted: true, commission, status: 'pending' };
         if (uuidLike.test(String(orderId))) updatePayload.order_id = orderId;
 
-        // Mark the most recent unconverted scan for this referral code
+        // Try to mark the most recent unconverted scan for this referral code
         const { data } = await getSB().from('referral_scans')
           .select('id').eq('referral_code', referralCode).eq('converted', false)
           .order('created_at', { ascending: false }).limit(1);
         if (data?.length) {
+          // Existing scan found — mark it converted
           await getSB().from('referral_scans')
             .update(updatePayload)
             .eq('id', data[0].id);
+        } else {
+          // No pre-existing scan — insert a new converted record so the sale is always credited
+          const insertPayload = {
+            referral_code: referralCode,
+            converted: true,
+            commission,
+            status: 'pending',
+            scanned_at: new Date().toISOString()
+          };
+          if (uuidLike.test(String(orderId))) insertPayload.order_id = orderId;
+          await getSB().from('referral_scans').insert(insertPayload);
         }
         return;
       }
