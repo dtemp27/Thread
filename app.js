@@ -50,20 +50,24 @@ async function renderNavAuth() {
     // SIGNED IN — show Dashboard button + Sign Out
     // Try to grab the real name from the Supabase profiles table; fall back to metadata/email
     let displayName = user.user_metadata?.name || user.name || '';
+    let avatarUrl = null;
     try {
       if (window.DB?.profiles?.get && user.id) {
         const profile = await window.DB.profiles.get(user.id);
         if (profile?.name) displayName = profile.name;
+        if (profile?.avatar_url) avatarUrl = profile.avatar_url;
       }
     } catch(_) {}
     if (!displayName) {
-      // Last resort — use the part of email before '@'
       displayName = (user.email || 'You').split('@')[0];
     }
     const initial = (displayName.trim()[0] || 'U').toUpperCase();
+    const avatarHtml = avatarUrl
+      ? `<img src="${avatarUrl}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.outerHTML='<div class=nav-user-avatar>${initial}</div>'" />`
+      : `<div class="nav-user-avatar">${initial}</div>`;
     actions.innerHTML = `
       <a href="dashboard.html" class="nav-user-pill" title="${displayName}'s dashboard">
-        <div class="nav-user-avatar">${initial}</div>
+        ${avatarHtml}
         Dashboard
       </a>
       <button class="btn-ghost btn-signout" onclick="threadSignOut()">Sign Out</button>
