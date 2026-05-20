@@ -94,6 +94,7 @@ async function loadAllData() {
   safe(renderCustomers, 'renderCustomers');
   safe(renderReferrals, 'renderReferrals');
   safe(loadDropBoxes,   'loadDropBoxes');
+  safe(loadAnalytics,   'loadAnalytics');
   safe(() => showSection('overview'), 'showSection');
 
   if (!refresh.textContent.startsWith('ERROR')) refresh.textContent = 'Updated ' + new Date().toLocaleTimeString();
@@ -591,4 +592,63 @@ async function downloadQR(code, name, color) {
     link.click();
     hidden.remove();
   }, 1000);
+}
+
+/* ─── ANALYTICS ────────────────────────────────────────────────────────────── */
+async function loadAnalytics() {
+  const body = document.getElementById('analyticsBody');
+  if (!body) return;
+
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) {
+      body.innerHTML = '<tr><td colspan="5" class="ad-empty">Supabase not connected</td></tr>';
+      return;
+    }
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+
+    const { data, error } = await sb.from('page_events')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(200);
+
+    if (error || !data) {
+      body.innerHTML = '<tr><td colspan="5" class="ad-empty">Could not load analytics</td></tr>';
+      return;
+    }
+
+    const visits     = data.filter(e => e.event_type === 'visit');
+    const carts      = data.filter(e => e.event_type === 'add_to_cart');
+    const uniqueIPs  = new Set(visits.map(e => e.ip_address).filter(Boolean));
+    const cartRate   = visits.length ? Math.round((carts.length / visits.length) * 100) : 0;
+
+    document.getElementById('statUniqueVisitors').textContent = uniqueIPs.size;
+    document.getElementById('statTotalVisits').textContent    = visits.length;
+    document.getElementById('statAddToCarts').textContent     = carts.length;
+    document.getElementById('statCartRate').textContent       = cartRate + '%';
+
+    if (!data.length) {
+      body.innerHTML = '<tr><td colspan="5" class="ad-empty">No events yet — visit the site to start tracking</td></tr>';
+      return;
+    }
+
+    body.innerHTML = data.map(e => {
+      const isCart    = e.event_type === 'add_to_cart';
+      const badge     = isCart
+        ? '<span style="background:#7c3aed;color:#fff;padding:2px 8px;border-radius:12px;font-size:11px">🛒 Cart</span>'
+        : '<span style="background:#1a472a;color:#4ade80;padding:2px 8px;border-radius:12px;font-size:11px">👁 Visit</span>';
+      const location  = [e.city, e.country].filter(Boolean).join(', ') || '—';
+      const time      = new Date(e.created_at).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+      return `<tr>
+        <td>${badge}</td>
+        <td><code style="font-size:11px;color:#a78bfa">${escapeHtml(e.ip_address || '—')}</code></td>
+        <td>${escapeHtml(location)}</td>
+        <td>${escapeHtml(e.page || '—')}</td>
+        <td style="color:#888;font-size:12px">${time}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    const body = document.getElementById('analyticsBody');
+    if (body) body.innerHTML = `<tr><td colspan="5" class="ad-empty">Error: ${e.message}</td></tr>`;
+  }
 }

@@ -440,6 +440,21 @@
     saveCart(cart);
     renderCartDrawer();
 
+    // Track add-to-cart event
+    (async function() {
+      try {
+        const cfg = window.THREAD_CONFIG;
+        if (!cfg?.supabaseUrl || !window.supabase) return;
+        const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+        let ip = null, country = null, city = null;
+        try {
+          const geo = await fetch('https://ipapi.co/json/');
+          if (geo.ok) { const d = await geo.json(); ip = d.ip; country = d.country_name; city = d.city; }
+        } catch(_) {}
+        await sb.rpc('log_page_event', { p_event_type: 'add_to_cart', p_ip: ip, p_country: country, p_city: city, p_page: name });
+      } catch(_) {}
+    })();
+
     if (btn) {
       btn.textContent = `✓ Size ${size} Added!`;
       btn.style.background = '#22c55e';

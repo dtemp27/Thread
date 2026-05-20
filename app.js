@@ -1,4 +1,36 @@
-/* ─── AUTH STATE + GLOBAL NAV ─── */
+/* ──
+
+/* ─── VISIT TRACKING ─── */
+(async function () {
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) return;
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+
+    // Skip if already logged this session
+    if (sessionStorage.getItem('thread_visit_logged')) return;
+
+    // Get IP + location from ipapi.co (free, one call)
+    let ip = null, country = null, city = null;
+    try {
+      const geo = await fetch('https://ipapi.co/json/');
+      if (geo.ok) {
+        const d = await geo.json();
+        ip = d.ip; country = d.country_name; city = d.city;
+      }
+    } catch(_) {}
+
+    await sb.rpc('log_page_event', {
+      p_event_type: 'visit',
+      p_ip:         ip,
+      p_country:    country,
+      p_city:       city,
+      p_page:       'home'
+    });
+    sessionStorage.setItem('thread_visit_logged', '1');
+  } catch(_) {}
+})();
+─ AUTH STATE + GLOBAL NAV ─── */
 async function renderNavAuth() {
   const actions = document.getElementById('navActions');
   const navLinks = document.querySelector('#navbar .nav-links');
