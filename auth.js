@@ -134,6 +134,12 @@ async function handleSignUp(event) {
   event.preventDefault();
   clearErrors();
 
+  const agreeTerms = document.getElementById('agreeTerms');
+  if (agreeTerms && !agreeTerms.checked) {
+    showError('signupError', 'Please agree to the Terms & Conditions before creating an account.');
+    return;
+  }
+
   const name     = document.getElementById('signupName').value.trim();
   const dob      = document.getElementById('signupDob').value;
   const email    = document.getElementById('signupEmail').value.trim().toLowerCase();

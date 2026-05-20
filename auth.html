@@ -95,7 +95,10 @@
             <span class="btn-text">Create Account & Get My QR Code</span>
             <span class="btn-loader hidden">Creating account…</span>
           </button>
-          <p style="text-align:center;font-size:11px;color:#555;margin-top:10px;">By creating an account you agree to our <a href="terms.html" target="_blank" style="color:#7c3aed;text-decoration:underline;text-underline-offset:2px">Terms &amp; Conditions</a> &amp; return policy.</p>
+          <div style="display:flex;align-items:flex-start;gap:10px;margin-top:12px">
+            <input type="checkbox" id="agreeTerms" style="margin-top:3px;width:16px;height:16px;accent-color:#7c3aed;flex-shrink:0;cursor:pointer" />
+            <label for="agreeTerms" style="font-size:13px;color:#aaa;line-height:1.5;cursor:pointer">By creating an account you agree to our <a href="terms.html" target="_blank" style="color:#7c3aed;text-decoration:underline;text-underline-offset:2px">Terms &amp; Conditions</a> &amp; return policy.</label>
+          </div>
           <p class="form-alt">Already have an account? <a href="#" onclick="switchTab('signin')">Sign in</a></p>
         </form>
 
