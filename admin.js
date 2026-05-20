@@ -379,7 +379,7 @@ function renderCustomers() {
     const code = c.referral_code || c.referralCode || '';
     const username = c.username ? `<span style="color:#a78bfa;font-weight:600">@${escapeHtml(c.username)}</span>` : '<span style="color:#444">—</span>';
     const qrBtn = code
-      ? `<button class="ad-action-btn" onclick="downloadQR('${escapeHtml(code)}','${escapeHtml(c.name || code)}')">⬇ QR</button>`
+      ? `<button class="ad-action-btn" style="background:#111;color:#fff;margin-right:4px" onclick="downloadQR('${escapeHtml(code)}','${escapeHtml(c.name || code)}','black')">⬛ Black</button><button class="ad-action-btn" style="background:#fff;color:#111;border:1px solid #555" onclick="downloadQR('${escapeHtml(code)}','${escapeHtml(c.name || code)}','white')">⬜ White</button>`
       : '<span style="color:#555">—</span>';
     return `<tr>
       <td><strong>${c.name || '—'}</strong></td>
@@ -501,14 +501,19 @@ async function setStatus(status) {
    Generates a 600×600 QR linking to mythread.shop/?ref=CODE and downloads
    it as a PNG you can drop straight onto the hoodie/tee print file.
 ───────────────────────────────────────────────────────────────────────── */
-async function downloadQR(code, name) {
+async function downloadQR(code, name, color) {
   if (!window.QRCodeStyling) {
     alert('QR library not loaded — please refresh and try again.');
     return;
   }
 
+  const isWhite  = color === 'white';
+  const dotColor = isWhite ? '#ffffff' : '#000000';
+  const bgColor  = isWhite ? '#111111' : '#ffffff';
+
   const url      = `https://mythread.shop/?ref=${encodeURIComponent(code)}`;
   const safeName = (name || code).replace(/[^a-zA-Z0-9_-]/g, '_');
+  const label    = isWhite ? 'WHITE' : 'BLACK';
 
   // Fetch the THREAD logo as a data URL so canvas doesn't get tainted
   let logoDataUrl = null;
@@ -531,10 +536,10 @@ async function downloadQR(code, name) {
     data:   url,
     margin: 40,
     qrOptions:            { errorCorrectionLevel: 'H' },
-    dotsOptions:          { color: '#000000', type: 'dots' },
-    cornersSquareOptions: { color: '#000000', type: 'extra-rounded' },
-    cornersDotOptions:    { color: '#000000', type: 'dot' },
-    backgroundOptions:    { color: '#00000000' },
+    dotsOptions:          { color: dotColor, type: 'dots' },
+    cornersSquareOptions: { color: dotColor, type: 'extra-rounded' },
+    cornersDotOptions:    { color: dotColor, type: 'dot' },
+    backgroundOptions:    { color: bgColor },
     ...(logoDataUrl ? {
       image: logoDataUrl,
       imageOptions: { margin: 8, imageSize: 0.25, hideBackgroundDots: true }
@@ -548,7 +553,7 @@ async function downloadQR(code, name) {
 
   setTimeout(() => {
     const canvas = hidden.querySelector('canvas');
-    if (!canvas) { qr.download({ name: `THREAD-QR-${safeName}`, extension: 'png' }); hidden.remove(); return; }
+    if (!canvas) { qr.download({ name: `THREAD-QR-${label}-${safeName}`, extension: 'png' }); hidden.remove(); return; }
 
     const out = document.createElement('canvas');
     out.width  = canvas.width;
@@ -558,7 +563,7 @@ async function downloadQR(code, name) {
     ctx.drawImage(canvas, 0, 0);
 
     const link = document.createElement('a');
-    link.download = `THREAD-QR-${safeName}.png`;
+    link.download = `THREAD-QR-${label}-${safeName}.png`;
     link.href = out.toDataURL('image/png');
     link.click();
     hidden.remove();
