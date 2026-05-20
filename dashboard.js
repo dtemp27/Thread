@@ -1394,13 +1394,14 @@ function renderRequestsList(list) {
   const el = document.getElementById('requestsList');
   if (!list.length) { el.innerHTML = '<div class="lb-empty">No pending requests</div>'; return; }
   el.innerHTML = list.map(r => `
-    <div class="fw-row">
+    <div class="fw-row" id="fwreq-${r.follow_id}">
       <div class="fw-avatar">${(r.name||'?')[0].toUpperCase()}</div>
       <div class="fw-info">
         <div class="fw-name">${escFw(r.name || '—')}</div>
         <div class="fw-handle">@${escFw(r.username || '—')}</div>
       </div>
-      <div style="display:flex;gap:8px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+        <button class="fw-action-btn fw-follow" onclick="acceptAndFollowBack('${r.follow_id}','${r.follower_id}','${escFw(r.name)}',this)">Follow Back</button>
         <button class="fw-action-btn fw-accept" onclick="respondToRequest('${r.follow_id}', true)">Accept</button>
         <button class="fw-action-btn fw-decline" onclick="respondToRequest('${r.follow_id}', false)">Decline</button>
       </div>
@@ -1413,9 +1414,27 @@ async function respondToRequest(followId, accept) {
   try {
     const { error } = await _sb.rpc('respond_to_follow_request', { p_follow_id: followId, p_accept: accept });
     if (error) throw new Error(error.message);
-    showToast(accept ? 'Follow request accepted' : 'Request declined', 'success');
+    showToast(accept ? 'Request accepted' : 'Request declined', 'success');
     loadFollowing();
   } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function acceptAndFollowBack(followId, requesterId, requesterName, btn) {
+  if (!_sb) return;
+  btn.textContent = '…'; btn.disabled = true;
+  try {
+    // Accept their request
+    const { error: e1 } = await _sb.rpc('respond_to_follow_request', { p_follow_id: followId, p_accept: true });
+    if (e1) throw new Error(e1.message);
+    // Send a follow request back to them
+    const { error: e2 } = await _sb.rpc('send_follow_request', { p_target_id: requesterId });
+    if (e2) throw new Error(e2.message);
+    showToast(`Accepted & followed ${requesterName} back`, 'success');
+    loadFollowing();
+  } catch(e) {
+    btn.textContent = 'Follow Back'; btn.disabled = false;
+    showToast('Error: ' + e.message, 'error');
+  }
 }
 
 async function unfollowUser(targetId, targetName) {
