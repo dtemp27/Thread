@@ -159,6 +159,7 @@ function bootUI() {
   renderOwnAvatar();
   document.getElementById('suName').textContent        = user.name;
   document.getElementById('suEmail').textContent       = user.email;
+  renderSidebarUsername();
   document.getElementById('tcValue').textContent       = user.referralCode;
   document.getElementById('refLinkInput').value        = refURL;
   document.getElementById('qcdValue').textContent      = user.referralCode;
@@ -896,6 +897,60 @@ function renderPurchases() {
       </div>
     </div>`;
   }).join('');
+}
+
+/* ═══════════════════════════════════════════════
+   USERNAME
+═══════════════════════════════════════════════ */
+function renderSidebarUsername() {
+  const el = document.getElementById('suUsername');
+  if (el) el.textContent = user.username ? `@${user.username}` : 'Set username';
+}
+
+function openUsernameEdit() {
+  const input = document.getElementById('newUsernameInput');
+  const err   = document.getElementById('usernameEditError');
+  if (input) input.value = user.username || '';
+  if (err)   err.style.display = 'none';
+  openModal('usernameModal');
+}
+
+async function saveUsername() {
+  const input    = document.getElementById('newUsernameInput');
+  const err      = document.getElementById('usernameEditError');
+  const btn      = document.getElementById('saveUsernameBtn');
+  const newName  = (input?.value || '').trim().toLowerCase();
+
+  err.style.display = 'none';
+  if (!newName)          { err.textContent = 'Please enter a username.'; err.style.display = 'block'; return; }
+  if (newName.length < 3){ err.textContent = 'Must be at least 3 characters.'; err.style.display = 'block'; return; }
+  if (!/^[a-z0-9_]+$/.test(newName)) { err.textContent = 'Letters, numbers, and underscores only.'; err.style.display = 'block'; return; }
+  if (newName === user.username) { closeModal('usernameModal'); return; }
+
+  btn.textContent = 'Saving…'; btn.disabled = true;
+  try {
+    if (!_sb) throw new Error('Not connected');
+
+    // Check availability
+    const { data: available } = await _sb.rpc('check_username_available', { p_username: newName });
+    if (available === false) {
+      err.textContent = 'That username is already taken.'; err.style.display = 'block';
+      btn.textContent = 'Save Username'; btn.disabled = false; return;
+    }
+
+    const { error } = await _sb.from('profiles').update({ username: newName }).eq('id', user.id);
+    if (error) throw new Error(error.message);
+
+    user.username = newName;
+    renderSidebarUsername();
+    // Update welcome message
+    document.getElementById('welcomeMsg').textContent = `Welcome back, @${newName}! 👋`;
+    closeModal('usernameModal');
+    showToast('✓ Username updated to @' + newName, 'success');
+  } catch(e) {
+    err.textContent = 'Error: ' + e.message; err.style.display = 'block';
+  }
+  btn.textContent = 'Save Username'; btn.disabled = false;
 }
 
 /* ═══════════════════════════════════════════════

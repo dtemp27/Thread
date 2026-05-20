@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="dashboard.css?v=20260520e" />
+  <link rel="stylesheet" href="dashboard.css?v=20260520f" />
 </head>
 <body>
 
@@ -55,6 +55,10 @@
         <div class="su-info">
           <strong id="suName"></strong>
           <span id="suEmail"></span>
+          <div class="su-username-row">
+            <span id="suUsername" class="su-username"></span>
+            <button class="su-edit-btn" onclick="openUsernameEdit()" title="Change username">✏️</button>
+          </div>
         </div>
       </div>
       <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)" />
@@ -553,6 +557,23 @@
 
   </main>
 
+  <!-- ─── USERNAME EDIT MODAL ─── -->
+  <div class="modal-overlay" id="usernameModal">
+    <div class="modal-box" style="max-width:380px">
+      <button class="modal-close" onclick="closeModal('usernameModal')">✕</button>
+      <h3>Change Username</h3>
+      <p style="font-size:13px;color:#888;margin:6px 0 20px">Your @username is shown on your profile and QR referral banner.</p>
+      <div style="position:relative">
+        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#7c3aed;font-weight:700">@</span>
+        <input type="text" id="newUsernameInput" maxlength="20"
+          style="width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:12px 14px 12px 30px;color:#fff;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box"
+          placeholder="newusername" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9_]/g,'')" />
+      </div>
+      <div class="form-error" id="usernameEditError" style="margin-top:10px;font-size:13px;color:#f87171;display:none"></div>
+      <button class="btn-submit-modal" id="saveUsernameBtn" onclick="saveUsername()" style="margin-top:16px">Save Username</button>
+    </div>
+  </div>
+
   <!-- ─── CASHOUT MODAL ─── -->
   <div class="modal-overlay" id="cashoutModal">
     <div class="modal-box">
@@ -591,6 +612,6 @@
   <script src="config.js?v=20260519c"></script>
   <script src="db.js?v=20260519c"></script>
   <script src="tiers.js?v=20260519c"></script>
-  <script src="dashboard.js?v=20260520e"></script>
+  <script src="dashboard.js?v=20260520f"></script>
 </body>
 </html>
