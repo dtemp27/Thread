@@ -523,7 +523,7 @@ async function downloadQR(code, name) {
     dotsOptions:          { color: '#000000', type: 'dots' },
     cornersSquareOptions: { color: '#000000', type: 'extra-rounded' },
     cornersDotOptions:    { color: '#000000', type: 'dot' },
-    backgroundOptions:    { color: '#ffffff' },
+    backgroundOptions:    { color: '#ff00ff' },
     ...(logoDataUrl ? {
       image: logoDataUrl,
       imageOptions: { margin: 10, imageSize: 0.3, hideBackgroundDots: true }
@@ -548,12 +548,12 @@ async function downloadQR(code, name) {
     ctx.clearRect(0, 0, out.width, out.height);
     ctx.drawImage(canvas, 0, 0);
 
-    // Walk pixels: turn pure white (255,255,255) transparent
+    // Walk pixels: remove ONLY the magenta background (#ff00ff), preserve everything else (including white logo)
     const imgData = ctx.getImageData(0, 0, out.width, out.height);
     const d = imgData.data;
     for (let i = 0; i < d.length; i += 4) {
-      if (d[i] > 240 && d[i+1] > 240 && d[i+2] > 240) {
-        d[i+3] = 0; // fully transparent
+      if (d[i] > 200 && d[i+1] < 80 && d[i+2] > 200) {
+        d[i+3] = 0; // transparent - only hits magenta, never black dots or white logo
       }
     }
     ctx.putImageData(imgData, 0, 0);
