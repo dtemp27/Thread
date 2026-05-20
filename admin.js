@@ -686,6 +686,34 @@ async function confirmClearData() {
   } catch(e) { alert('Error: ' + e.message); }
 }
 
+/* ─── GLOBAL CLEAR ACTIONS ─────────────────────────────────────────────────── */
+async function clearAllScans() {
+  if (!confirm('Delete ALL referral scan records? This cannot be undone.')) return;
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) { alert('Supabase not connected'); return; }
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const { error } = await sb.rpc('clear_all_referral_scans');
+    if (error) { alert('Failed: ' + error.message); return; }
+    allScans = [];
+    renderReferrals();
+    alert('All referral scans cleared.');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function clearAllAnalytics() {
+  if (!confirm('Delete ALL analytics events (visits + carts)? This cannot be undone.')) return;
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) { alert('Supabase not connected'); return; }
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const { error } = await sb.rpc('clear_all_analytics');
+    if (error) { alert('Failed: ' + error.message); return; }
+    loadAnalytics();
+    alert('All analytics events cleared.');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
 /* ─── ANALYTICS ────────────────────────────────────────────────────────────── */
 async function loadAnalytics() {
   const body = document.getElementById('analyticsBody');
