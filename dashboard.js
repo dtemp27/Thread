@@ -1327,6 +1327,7 @@ function loadDemoData() {
 
   _updateDemoBtn(true);
   renderAll();
+  renderDemoFollowing();
   scheduleNextScan();   // start live scan simulation only in demo mode
   showToast('📊 Demo mode on — live scans simulated', 'success');
 }
@@ -1345,6 +1346,7 @@ function clearDemoData() {
   stopDemoScans();      // stop live scan simulation
   _updateDemoBtn(false);
   renderAll();
+  loadFollowing();      // restore real following data
   showToast('Demo mode off — showing your real data', '');
 }
 
@@ -1465,7 +1467,23 @@ async function acceptFollowFromSearch(followId) {
   doFollowSearch(document.getElementById('followSearchInput').value);
 }
 
+const DEMO_FOLLOWING = [
+  { following_id:'d1', name:'Marcus Reid',   username:'marcusreid',  total_scans:312, total_earned:847, avatar_url:null },
+  { following_id:'d2', name:'Ava Chen',      username:'avachen',     total_scans:198, total_earned:512, avatar_url:null },
+  { following_id:'d3', name:'Jordan Wells',  username:'jordanwells', total_scans:87,  total_earned:210, avatar_url:null },
+];
+
+function renderDemoFollowing() {
+  renderFollowingList(DEMO_FOLLOWING);
+  // Show empty requests in demo
+  const badge = document.getElementById('fwRequestBadge');
+  if (badge) badge.style.display = 'none';
+  const reqEl = document.getElementById('requestsList');
+  if (reqEl) reqEl.innerHTML = '<div class="lb-empty">No pending requests</div>';
+}
+
 async function loadFollowing() {
+  if (isDemoActive()) { renderDemoFollowing(); return; }
   if (!_sb || !user?.id) {
     document.getElementById('followingList').innerHTML = '<div class="lb-empty">Sign in to use following</div>';
     return;
