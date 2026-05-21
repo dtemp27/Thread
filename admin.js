@@ -95,6 +95,7 @@ async function loadAllData() {
   safe(renderReferrals, 'renderReferrals');
   safe(loadDropBoxes,   'loadDropBoxes');
   safe(loadAnalytics,   'loadAnalytics');
+  safe(loadTrackedQRs,  'loadTrackedQRs');
   safe(() => showSection('overview'), 'showSection');
 
   if (!refresh.textContent.startsWith('ERROR')) refresh.textContent = 'Updated ' + new Date().toLocaleTimeString();
@@ -449,6 +450,60 @@ function renderCustomers() {
       <td><button class="ad-action-btn" style="background:#7f1d1d;color:#fca5a5;font-size:11px" onclick="clearAccountData('${escapeHtml(c.id || '')}','${escapeHtml(c.email || '')}','${escapeHtml(c.name || '')}')">🗑 Clear</button></td>
     </tr>`;
   }).join('') : '<tr><td colspan="10" class="ad-empty">No customers</td></tr>';
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   TRACKED QR CODES
+───────────────────────────────────────────────────────────────────────── */
+async function loadTrackedQRs() {
+  const body = document.getElementById('trackedQRBody');
+  if (!body) return;
+  const cfg = window.THREAD_CONFIG;
+  if (!cfg?.supabaseUrl || !window.supabase) return;
+  const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+
+  const { data, error } = await sb.rpc('get_tracked_qr_stats');
+  if (error || !data?.length) {
+    body.innerHTML = '<tr><td colspan="6" class="ad-empty">No tracked codes yet — add one above</td></tr>';
+    return;
+  }
+  body.innerHTML = data.map(row => {
+    const lastScan = row.last_scan
+      ? new Date(row.last_scan).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' })
+      : '—';
+    return `<tr>
+      <td><strong>${escapeHtml(row.label || row.code)}</strong></td>
+      <td><code style="font-size:11px">${escapeHtml(row.code)}</code></td>
+      <td><strong style="font-size:18px;color:#a78bfa">${row.scan_count || 0}</strong></td>
+      <td style="font-size:12px;color:#888">${lastScan}</td>
+      <td><button class="ad-action-btn" style="background:#111;color:#fff" onclick="downloadQR('${escapeHtml(row.code)}','${escapeHtml(row.label||row.code)}','black')">⬛ QR</button></td>
+      <td><button class="ad-action-btn" style="background:#7f1d1d;color:#fca5a5;font-size:11px" onclick="removeTrackedQR('${escapeHtml(row.id)}')">Remove</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function addTrackedQR() {
+  const code  = (document.getElementById('newQRCodeInput')?.value  || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  const label = (document.getElementById('newQRLabelInput')?.value || '').trim();
+  if (!code) { alert('Enter a code first.'); return; }
+  const cfg = window.THREAD_CONFIG;
+  if (!cfg?.supabaseUrl || !window.supabase) return;
+  const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+  const { error } = await sb.rpc('add_tracked_qr', { p_code: code, p_label: label || code });
+  if (error) { alert('Error: ' + error.message); return; }
+  document.getElementById('newQRCodeInput').value  = '';
+  document.getElementById('newQRLabelInput').value = '';
+  loadTrackedQRs();
+}
+
+async function removeTrackedQR(id) {
+  if (!confirm('Remove this tracked code?')) return;
+  const cfg = window.THREAD_CONFIG;
+  if (!cfg?.supabaseUrl || !window.supabase) return;
+  const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+  const { error } = await sb.rpc('remove_tracked_qr', { p_id: id });
+  if (error) { alert('Error: ' + error.message); return; }
+  loadTrackedQRs();
 }
 
 /* ─────────────────────────────────────────────────────────────────────────

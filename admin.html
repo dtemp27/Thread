@@ -238,6 +238,30 @@
           </table>
         </div>
 
+        <!-- TRACKED QR CODES -->
+        <div class="ad-card">
+          <div class="ad-card-header">
+            <h3>📍 Tracked QR Codes</h3>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="text" id="newQRCodeInput" placeholder="code (e.g. bogoegg)"
+                style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:7px 12px;color:#fff;font-size:13px;font-family:inherit;outline:none;width:180px"
+                onkeydown="if(event.key==='Enter')addTrackedQR()" />
+              <input type="text" id="newQRLabelInput" placeholder="label (optional)"
+                style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:7px 12px;color:#fff;font-size:13px;font-family:inherit;outline:none;width:140px"
+                onkeydown="if(event.key==='Enter')addTrackedQR()" />
+              <button class="ad-action-btn" style="background:#7c3aed;color:#fff" onclick="addTrackedQR()">+ Add</button>
+            </div>
+          </div>
+          <table class="ad-table">
+            <thead><tr>
+              <th>Label</th><th>Code</th><th>Total Scans</th><th>Last Scan</th><th>QR</th><th>Remove</th>
+            </tr></thead>
+            <tbody id="trackedQRBody">
+              <tr><td colspan="6" class="ad-empty">No tracked codes yet — add one above</td></tr>
+            </tbody>
+          </table>
+        </div>
+
         <div class="ad-card">
           <div class="ad-card-header">
             <h3>Recent Scan Events</h3>
@@ -412,6 +436,6 @@
   <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
   <script src="db.js?v=20260519d"></script>
   <script src="tiers.js?v=20260519d"></script>
-  <script src="admin.js?v=20260520c"></script>
+  <script src="admin.js?v=20260520d"></script>
 </body>
 </html>
