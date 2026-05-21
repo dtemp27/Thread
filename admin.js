@@ -790,33 +790,97 @@ async function loadAnalytics() {
       return;
     }
 
-    const visits     = data.filter(e => e.event_type === 'visit');
-    const carts      = data.filter(e => e.event_type === 'add_to_cart');
-    const uniqueIPs  = new Set(visits.map(e => e.ip_address).filter(Boolean));
-    const cartRate   = visits.length ? Math.round((carts.length / visits.length) * 100) : 0;
+    const visits    = data.filter(e => e.event_type === 'visit');
+    const carts     = data.filter(e => e.event_type === 'add_to_cart');
+    const clicks    = data.filter(e => e.event_type === 'click');
+    const scrolls   = data.filter(e => e.event_type === 'scroll_depth');
+    const sections  = data.filter(e => e.event_type === 'section_view');
+    const timings   = data.filter(e => e.event_type === 'time_on_page');
+    const uniqueIPs = new Set(visits.map(e => e.ip_address).filter(Boolean));
+    const cartRate  = visits.length ? Math.round((carts.length / visits.length) * 100) : 0;
 
     document.getElementById('statUniqueVisitors').textContent = uniqueIPs.size;
     document.getElementById('statTotalVisits').textContent    = visits.length;
     document.getElementById('statAddToCarts').textContent     = carts.length;
     document.getElementById('statCartRate').textContent       = cartRate + '%';
 
+    // Top clicks breakdown
+    const clickCounts = {};
+    clicks.forEach(e => { const l = e.page_label || e.page || '—'; clickCounts[l] = (clickCounts[l]||0)+1; });
+    const topClicks = Object.entries(clickCounts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+
+    // Scroll depth breakdown
+    const scrollCounts = {};
+    scrolls.forEach(e => { const l = e.page_label || e.page || '—'; scrollCounts[l] = (scrollCounts[l]||0)+1; });
+
+    // Section views
+    const sectionCounts = {};
+    sections.forEach(e => { const l = e.page_label || e.page || '—'; sectionCounts[l] = (sectionCounts[l]||0)+1; });
+
+    // Time on page
+    const timingCounts = {};
+    timings.forEach(e => { const l = e.page_label || e.page || '—'; timingCounts[l] = (timingCounts[l]||0)+1; });
+
+    // Render breakdowns
+    const clicksEl = document.getElementById('analyticsClicks');
+    if (clicksEl) {
+      clicksEl.innerHTML = topClicks.length
+        ? topClicks.map(([label, count]) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1a1a1a">
+            <span style="font-size:13px;color:#ccc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px">${escapeHtml(label)}</span>
+            <span style="font-family:var(--mono);font-size:13px;color:#a78bfa;flex-shrink:0;margin-left:12px">${count}×</span>
+          </div>`).join('')
+        : '<div style="color:#555;font-size:13px;padding:8px 0">No click data yet</div>';
+    }
+
+    const scrollEl = document.getElementById('analyticsScroll');
+    if (scrollEl) {
+      const order = ['25%','50%','75%','90%'];
+      scrollEl.innerHTML = order.map(d => {
+        const n = scrollCounts[d] || 0;
+        const pct = visits.length ? Math.round((n/visits.length)*100) : 0;
+        return `<div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#aaa;margin-bottom:4px"><span>${d}</span><span>${n} visitors (${pct}%)</span></div>
+          <div style="background:#1a1a1a;border-radius:4px;height:6px"><div style="background:#7c3aed;height:6px;border-radius:4px;width:${pct}%"></div></div>
+        </div>`;
+      }).join('');
+    }
+
+    const timingEl = document.getElementById('analyticsTiming');
+    if (timingEl) {
+      const order2 = ['<15s','15-30s','30-60s','1-3m','3m+'];
+      timingEl.innerHTML = order2.map(d => {
+        const n = timingCounts[d] || 0;
+        return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px">
+          <span style="color:#aaa">${d}</span><span style="color:#4ade80;font-family:var(--mono)">${n}</span>
+        </div>`;
+      }).join('');
+    }
+
     if (!data.length) {
-      body.innerHTML = '<tr><td colspan="5" class="ad-empty">No events yet — visit the site to start tracking</td></tr>';
+      body.innerHTML = '<tr><td colspan="6" class="ad-empty">No events yet — visit the site to start tracking</td></tr>';
       return;
     }
 
+    const EVENT_BADGES = {
+      visit:        '<span style="background:#1a472a;color:#4ade80;padding:2px 7px;border-radius:10px;font-size:11px">👁 Visit</span>',
+      add_to_cart:  '<span style="background:#4c1d95;color:#c4b5fd;padding:2px 7px;border-radius:10px;font-size:11px">🛒 Cart</span>',
+      click:        '<span style="background:#1e3a5f;color:#93c5fd;padding:2px 7px;border-radius:10px;font-size:11px">👆 Click</span>',
+      scroll_depth: '<span style="background:#1c2f1c;color:#86efac;padding:2px 7px;border-radius:10px;font-size:11px">📜 Scroll</span>',
+      section_view: '<span style="background:#2d1b00;color:#fcd34d;padding:2px 7px;border-radius:10px;font-size:11px">📍 Section</span>',
+      time_on_page: '<span style="background:#1f1f1f;color:#9ca3af;padding:2px 7px;border-radius:10px;font-size:11px">⏱ Time</span>',
+    };
+
     body.innerHTML = data.map(e => {
-      const isCart    = e.event_type === 'add_to_cart';
-      const badge     = isCart
-        ? '<span style="background:#7c3aed;color:#fff;padding:2px 8px;border-radius:12px;font-size:11px">🛒 Cart</span>'
-        : '<span style="background:#1a472a;color:#4ade80;padding:2px 8px;border-radius:12px;font-size:11px">👁 Visit</span>';
-      const location  = [e.city, e.country].filter(Boolean).join(', ') || '—';
-      const time      = new Date(e.created_at).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+      const badge    = EVENT_BADGES[e.event_type] || `<span style="background:#1a1a1a;color:#888;padding:2px 7px;border-radius:10px;font-size:11px">${e.event_type}</span>`;
+      const location = [e.city, e.country].filter(Boolean).join(', ') || '—';
+      const time     = new Date(e.created_at).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+      const label    = e.page_label || '';
       return `<tr>
         <td>${badge}</td>
         <td><code style="font-size:11px;color:#a78bfa">${escapeHtml(e.ip_address || '—')}</code></td>
         <td>${escapeHtml(location)}</td>
-        <td>${escapeHtml(e.page || '—')}</td>
+        <td>${escapeHtml(e.page || '—')}${label ? `<span style="color:#888;font-size:11px"> · ${escapeHtml(label)}</span>` : ''}</td>
         <td style="color:#888;font-size:12px">${time}</td>
       </tr>`;
     }).join('');

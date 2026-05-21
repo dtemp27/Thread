@@ -1,33 +1,79 @@
 /* ──
 
-/* ─── VISIT TRACKING ─── */
+/* ─── BEHAVIOUR TRACKING ─── */
 (async function () {
   try {
     const cfg = window.THREAD_CONFIG;
     if (!cfg?.supabaseUrl || !window.supabase) return;
     const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const PAGE = 'home';
 
-    // Skip if already logged this session
-    if (sessionStorage.getItem('thread_visit_logged')) return;
-
-    // Get IP + location from ipapi.co (free, one call)
-    let ip = null, country = null, city = null;
+    // Fetch geo once per session and cache it
+    let geo = {};
     try {
-      const geo = await fetch('https://ipapi.co/json/');
-      if (geo.ok) {
-        const d = await geo.json();
-        ip = d.ip; country = d.country_name; city = d.city;
+      const cached = sessionStorage.getItem('thread_geo');
+      if (cached) {
+        geo = JSON.parse(cached);
+      } else {
+        const r = await fetch('https://ipapi.co/json/');
+        if (r.ok) { geo = await r.json(); sessionStorage.setItem('thread_geo', JSON.stringify(geo)); }
       }
     } catch(_) {}
+    const ip = geo.ip || null, country = geo.country_name || null, city = geo.city || null;
 
-    await sb.rpc('log_page_event', {
-      p_event_type: 'visit',
-      p_ip:         ip,
-      p_country:    country,
-      p_city:       city,
-      p_page:       'home'
+    // Helper: fire an event (throttled per label to avoid duplicates)
+    async function track(type, label) {
+      const key = `thread_tracked_${type}_${label}`;
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, '1');
+      try {
+        await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_page: PAGE, p_label: label });
+      } catch(_) {}
+    }
+
+    // 1 — Page visit
+    await track('visit', PAGE);
+
+    // 2 — Time on page (fire on leave)
+    const _arrivalTime = Date.now();
+    window.addEventListener('pagehide', () => {
+      const secs = Math.round((Date.now() - _arrivalTime) / 1000);
+      if (secs < 3) return;
+      const bucket = secs < 15 ? '<15s' : secs < 30 ? '15-30s' : secs < 60 ? '30-60s' : secs < 180 ? '1-3m' : '3m+';
+      navigator.sendBeacon && navigator.sendBeacon('/ping'); // no-op beacon to keep session alive
+      sb.rpc('log_page_event', { p_event_type: 'time_on_page', p_ip: ip, p_country: country, p_city: city, p_page: PAGE, p_label: bucket });
     });
-    sessionStorage.setItem('thread_visit_logged', '1');
+
+    // 3 — Scroll depth milestones (25 / 50 / 75 / 90 %)
+    const _scrollFired = new Set();
+    window.addEventListener('scroll', () => {
+      const pct = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+      [25, 50, 75, 90].forEach(m => {
+        if (pct >= m && !_scrollFired.has(m)) { _scrollFired.add(m); track('scroll_depth', m + '%'); }
+      });
+    }, { passive: true });
+
+    // 4 — CTA click tracking (delegated)
+    document.addEventListener('click', e => {
+      const el = e.target.closest('a,button,[data-track]');
+      if (!el) return;
+      const label =
+        el.dataset.track ||
+        el.id ||
+        (el.textContent || '').trim().slice(0, 40) ||
+        el.className.split(' ')[0];
+      if (label) track('click', label);
+    });
+
+    // 5 — Section visibility (Intersection Observer)
+    const sections = document.querySelectorAll('section[id], .section[id], [data-section]');
+    if (sections.length && 'IntersectionObserver' in window) {
+      const obs = new IntersectionObserver(entries => {
+        entries.forEach(en => { if (en.isIntersecting) track('section_view', en.target.id || en.target.dataset.section); });
+      }, { threshold: 0.4 });
+      sections.forEach(s => obs.observe(s));
+    }
+
   } catch(_) {}
 })();
 /* ─── AUTH STATE + GLOBAL NAV ─── */
