@@ -79,10 +79,10 @@
     .lp-hero-bg {
       position: absolute;
       inset: 0;
-      background-image: url('images/phantom-black-back.jpg');
+      background-image: url('ADS/Ad Airport.png');
       background-size: cover;
-      background-position: center top;
-      filter: brightness(0.55);
+      background-position: center center;
+      filter: brightness(0.6);
       transform: scale(1.03);
       transition: transform 8s ease-out;
     }
@@ -595,10 +595,10 @@
     const bg = document.getElementById('lpHeroBg');
     const img = new Image();
     img.onload = () => {
-      bg.style.backgroundImage = "url('images/phantom-black-back.jpg')";
+      bg.style.backgroundImage = "url('ADS/Ad Airport.png')";
       requestAnimationFrame(() => bg.classList.add('loaded'));
     };
-    img.src = 'images/phantom-black-back.jpg';
+    img.src = 'ADS/Ad Airport.png';
 
     // Smooth scroll for "See How It Works"
     document.querySelectorAll('a[href="#how-it-works"]').forEach(a => {
