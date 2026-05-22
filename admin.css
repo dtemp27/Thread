@@ -413,61 +413,15 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); min-
 }
 .ad-action-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
 
-/* ─── HAMBURGER ──────────────────────────────────────────────────────────── */
-.ad-hamburger {
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  gap: 5px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  margin-right: 10px;
-  flex-shrink: 0;
-}
-.ad-hamburger span {
-  display: block;
-  width: 22px;
-  height: 2px;
-  background: #fff;
-  border-radius: 2px;
-  transition: all .2s;
-}
-
-/* ─── SIDEBAR CLOSE BUTTON ───────────────────────────────────────────────── */
+/* ─── SIDEBAR TOP (desktop only — no close button needed) ───────────────── */
 .ad-sidebar-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 12px;
+  display: contents; /* transparent wrapper — sidebar still shows .ad-logo normally */
 }
-.ad-sidebar-top .ad-logo {
-  border-bottom: none;
-  margin-bottom: 0;
-}
-.ad-sidebar-close {
-  display: none;
-  background: none;
-  border: none;
-  color: var(--muted);
-  font-size: 18px;
-  cursor: pointer;
-  padding: 24px 20px;
-  line-height: 1;
-}
-.ad-sidebar-close:hover { color: #fff; }
+.ad-sidebar-close   { display: none; }
+.ad-sidebar-overlay { display: none; }
 
-/* ─── SIDEBAR OVERLAY BACKDROP ───────────────────────────────────────────── */
-.ad-sidebar-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.6);
-  z-index: 9;
-}
-.ad-sidebar-overlay.open { display: block; }
+/* ─── BOTTOM NAV (mobile only) ───────────────────────────────────────────── */
+.ad-bottom-nav { display: none; }
 
 /* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
@@ -475,17 +429,13 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); min-
 }
 
 @media (max-width: 768px) {
-  .ad-toolbar { flex-wrap: wrap; }
-  .ad-search { width: 100%; }
-  .ad-filters { flex-wrap: wrap; }
-
-  /* Make tables scroll horizontally inside their cards */
-  .ad-card { overflow-x: auto; }
-
-  /* Modal: full-width with padding, scrollable in landscape */
+  .ad-toolbar  { flex-wrap: wrap; }
+  .ad-search   { width: 100%; }
+  .ad-filters  { flex-wrap: wrap; }
+  .ad-card     { overflow-x: auto; }
   .ad-modal {
     width: calc(100vw - 32px);
-    max-height: 90vh;
+    max-height: 85vh;
     overflow-y: auto;
     padding: 24px 20px;
   }
@@ -494,34 +444,74 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); min-
 @media (max-width: 640px) {
   :root { --sidebar-w: 0px; }
 
-  /* Sidebar becomes a slide-in drawer */
-  .ad-sidebar {
-    transform: translateX(-100%);
-    transition: transform .25s ease;
-    width: 240px;
-    z-index: 200;
-    overflow-y: auto;
+  /* Hide sidebar — bottom nav replaces it */
+  .ad-sidebar { display: none; }
+
+  /* Bottom tab bar */
+  .ad-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 62px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    z-index: 50;
+    padding-bottom: env(safe-area-inset-bottom);
   }
-  .ad-sidebar.open { transform: translateX(0); }
+  .ad-bn-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: var(--font);
+    font-size: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    transition: color .15s;
+    padding: 6px 2px;
+  }
+  .ad-bn-item.active { color: #fff; }
+  .ad-bn-item svg { flex-shrink: 0; }
+  .ad-bn-badge {
+    position: absolute;
+    top: 4px;
+    right: calc(50% - 16px);
+    width: 8px; height: 8px;
+    background: var(--red);
+    border-radius: 50%;
+    display: none;
+  }
+  .ad-bn-badge.show { display: block; }
 
-  .ad-sidebar-close { display: block; }
-  .ad-hamburger { display: flex; }
+  /* Push content above bottom nav */
+  .ad-main { padding-bottom: 62px; }
 
-  .ad-section { padding: 12px; }
+  .ad-section  { padding: 12px; }
   .ad-stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .ad-topbar { padding: 12px 16px; }
+  .ad-topbar   { padding: 10px 14px; }
   .ad-topbar h1 { font-size: 16px; }
   .ad-last-refresh { display: none; }
-  .asc-value { font-size: 22px; }
+  .asc-value   { font-size: 20px; }
+  .ad-stat-card { padding: 14px; }
+  .ad-refresh-btn span { display: none; } /* icon only on mobile */
 }
 
-/* Landscape phones: keep sidebar scrollable, shrink topbar */
+/* Landscape phones */
 @media (max-height: 500px) and (max-width: 900px) {
-  .ad-topbar { padding: 8px 16px; position: relative; }
-  .ad-topbar h1 { font-size: 15px; }
-  .ad-sidebar { overflow-y: auto; }
+  .ad-topbar   { padding: 6px 14px; }
+  .ad-topbar h1 { font-size: 14px; }
   .ad-stats-row { grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .asc-value { font-size: 18px; }
-  .ad-section { padding: 10px 12px; gap: 12px; }
-  .ad-stat-card { padding: 12px; }
+  .asc-value   { font-size: 16px; }
+  .ad-section  { padding: 8px 12px; gap: 10px; }
+  .ad-stat-card { padding: 10px; }
+  .ad-bottom-nav { height: 50px; }
+  .ad-main { padding-bottom: 50px; }
+  .ad-bn-item span { display: none; } /* icons only in landscape */
+  .ad-bn-item { padding: 0; }
 }

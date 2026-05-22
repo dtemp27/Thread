@@ -56,26 +56,17 @@ function updateModeBadge() {
   }
 }
 
-/* ─── Mobile sidebar ────────────────────────────────────────────────────── */
-function openSidebar() {
-  document.getElementById('adSidebar').classList.add('open');
-  document.getElementById('sidebarOverlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-function closeSidebar() {
-  document.getElementById('adSidebar').classList.remove('open');
-  document.getElementById('sidebarOverlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
 /* ─── Navigation ────────────────────────────────────────────────────────── */
 let currentSection = 'overview';
+
+const SECTION_TITLES = { overview:'Overview', orders:'Orders', customers:'Customers', referrals:'Referrals', dropboxes:'Drop Boxes' };
 
 function showSection(name) {
   document.querySelectorAll('.ad-section').forEach(s => s.style.display = 'none');
   document.querySelectorAll('.ad-nav-item').forEach(b => b.classList.toggle('active', b.dataset.section === name));
+  document.querySelectorAll('.ad-bn-item').forEach(b => b.classList.toggle('active', b.dataset.section === name));
   document.getElementById('sec-' + name).style.display = 'flex';
-  document.getElementById('adPageTitle').textContent = name.charAt(0).toUpperCase() + name.slice(1);
+  document.getElementById('adPageTitle').textContent = SECTION_TITLES[name] || name;
   currentSection = name;
 }
 
@@ -181,7 +172,9 @@ async function loadDropBoxes() {
   // 3. Render queue
   const body  = document.getElementById('dropBoxBody');
   const badge = document.getElementById('dropBoxBadge');
+  const bnDropBadge = document.getElementById('bnDropBadge');
   if (badge) badge.textContent = owed.length;
+  if (bnDropBadge) owed.length > 0 ? bnDropBadge.classList.add('show') : bnDropBadge.classList.remove('show');
 
   if (!owed.length) {
     body.innerHTML = `<tr><td colspan="6" class="ad-empty">No pending drop boxes 👌</td></tr>`;
@@ -254,11 +247,15 @@ function renderOverview() {
   document.getElementById('ovCustomers').textContent = allCustomers.length;
   document.getElementById('ovCommissions').textContent = '$' + commissions.toFixed(2);
 
-  // Pending badge
+  // Pending badge (sidebar + bottom nav)
   const badge = document.getElementById('pendingBadge');
+  const bnBadge = document.getElementById('bnPendingBadge');
   if (pendingOrders.length > 0) {
     badge.textContent = pendingOrders.length;
     badge.classList.add('show');
+    if (bnBadge) bnBadge.classList.add('show');
+  } else {
+    if (bnBadge) bnBadge.classList.remove('show');
   }
 
   // Recent orders table (last 5)
