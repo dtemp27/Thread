@@ -191,93 +191,123 @@
     }
     .lp-btn-ghost:hover { border-color: var(--accent2); background: rgba(108,99,255,0.08); }
 
-    /* ── FLOATING EARNINGS CARD ── */
-    .lp-earn-card {
-      position: absolute;
-      z-index: 10;
-      top: 80px;
-      right: 16px;
-      background: rgba(18,18,18,0.92);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 14px;
-      padding: 10px 14px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-      animation: floatCard 0.6s cubic-bezier(0.34,1.56,0.64,1) 1.2s both;
-      max-width: 220px;
-    }
-    @keyframes floatCard {
-      from { opacity: 0; transform: translateY(-10px) scale(0.9); }
+    /* ── FLOATING NOTIFICATION CARDS ── */
+    @keyframes floatFromTop {
+      from { opacity: 0; transform: translateY(-16px) scale(0.92); }
       to   { opacity: 1; transform: translateY(0) scale(1); }
     }
-    .lp-earn-icon {
-      width: 30px; height: 30px;
-      border-radius: 50%;
-      background: var(--green);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px;
-      flex-shrink: 0;
+    @keyframes floatFromLeft {
+      from { opacity: 0; transform: translateX(-16px) scale(0.92); }
+      to   { opacity: 1; transform: translateX(0) scale(1); }
     }
-    .lp-earn-label {
-      font-size: 9px;
-      color: #888;
-      font-weight: 500;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
+    @keyframes floatFromRight {
+      from { opacity: 0; transform: translateX(16px) scale(0.92); }
+      to   { opacity: 1; transform: translateX(0) scale(1); }
     }
-    .lp-earn-name {
-      font-size: 11px;
-      color: #ccc;
-      font-weight: 600;
-      line-height: 1.3;
-    }
-    .lp-earn-amount {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--green);
-      margin-left: auto;
-      white-space: nowrap;
-      padding-left: 8px;
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(167,139,250,0.4); }
+      50% { opacity: 0.8; transform: scale(1.1); box-shadow: 0 0 0 6px rgba(167,139,250,0); }
     }
 
-    /* Second card (delayed) */
-    .lp-earn-card-2 {
+    /* shared base */
+    .lp-notif {
       position: absolute;
       z-index: 10;
-      top: 148px;
-      right: 16px;
-      background: rgba(18,18,18,0.88);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 12px;
-      padding: 8px 12px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: rgba(16,16,16,0.92);
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.55);
       display: flex;
       align-items: center;
-      gap: 8px;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      animation: floatCard 0.5s cubic-bezier(0.34,1.56,0.64,1) 2s both;
     }
-    .lp-earn-card-2 .pulse-dot {
+
+    /* 1 — top left pop-in */
+    .lp-notif-topleft {
+      top: 82px;
+      left: 16px;
+      border-radius: 50px;
+      padding: 8px 14px 8px 10px;
+      gap: 8px;
+      animation: floatFromTop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.8s both;
+    }
+    .lp-notif-topleft .pulse-dot {
       width: 8px; height: 8px;
       border-radius: 50%;
       background: var(--accent2);
       animation: pulse 2s infinite;
       flex-shrink: 0;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(167,139,250,0.4); }
-      50% { opacity: 0.8; transform: scale(1.1); box-shadow: 0 0 0 6px rgba(167,139,250,0); }
-    }
-    .lp-earn-card-2 span {
+    .lp-notif-topleft span {
       font-size: 12px;
-      color: var(--text2);
-      font-weight: 500;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
     }
-    .lp-earn-card-2 span b { color: var(--text); }
+
+    /* 2 — left side mid */
+    .lp-notif-left {
+      left: 16px;
+      top: 38%;
+      border-radius: 14px;
+      padding: 10px 14px;
+      gap: 10px;
+      animation: floatFromLeft 0.5s cubic-bezier(0.34,1.56,0.64,1) 1.4s both;
+      max-width: 185px;
+    }
+    .lp-notif-left .nl-icon {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: rgba(108,99,255,0.25);
+      border: 1px solid rgba(108,99,255,0.4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .lp-notif-left .nl-text { font-size: 11px; color: #ccc; font-weight: 600; line-height: 1.4; }
+    .lp-notif-left .nl-sub  { font-size: 10px; color: #666; }
+
+    /* 3 — bottom right commission */
+    .lp-notif-botright {
+      bottom: 240px;
+      right: 16px;
+      border-radius: 16px;
+      padding: 12px 16px;
+      gap: 12px;
+      animation: floatFromRight 0.5s cubic-bezier(0.34,1.56,0.64,1) 2s both;
+      max-width: 210px;
+    }
+    .lp-earn-icon {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--green);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .lp-earn-label {
+      font-size: 9px;
+      color: #777;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .lp-earn-name {
+      font-size: 11px;
+      color: #ddd;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .lp-earn-amount {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--green);
+      margin-left: auto;
+      white-space: nowrap;
+      padding-left: 6px;
+    }
 
     /* ── HOW IT WORKS ── */
     .lp-how {
@@ -430,8 +460,9 @@
     /* ── RESPONSIVE ── */
     @media (min-width: 600px) {
       .lp-hero-content { padding: 0 48px 72px; }
-      .lp-earn-card { right: 48px; top: 90px; }
-      .lp-earn-card-2 { right: 48px; top: 160px; }
+      .lp-notif-topleft { left: 24px; }
+      .lp-notif-left { left: 24px; }
+      .lp-notif-botright { right: 24px; bottom: 260px; }
       .lp-steps { text-align: left; }
     }
 
@@ -446,14 +477,9 @@
         padding: 0 80px 100px;
         max-width: 680px;
       }
-      .lp-earn-card {
-        right: 80px;
-        top: 100px;
-      }
-      .lp-earn-card-2 {
-        right: 80px;
-        top: 172px;
-      }
+      .lp-notif-topleft { left: 48px; top: 90px; }
+      .lp-notif-left { left: 48px; }
+      .lp-notif-botright { right: 48px; bottom: 280px; }
       .lp-steps {
         flex-direction: row;
         display: grid;
@@ -488,19 +514,29 @@
     <div class="lp-hero-overlay"></div>
     <div class="lp-hero-vignette"></div>
 
-    <!-- Floating earnings cards — mirrors the ad -->
-    <div class="lp-earn-card">
+    <!-- TOP LEFT: new scan pop-in -->
+    <div class="lp-notif lp-notif-topleft">
+      <div class="pulse-dot"></div>
+      <span>New scan · just now 🔥</span>
+    </div>
+
+    <!-- LEFT SIDE: scan count -->
+    <div class="lp-notif lp-notif-left">
+      <div class="nl-icon">👀</div>
+      <div>
+        <div class="nl-text">4 people scanned<br />your code today</div>
+        <div class="nl-sub">mythread.shop</div>
+      </div>
+    </div>
+
+    <!-- BOTTOM RIGHT: commission paid -->
+    <div class="lp-notif lp-notif-botright">
       <div class="lp-earn-icon">$</div>
       <div>
         <div class="lp-earn-label">THREAD · Commission Paid</div>
         <div class="lp-earn-name">Jake checked out using your code</div>
       </div>
       <div class="lp-earn-amount">+$25</div>
-    </div>
-
-    <div class="lp-earn-card-2">
-      <div class="pulse-dot"></div>
-      <span><b>New scan</b> · just now 🔥</span>
     </div>
 
     <div class="lp-hero-content">
