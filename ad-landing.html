@@ -79,7 +79,7 @@
     .lp-hero-bg {
       position: absolute;
       inset: 0;
-      background-image: url('ADS/Airport-ad-test.png');
+      background-image: url('ADS/instagram-ad-test.png');
       background-size: cover;
       background-position: center center;
       filter: brightness(0.6);
@@ -224,7 +224,7 @@
 
     /* 1 — top left pop-in */
     .lp-notif-topleft {
-      top: 82px;
+      top: 120px;
       left: 16px;
       border-radius: 50px;
       padding: 8px 14px 8px 10px;
@@ -621,10 +621,10 @@
     const bg = document.getElementById('lpHeroBg');
     const img = new Image();
     img.onload = () => {
-      bg.style.backgroundImage = "url('ADS/Airport-ad-test.png')";
+      bg.style.backgroundImage = "url('ADS/instagram-ad-test.png')";
       requestAnimationFrame(() => bg.classList.add('loaded'));
     };
-    img.src = 'ADS/Airport-ad-test.png';
+    img.src = 'ADS/instagram-ad-test.png';
 
     // Smooth scroll for "See How It Works"
     document.querySelectorAll('a[href="#how-it-works"]').forEach(a => {
