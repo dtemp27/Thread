@@ -433,6 +433,23 @@ function renderReferrals() {
     return cust.name && cust.name.trim() ? cust.name : (cust.email || referralCode || '—');
   }
 
+  // Helper: turn raw city/source values into readable labels
+  function cleanLocation(raw) {
+    if (!raw) return '—';
+    const map = {
+      parallaxStrip:  'Homepage',
+      parallaxStrip2: 'Homepage',
+      parallaxBg:     'Homepage',
+      parallaxBg2:    'Homepage',
+      heroSection:    'Homepage',
+      hero:           'Homepage',
+      productSection: 'Products',
+      checkoutPage:   'Checkout',
+      catalogPage:    'Catalog',
+    };
+    return map[raw] || raw;
+  }
+
   // Group by referrer
   const byReferrer = {};
   allScans.forEach(s => {
@@ -477,7 +494,7 @@ function renderReferrals() {
       <td style="white-space:nowrap">${when}</td>
       <td>${escapeHtml(rLabel)}</td>
       <td><code style="font-size:11px">${s.referral_code || '—'}</code></td>
-      <td>${s.city || '—'}</td>
+      <td>${cleanLocation(s.city)}</td>
       <td>${s.converted
         ? '<span class="status-pill s-paid">Yes</span>'
         : '<span class="status-pill s-pending">No</span>'}</td>
