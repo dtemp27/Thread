@@ -56,6 +56,18 @@ function updateModeBadge() {
   }
 }
 
+/* ─── Mobile sidebar ────────────────────────────────────────────────────── */
+function openSidebar() {
+  document.getElementById('adSidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSidebar() {
+  document.getElementById('adSidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
 /* ─── Navigation ────────────────────────────────────────────────────────── */
 let currentSection = 'overview';
 

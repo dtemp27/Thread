@@ -413,14 +413,115 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); min-
 }
 .ad-action-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
 
+/* ─── HAMBURGER ──────────────────────────────────────────────────────────── */
+.ad-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+.ad-hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  transition: all .2s;
+}
+
+/* ─── SIDEBAR CLOSE BUTTON ───────────────────────────────────────────────── */
+.ad-sidebar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.ad-sidebar-top .ad-logo {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+.ad-sidebar-close {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 24px 20px;
+  line-height: 1;
+}
+.ad-sidebar-close:hover { color: #fff; }
+
+/* ─── SIDEBAR OVERLAY BACKDROP ───────────────────────────────────────────── */
+.ad-sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  z-index: 9;
+}
+.ad-sidebar-overlay.open { display: block; }
+
 /* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .ad-stats-row { grid-template-columns: repeat(2, 1fr); }
 }
+
+@media (max-width: 768px) {
+  .ad-toolbar { flex-wrap: wrap; }
+  .ad-search { width: 100%; }
+  .ad-filters { flex-wrap: wrap; }
+
+  /* Make tables scroll horizontally inside their cards */
+  .ad-card { overflow-x: auto; }
+
+  /* Modal: full-width with padding, scrollable in landscape */
+  .ad-modal {
+    width: calc(100vw - 32px);
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px 20px;
+  }
+}
+
 @media (max-width: 640px) {
   :root { --sidebar-w: 0px; }
-  .ad-sidebar { display: none; }
-  .ad-section { padding: 16px; }
-  .ad-stats-row { grid-template-columns: 1fr 1fr; }
-  .ad-topbar { padding: 16px; }
+
+  /* Sidebar becomes a slide-in drawer */
+  .ad-sidebar {
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    width: 240px;
+    z-index: 200;
+    overflow-y: auto;
+  }
+  .ad-sidebar.open { transform: translateX(0); }
+
+  .ad-sidebar-close { display: block; }
+  .ad-hamburger { display: flex; }
+
+  .ad-section { padding: 12px; }
+  .ad-stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ad-topbar { padding: 12px 16px; }
+  .ad-topbar h1 { font-size: 16px; }
+  .ad-last-refresh { display: none; }
+  .asc-value { font-size: 22px; }
+}
+
+/* Landscape phones: keep sidebar scrollable, shrink topbar */
+@media (max-height: 500px) and (max-width: 900px) {
+  .ad-topbar { padding: 8px 16px; position: relative; }
+  .ad-topbar h1 { font-size: 15px; }
+  .ad-sidebar { overflow-y: auto; }
+  .ad-stats-row { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .asc-value { font-size: 18px; }
+  .ad-section { padding: 10px 12px; gap: 12px; }
+  .ad-stat-card { padding: 12px; }
 }
