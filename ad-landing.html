@@ -267,15 +267,15 @@
     .lp-notif-left .nl-text { font-size: 11px; color: #ccc; font-weight: 600; line-height: 1.4; }
     .lp-notif-left .nl-sub  { font-size: 10px; color: #666; }
 
-    /* 3 — bottom right commission */
+    /* 3 — mid right commission */
     .lp-notif-botright {
-      bottom: 240px;
+      top: 42%;
       right: 16px;
-      border-radius: 16px;
-      padding: 12px 16px;
-      gap: 12px;
+      border-radius: 14px;
+      padding: 10px 14px;
+      gap: 10px;
       animation: floatFromRight 0.5s cubic-bezier(0.34,1.56,0.64,1) 2s both;
-      max-width: 210px;
+      max-width: 175px;
     }
     .lp-earn-icon {
       width: 32px; height: 32px;
@@ -461,8 +461,7 @@
     @media (min-width: 600px) {
       .lp-hero-content { padding: 0 48px 72px; }
       .lp-notif-topleft { left: 24px; }
-      .lp-notif-left { left: 24px; }
-      .lp-notif-botright { right: 24px; bottom: 260px; }
+      .lp-notif-botright { right: 24px; top: 40%; }
       .lp-steps { text-align: left; }
     }
 
@@ -478,8 +477,7 @@
         max-width: 680px;
       }
       .lp-notif-topleft { left: 48px; top: 90px; }
-      .lp-notif-left { left: 48px; }
-      .lp-notif-botright { right: 48px; bottom: 280px; }
+      .lp-notif-botright { right: 48px; top: 38%; }
       .lp-steps {
         flex-direction: row;
         display: grid;
@@ -520,23 +518,13 @@
       <span>New scan · just now 🔥</span>
     </div>
 
-    <!-- LEFT SIDE: scan count -->
-    <div class="lp-notif lp-notif-left">
-      <div class="nl-icon">👀</div>
-      <div>
-        <div class="nl-text">4 people scanned<br />your code today</div>
-        <div class="nl-sub">mythread.shop</div>
-      </div>
-    </div>
-
-    <!-- BOTTOM RIGHT: commission paid -->
+    <!-- MID RIGHT: commission paid -->
     <div class="lp-notif lp-notif-botright">
       <div class="lp-earn-icon">$</div>
       <div>
-        <div class="lp-earn-label">THREAD · Commission Paid</div>
-        <div class="lp-earn-name">Jake checked out using your code</div>
+        <div class="lp-earn-label">Commission Paid</div>
+        <div class="lp-earn-name">Jake · +$25</div>
       </div>
-      <div class="lp-earn-amount">+$25</div>
     </div>
 
     <div class="lp-hero-content">
