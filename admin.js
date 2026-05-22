@@ -770,6 +770,29 @@ async function clearAllAnalytics() {
   } catch(e) { alert('Error: ' + e.message); }
 }
 
+/* ─── ANALYTICS DOWNLOAD ───────────────────────────────────────────────────── */
+let _analyticsCache = [];
+
+function downloadAnalyticsCSV() {
+  if (!_analyticsCache.length) { alert('No analytics data loaded yet. Open the Analytics tab first.'); return; }
+  const cols = ['time', 'event_type', 'detail', 'page', 'ip_address', 'city', 'country'];
+  const rows = _analyticsCache.map(e => [
+    new Date(e.created_at).toLocaleString(),
+    e.event_type || '',
+    e.page_label || '',
+    e.page || '',
+    e.ip_address || '',
+    e.city || '',
+    e.country || ''
+  ]);
+  const csv = [cols, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `THREAD-analytics-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
 /* ─── ANALYTICS ────────────────────────────────────────────────────────────── */
 async function loadAnalytics() {
   const body = document.getElementById('analyticsBody');
@@ -784,6 +807,7 @@ async function loadAnalytics() {
     const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
 
     const { data, error } = await sb.rpc('get_all_analytics');
+    if (data) _analyticsCache = data;
 
     if (error || !data) {
       body.innerHTML = `<tr><td colspan="5" class="ad-empty">Could not load analytics${error ? ': ' + error.message : ''}</td></tr>`;
