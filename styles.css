@@ -1,6 +1,27 @@
 /* ─── RESET & BASE ─── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ─── MEMORIAL DAY BANNER ─── */
+.memorial-banner {
+  width: 100%;
+  background: linear-gradient(90deg, #8B0000, #B22222, #8B0000);
+  color: #fff;
+  text-align: center;
+  padding: 10px 16px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  position: relative;
+  z-index: 200;
+  line-height: 1.5;
+}
+.memorial-banner a { color: #ffd700; text-decoration: underline; }
+.memorial-banner .mb-sale { font-size: 15px; font-weight: 700; color: #ffd700; }
+.memorial-banner .mb-wwp { font-size: 11px; font-weight: 400; opacity: 0.85; margin-top: 2px; }
+.price-sale { color: #ff4444; font-weight: 700; }
+.price-original { text-decoration: line-through; color: #666; font-size: 0.85em; margin-right: 6px; }
+
 :root {
   --bg: #080808;
   --bg2: #0f0f0f;
