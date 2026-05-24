@@ -1783,9 +1783,14 @@ body.cart-open { overflow: hidden; }
 }
 
 @media (max-width: 480px) {
-  /* Nav */
-  .nav-actions .btn-ghost { display: none; }
-  .nav-inner { gap: 16px; }
+  /* Nav — show both Log In + Join Free, compact sizing */
+  .nav-inner { gap: 10px; }
+  .nav-actions { gap: 8px; }
+  .nav-actions .btn-ghost,
+  .nav-actions .btn-primary {
+    padding: 9px 14px;
+    font-size: 13px;
+  }
 
   /* Hero */
   .hero { padding: 190px 16px 56px; }
