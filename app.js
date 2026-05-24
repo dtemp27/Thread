@@ -38,14 +38,9 @@
     // 1 — Page visit
     await track('visit', PAGE);
 
-    // 2 — Time on page (fire on leave)
-    const _arrivalTime = Date.now();
-    window.addEventListener('pagehide', () => {
-      const secs = Math.round((Date.now() - _arrivalTime) / 1000);
-      if (secs < 3) return;
-      const bucket = secs < 15 ? '<15s' : secs < 30 ? '15-30s' : secs < 60 ? '30-60s' : secs < 180 ? '1-3m' : '3m+';
-      navigator.sendBeacon && navigator.sendBeacon('/ping'); // no-op beacon to keep session alive
-      sb.rpc('log_page_event', { p_event_type: 'time_on_page', p_ip: ip, p_country: country, p_city: city, p_page: PAGE, p_label: bucket });
+    // 2 — Time on page (setTimeout milestones — pagehide + fetch is cancelled by browsers on unload)
+    [[15000, '15s+'], [30000, '30s+'], [60000, '1m+'], [180000, '3m+'], [300000, '5m+']].forEach(([delay, label]) => {
+      setTimeout(() => track('time_on_page', label), delay);
     });
 
     // 3 — Scroll depth milestones (25 / 50 / 75 / 90 %)
