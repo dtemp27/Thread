@@ -59,7 +59,7 @@ function updateModeBadge() {
 /* ─── Navigation ────────────────────────────────────────────────────────── */
 let currentSection = 'overview';
 
-const SECTION_TITLES = { overview:'Overview', orders:'Orders', customers:'Customers', referrals:'Referrals', dropboxes:'Drop Boxes' };
+const SECTION_TITLES = { overview:'Overview', orders:'Orders', customers:'Customers', referrals:'Referrals', dropboxes:'Drop Boxes', analytics:'Analytics' };
 
 function showSection(name) {
   document.querySelectorAll('.ad-section').forEach(s => s.style.display = 'none');
@@ -68,6 +68,7 @@ function showSection(name) {
   document.getElementById('sec-' + name).style.display = 'flex';
   document.getElementById('adPageTitle').textContent = SECTION_TITLES[name] || name;
   currentSection = name;
+  sessionStorage.setItem('thread_admin_section', name); // persist across refresh
 }
 
 /* ─── Data store ────────────────────────────────────────────────────────── */
@@ -99,7 +100,8 @@ async function loadAllData() {
   safe(loadDropBoxes,   'loadDropBoxes');
   safe(loadAnalytics,   'loadAnalytics');
   safe(loadTrackedQRs,  'loadTrackedQRs');
-  safe(() => showSection('overview'), 'showSection');
+  const savedSection = sessionStorage.getItem('thread_admin_section') || 'overview';
+  safe(() => showSection(savedSection), 'showSection');
 
   if (!refresh.textContent.startsWith('ERROR')) refresh.textContent = 'Updated ' + new Date().toLocaleTimeString();
 }
