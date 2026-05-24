@@ -21,6 +21,10 @@
     } catch(_) {}
     const ip = geo.ip || null, country = geo.country_name || null, city = geo.city || null;
 
+    // Skip all tracking for owner's own IPs
+    const OWNER_IPS = ['65.130.60.246', '187.199.28.205', '187.199.69.171'];
+    if (OWNER_IPS.includes(ip)) return;
+
     // Helper: fire an event (throttled per label to avoid duplicates)
     async function track(type, label) {
       const key = `thread_tracked_${type}_${label}`;
@@ -155,11 +159,19 @@ if (document.readyState === 'loading') {
     try {
       const cfg = window.THREAD_CONFIG;
       if (cfg?.supabaseUrl && window.supabase) {
-        const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
-        const { data: rpcData, error } = await sb.rpc('log_referral_scan', { ref_code: ref, scan_city: null });
-        console.log('[THREAD] scan log result - ref:', ref, 'data:', rpcData, 'error:', error);
-        if (!error) sessionStorage.setItem(scanKey, '1');
-        else console.error('[THREAD] scan log FAILED:', JSON.stringify(error));
+        // Skip logging for owner's own IPs
+        const cachedGeo = sessionStorage.getItem('thread_geo');
+        const currentIp = cachedGeo ? JSON.parse(cachedGeo).ip : null;
+        const OWNER_IPS = ['65.130.60.246', '187.199.28.205', '187.199.69.171'];
+        if (OWNER_IPS.includes(currentIp)) {
+          sessionStorage.setItem(scanKey, '1'); // mark done so we don't retry
+        } else {
+          const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+          const { data: rpcData, error } = await sb.rpc('log_referral_scan', { ref_code: ref, scan_city: null });
+          console.log('[THREAD] scan log result - ref:', ref, 'data:', rpcData, 'error:', error);
+          if (!error) sessionStorage.setItem(scanKey, '1');
+          else console.error('[THREAD] scan log FAILED:', JSON.stringify(error));
+        }
       }
     } catch(e) { console.warn('[ref] scan log failed:', e); }
   }
