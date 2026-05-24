@@ -351,7 +351,7 @@ function renderOrderEmailHtml({ customerName, orderNumber, items, subtotal, disc
           Every time someone scans it and buys → you earn <strong style="color:#6C63FF;">20% commission</strong>.
           <br><br>
           Hit 11 monthly sales → <strong style="color:#a78bfa;">Hustler tier (25%)</strong>.
-          Hit 51 → <strong style="color:#facc15;">Elite tier (30%)</strong>.
+          Hit 26 → <strong style="color:#facc15;">Elite tier (30%)</strong>.
           <br><br>
           <a href="https://mythread.shop/dashboard.html" style="display:inline-block;margin-top:6px;background:#6C63FF;color:#fff;text-decoration:none;padding:8px 16px;border-radius:50px;font-size:12px;font-weight:700;">View Your Dashboard →</a>
         </div>

@@ -4,8 +4,8 @@
  * Three tiers based on lifetime converted referrals:
  *
  *   Starter  (0–10 sales)     → 20% commission per sale
- *   Hustler  (11–50 sales)    → 25% commission per sale
- *   Elite    (51+ sales)      → 30% commission per sale
+ *   Hustler  (11–25 sales)    → 25% commission per sale
+ *   Elite    (26+ sales)      → 30% commission per sale
  *
  * Used by:
  *   • checkout.js  → to credit the right commission amount
@@ -39,7 +39,7 @@
       color:     '#ec4899',
       gradient:  'linear-gradient(135deg, #f472b6, #ec4899)',
       minSales:  11,
-      maxSales:  50,
+      maxSales:  25,
       pct:       25,
       tagline:   'Making moves',
       perks: [
@@ -59,7 +59,7 @@
       emoji:     '👑',
       color:     '#facc15',
       gradient:  'linear-gradient(135deg, #facc15, #f59e0b)',
-      minSales:  51,
+      minSales:  26,
       maxSales:  Infinity,
       pct:       30,
       tagline:   'Top earner',

@@ -848,11 +848,11 @@ function updateCalc() {
   const avgOrder = 80;
 
   // Tier based on estimated monthly sales volume:
-  // Starter 0-10 → 20%, Hustler 11-50 → 25%, Elite 51+ → 30%
+  // Starter 0-10 → 20%, Hustler 11-25 → 25%, Elite 26+ → 30%
   let pct, tierLabel;
   if (monthlyConversions <= 10) {
     pct = 0.20; tierLabel = '20%';
-  } else if (monthlyConversions <= 50) {
+  } else if (monthlyConversions <= 25) {
     pct = 0.25; tierLabel = '25%';
   } else {
     pct = 0.30; tierLabel = '30%';
