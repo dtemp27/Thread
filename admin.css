@@ -413,14 +413,105 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); min-
 }
 .ad-action-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
 
+/* ─── SIDEBAR TOP (desktop only — no close button needed) ───────────────── */
+.ad-sidebar-top {
+  display: contents; /* transparent wrapper — sidebar still shows .ad-logo normally */
+}
+.ad-sidebar-close   { display: none; }
+.ad-sidebar-overlay { display: none; }
+
+/* ─── BOTTOM NAV (mobile only) ───────────────────────────────────────────── */
+.ad-bottom-nav { display: none; }
+
 /* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .ad-stats-row { grid-template-columns: repeat(2, 1fr); }
 }
+
+@media (max-width: 768px) {
+  .ad-toolbar  { flex-wrap: wrap; }
+  .ad-search   { width: 100%; }
+  .ad-filters  { flex-wrap: wrap; }
+  .ad-card     { overflow-x: auto; }
+  .ad-modal {
+    width: calc(100vw - 32px);
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 24px 20px;
+  }
+}
+
 @media (max-width: 640px) {
   :root { --sidebar-w: 0px; }
+
+  /* Hide sidebar — bottom nav replaces it */
   .ad-sidebar { display: none; }
-  .ad-section { padding: 16px; }
-  .ad-stats-row { grid-template-columns: 1fr 1fr; }
-  .ad-topbar { padding: 16px; }
+
+  /* Bottom tab bar */
+  .ad-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 62px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    z-index: 50;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .ad-bn-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: var(--font);
+    font-size: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    transition: color .15s;
+    padding: 6px 2px;
+  }
+  .ad-bn-item.active { color: #fff; }
+  .ad-bn-item svg { flex-shrink: 0; }
+  .ad-bn-badge {
+    position: absolute;
+    top: 4px;
+    right: calc(50% - 16px);
+    width: 8px; height: 8px;
+    background: var(--red);
+    border-radius: 50%;
+    display: none;
+  }
+  .ad-bn-badge.show { display: block; }
+
+  /* Push content above bottom nav */
+  .ad-main { padding-bottom: 62px; }
+
+  .ad-section  { padding: 12px; }
+  .ad-stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ad-topbar   { padding: 10px 14px; }
+  .ad-topbar h1 { font-size: 16px; }
+  .ad-last-refresh { display: none; }
+  .asc-value   { font-size: 20px; }
+  .ad-stat-card { padding: 14px; }
+  .ad-refresh-btn span { display: none; } /* icon only on mobile */
+}
+
+/* Landscape phones */
+@media (max-height: 500px) and (max-width: 900px) {
+  .ad-topbar   { padding: 6px 14px; }
+  .ad-topbar h1 { font-size: 14px; }
+  .ad-stats-row { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .asc-value   { font-size: 16px; }
+  .ad-section  { padding: 8px 12px; gap: 10px; }
+  .ad-stat-card { padding: 10px; }
+  .ad-bottom-nav { height: 50px; }
+  .ad-main { padding-bottom: 50px; }
+  .ad-bn-item span { display: none; } /* icons only in landscape */
+  .ad-bn-item { padding: 0; }
 }

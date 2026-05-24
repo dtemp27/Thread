@@ -89,6 +89,12 @@
 </head>
 <body>
 
+  <!-- ─── MEMORIAL DAY BANNER ─── -->
+  <div style="width:100%;background:linear-gradient(90deg,#8B0000,#B22222,#8B0000);color:#fff;text-align:center;padding:10px 16px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;line-height:1.5;">
+    <div style="font-size:15px;font-weight:700;color:#ffd700;">🇺🇸 Memorial Day Sale — 50% Off Sitewide. Auto-applied at checkout.</div>
+    <div style="font-size:11px;opacity:.85;margin-top:2px;">A portion of every sale this weekend goes to the <strong>Wounded Warrior Project</strong>. Thank you for your support.</div>
+  </div>
+
   <nav class="nav">
     <a href="index.html" class="nav-logo">THREAD<span>.</span></a>
     <div style="display:flex;align-items:center;gap:12px;">
@@ -265,10 +271,10 @@
             <span class="earn-tag">Earn ${p.earn} per sale</span>
           </div>
           <div class="cat-bottom">
-            <span class="price">$${p.price}</span>
+            <span class="price"><span style="text-decoration:line-through;color:#666;font-size:.85em;margin-right:4px;">$${p.price}</span><span style="color:#ff4444;font-weight:700;">$${Math.round(p.price*0.5)}</span></span>
             <div class="stars">${starStr(p.stars)} <span>${p.stars} (${p.reviews})</span></div>
           </div>
-          <button class="btn-cart" onclick="addToCart('${p.name}', ${p.price}, this)">Add to Cart — $${p.price}</button>
+          <button class="btn-cart" onclick="addToCart('${p.name}', ${Math.round(p.price*0.5)}, this)">Add to Cart — $${Math.round(p.price*0.5)}</button>
         </div>
       </div>`;
   }

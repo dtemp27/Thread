@@ -700,6 +700,22 @@ function renderActivity() {
   renderDonut();
 }
 
+function cleanLocation(raw) {
+  if (!raw || raw === 'Unknown') return 'Unknown';
+  const map = {
+    parallaxStrip:  'Homepage',
+    parallaxStrip2: 'Homepage',
+    parallaxBg:     'Homepage',
+    parallaxBg2:    'Homepage',
+    heroSection:    'Homepage',
+    hero:           'Homepage',
+    productSection: 'Products',
+    checkoutPage:   'Checkout',
+    catalogPage:    'Catalog',
+  };
+  return map[raw] || raw;
+}
+
 function renderActivityList(containerId, items, filter, search) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -720,7 +736,7 @@ function renderActivityList(containerId, items, filter, search) {
       <div class="ai-dot ${item.type}"></div>
       <div class="ai-content">
         <div class="ai-title">${isConv ? '🛍️ Purchase via your QR' : '👁 QR code scanned'}</div>
-        <div class="ai-meta">${item.city||'Unknown'} · ${timeStr}</div>
+        <div class="ai-meta">${cleanLocation(item.city)} · ${timeStr}</div>
       </div>
       ${isConv ? `<div class="ai-amount ${item.status==='pending'?'pending-amt':'earned'}">+$${(item.amount||0).toFixed(2)}</div>` : ''}
     </div>`;
@@ -729,7 +745,7 @@ function renderActivityList(containerId, items, filter, search) {
 
 function renderTopLocations(history) {
   const counts = {};
-  history.forEach(h => { if (h.city) counts[h.city] = (counts[h.city]||0)+1; });
+  history.forEach(h => { const c = cleanLocation(h.city); if (c && c !== 'Unknown') counts[c] = (counts[c]||0)+1; });
   const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const max    = sorted[0]?.[1] || 1;
   const el     = document.getElementById('topLocations');
@@ -1251,7 +1267,7 @@ function addToLiveFeed(scan) {
   item.className = 'lsf-item';
   item.innerHTML = `
     <div class="lsf-dot ${scan.type}"></div>
-    <span class="lsf-city">${scan.city}</span>
+    <span class="lsf-city">${cleanLocation(scan.city)}</span>
     <span class="lsf-time">just now</span>
     ${scan.converted ? `<span class="lsf-amt">+$${scan.amount.toFixed(2)}</span>` : ''}`;
   feed.insertBefore(item, feed.firstChild);

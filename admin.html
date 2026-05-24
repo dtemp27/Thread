@@ -31,28 +31,34 @@
   <!-- ─── MAIN ADMIN UI ─────────────────────────────────────────────────── -->
   <div id="adminApp" style="display:none">
 
+    <!-- Mobile sidebar overlay backdrop -->
+    <div class="ad-sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
     <!-- Sidebar -->
-    <aside class="ad-sidebar">
-      <div class="ad-logo">THREAD<span>.</span></div>
+    <aside class="ad-sidebar" id="adSidebar">
+      <div class="ad-sidebar-top">
+        <div class="ad-logo">THREAD<span>.</span></div>
+        <button class="ad-sidebar-close" onclick="closeSidebar()" aria-label="Close menu">✕</button>
+      </div>
       <nav class="ad-nav">
-        <button class="ad-nav-item active" data-section="overview" onclick="showSection('overview')">
+        <button class="ad-nav-item active" data-section="overview" onclick="showSection('overview');closeSidebar()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
           Overview
         </button>
-        <button class="ad-nav-item" data-section="orders" onclick="showSection('orders')">
+        <button class="ad-nav-item" data-section="orders" onclick="showSection('orders');closeSidebar()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
           Orders
           <span class="ad-badge" id="pendingBadge">0</span>
         </button>
-        <button class="ad-nav-item" data-section="customers" onclick="showSection('customers')">
+        <button class="ad-nav-item" data-section="customers" onclick="showSection('customers');closeSidebar()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           Customers
         </button>
-        <button class="ad-nav-item" data-section="referrals" onclick="showSection('referrals')">
+        <button class="ad-nav-item" data-section="referrals" onclick="showSection('referrals');closeSidebar()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
           Referrals
         </button>
-        <button class="ad-nav-item" data-section="dropboxes" onclick="showSection('dropboxes')">
+        <button class="ad-nav-item" data-section="dropboxes" onclick="showSection('dropboxes');closeSidebar()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
           Drop Boxes
           <span class="ad-badge" id="dropBoxBadge">0</span>
@@ -116,7 +122,7 @@
         <div class="ad-card">
           <div class="ad-card-header">
             <h3>Recent Orders</h3>
-            <button class="ad-link-btn" onclick="showSection('orders')">View all →</button>
+            <button class="ad-link-btn" onclick="showSection('orders');closeSidebar()">View all →</button>
           </div>
           <table class="ad-table" id="recentOrdersTable">
             <thead><tr>
@@ -405,6 +411,33 @@
       </section>
 
     </main>
+
+    <!-- Mobile bottom navigation -->
+    <nav class="ad-bottom-nav" id="adBottomNav">
+      <button class="ad-bn-item active" data-section="overview" onclick="showSection('overview')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Overview</span>
+      </button>
+      <button class="ad-bn-item" data-section="orders" onclick="showSection('orders')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <span>Orders</span>
+        <span class="ad-bn-badge" id="bnPendingBadge"></span>
+      </button>
+      <button class="ad-bn-item" data-section="customers" onclick="showSection('customers')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Customers</span>
+      </button>
+      <button class="ad-bn-item" data-section="referrals" onclick="showSection('referrals')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        <span>Referrals</span>
+      </button>
+      <button class="ad-bn-item" data-section="dropboxes" onclick="showSection('dropboxes')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+        <span>Drops</span>
+        <span class="ad-bn-badge" id="bnDropBadge"></span>
+      </button>
+    </nav>
+
   </div>
 
   <!-- Clear account data modal -->
