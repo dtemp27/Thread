@@ -59,11 +59,18 @@ function miniHoodieSVG(name, type) {
 }
 
 /* ─── Recalculate totals and save ────────────────────────────────────────── */
+function calcCheckoutShipping() {
+  const totalItems = (checkoutData.items || []).reduce((s, i) => s + (i.qty || 1), 0);
+  return totalItems >= 2 ? 0 : 10;
+}
+
 function recalcCheckout() {
   const subtotal = checkoutData.items.reduce((s, i) => s + i.price * i.qty, 0);
   const discount = checkoutData.discount || 0;
-  const total    = Math.max(0, subtotal - discount);
+  const shipping = calcCheckoutShipping();
+  const total    = Math.max(0, subtotal - discount) + shipping;
   checkoutData.subtotal = subtotal;
+  checkoutData.shipping = shipping;
   checkoutData.total    = total;
   // Keep thread_checkout in sync so page refresh preserves edits
   localStorage.setItem('thread_checkout', JSON.stringify(checkoutData));
@@ -242,6 +249,17 @@ function renderSummary() {
   document.getElementById('coTotal').textContent       = `$${data.total.toFixed(2)}`;
   document.getElementById('payBtnAmount').textContent  = `$${data.total.toFixed(2)}`;
 
+  // Shipping row (summary only)
+  const shipping     = data.shipping ?? calcCheckoutShipping();
+  const shipValEl    = document.getElementById('coShippingVal');
+  const shipNudgeEl  = document.getElementById('coShippingNudge');
+  const totalItems   = (data.items || checkoutData.items || []).reduce((s, i) => s + (i.qty || 1), 0);
+  if (shipValEl) {
+    shipValEl.textContent = shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`;
+    shipValEl.className   = shipping === 0 ? 'free-tag' : '';
+  }
+  if (shipNudgeEl) shipNudgeEl.style.display = totalItems === 1 ? '' : 'none';
+
   if (data.discount > 0) {
     document.getElementById('coDiscountRow').style.display  = '';
     document.getElementById('coDiscount').textContent       = data.discount.toFixed(2);
@@ -351,6 +369,7 @@ async function launchStripeCheckout(email) {
       body:    JSON.stringify({
         items:        checkoutData.items,
         discount:     checkoutData.discount || 0,
+        shipping:     checkoutData.shipping ?? calcCheckoutShipping(),
         total:        checkoutData.total,
         orderId:      orderId,
         customerEmail: email || '',
@@ -423,6 +442,7 @@ async function finalizeOrder(orderId, customerEmail = '') {
       items:            checkoutData.items,
       subtotal:         checkoutData.subtotal,
       discount:         checkoutData.discount || 0,
+      shipping:         checkoutData.shipping ?? 0,
       total:            checkoutData.total,
       promo_code:       checkoutData.promoCode || null,
       referral_code:    refCode || null,

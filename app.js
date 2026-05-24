@@ -546,10 +546,17 @@ function hoodieThumb(name) { return productThumb({name, type:'hoodie'}); }
 // Kept for backward compatibility — same call signature, real photo now
 function miniHoodieSVG(name) { return hoodieThumb(name); }
 
+function calcShipping(cart) {
+  const totalItems = (cart.items || []).reduce((s, i) => s + (i.qty || 1), 0);
+  return totalItems >= 2 ? 0 : 10;
+}
+
 function cartTotal(cart) {
-  const sub = cart.items.reduce((s, i) => s + i.price * i.qty, 0);
-  const disc = cart.discount || 0;
-  return { subtotal: sub, discount: disc, total: Math.max(0, sub - disc) };
+  const sub      = cart.items.reduce((s, i) => s + i.price * i.qty, 0);
+  const disc     = cart.discount || 0;
+  const shipping = calcShipping(cart);
+  const total    = Math.max(0, sub - disc) + shipping;
+  return { subtotal: sub, discount: disc, shipping, total };
 }
 
 function renderCartDrawer() {
@@ -597,18 +604,29 @@ function renderCartDrawer() {
     </div>`;
   }).join('');
 
-  const { subtotal, discount, total } = cartTotal(cart);
-  const subEl  = document.getElementById('cdSubtotal');
-  const totEl  = document.getElementById('cdTotal');
-  const discRow= document.getElementById('cdDiscountRow');
-  const discEl = document.getElementById('cdDiscount');
+  const { subtotal, discount, shipping, total } = cartTotal(cart);
+  const subEl    = document.getElementById('cdSubtotal');
+  const totEl    = document.getElementById('cdTotal');
+  const discRow  = document.getElementById('cdDiscountRow');
+  const discEl   = document.getElementById('cdDiscount');
+  const shipEl   = document.getElementById('cdShipping');
+  const nudgeEl  = document.getElementById('cdShippingNudge');
+
   if (subEl) subEl.textContent = '$' + subtotal.toFixed(2);
   if (totEl) totEl.textContent = '$' + total.toFixed(2);
   if (discRow) discRow.style.display = discount ? 'flex' : 'none';
   if (discEl && discount) discEl.textContent = '−$' + discount.toFixed(2);
 
+  // Shipping row + free-shipping nudge (cart only)
+  const totalItems = cart.items.reduce((s, i) => s + (i.qty || 1), 0);
+  if (shipEl) {
+    shipEl.textContent = shipping === 0 ? 'FREE' : '$' + shipping.toFixed(2);
+    shipEl.className   = shipping === 0 ? 'cd-free' : '';
+  }
+  if (nudgeEl) nudgeEl.style.display = (totalItems === 1) ? 'block' : 'none';
+
   // write to checkout storage
-  localStorage.setItem('thread_checkout', JSON.stringify({ items: cart.items, subtotal, discount, total, promoCode: cart.promoCode || null, ref: localStorage.getItem('thread_ref') }));
+  localStorage.setItem('thread_checkout', JSON.stringify({ items: cart.items, subtotal, discount, shipping, total, promoCode: cart.promoCode || null, ref: localStorage.getItem('thread_ref') }));
 }
 
 function addToCart(name, price, size = 'M', type = 'hoodie') {

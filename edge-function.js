@@ -23,6 +23,7 @@ Deno.serve(async (req) => {
     const {
       items = [],
       discount = 0,
+      shipping = 0,
       orderId = '',
       customerEmail = '',
       referralCode = '',
@@ -73,6 +74,16 @@ Deno.serve(async (req) => {
       body.append(`line_items[${i}][price_data][unit_amount]`, String(unitAmount));
       body.append(`line_items[${i}][quantity]`, String(qty));
     });
+
+    // Add shipping as a line item if > 0
+    if (shipping > 0) {
+      const shipIdx = items.length;
+      body.append(`line_items[${shipIdx}][price_data][currency]`, 'usd');
+      body.append(`line_items[${shipIdx}][price_data][product_data][name]`, 'Shipping');
+      body.append(`line_items[${shipIdx}][price_data][product_data][description]`, 'Standard shipping (free on 2+ items)');
+      body.append(`line_items[${shipIdx}][price_data][unit_amount]`, String(Math.round(shipping * 100)));
+      body.append(`line_items[${shipIdx}][quantity]`, '1');
+    }
 
     // If a discount was applied on the frontend, create a one-time Stripe coupon
     // and attach it so the discount shows up (and is enforced) on Stripe's page.
