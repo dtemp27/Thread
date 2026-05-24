@@ -457,9 +457,14 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); min-
     border-top: 1px solid var(--border);
     z-index: 50;
     padding-bottom: env(safe-area-inset-bottom);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
+  .ad-bottom-nav::-webkit-scrollbar { display: none; }
   .ad-bn-item {
-    flex: 1;
+    flex: 0 0 auto;
+    min-width: 68px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -474,7 +479,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); min-
     cursor: pointer;
     position: relative;
     transition: color .15s;
-    padding: 6px 2px;
+    padding: 6px 4px;
   }
   .ad-bn-item.active { color: #fff; }
   .ad-bn-item svg { flex-shrink: 0; }
