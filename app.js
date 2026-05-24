@@ -3,6 +3,11 @@
 /* ─── BEHAVIOUR TRACKING ─── */
 (async function () {
   try {
+    // earn.html has its own analytics block — skip here to avoid logging false 'home' visits
+    const _path = window.location.pathname;
+    const _isHome = _path === '/' || _path.endsWith('/index.html') || _path === '';
+    if (!_isHome) return;
+
     const cfg = window.THREAD_CONFIG;
     if (!cfg?.supabaseUrl || !window.supabase) return;
     const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
