@@ -1733,7 +1733,7 @@ body.cart-open { overflow: hidden; }
   .nav-links.open {
     display: flex !important;
     position: fixed;
-    top: 70px;                          /* sits just below the navbar */
+    top: 150px;                         /* sits just below the navbar (inc. memorial banner) */
     right: 12px;
     left: auto;
     bottom: auto;
@@ -1775,7 +1775,7 @@ body.cart-open { overflow: hidden; }
     background: rgba(108,99,255,0.12);
     color: var(--accent2);
   }
-  .hero { padding: 100px 20px 60px; }
+  .hero { padding: 175px 20px 60px; }
   .hero-cta { flex-wrap: wrap; gap: 12px; }
   .btn-hero-primary, .btn-hero-ghost { flex: 1; min-width: 140px; justify-content: center; }
 }
@@ -1786,7 +1786,7 @@ body.cart-open { overflow: hidden; }
   .nav-inner { gap: 16px; }
 
   /* Hero */
-  .hero { padding: 88px 16px 56px; }
+  .hero { padding: 165px 16px 56px; }
   .hero-title { font-size: clamp(36px, 10vw, 52px); letter-spacing: -1px; }
   .hero-sub { font-size: 15px; }
   .hero-cta { flex-direction: column; }
