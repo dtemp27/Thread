@@ -181,6 +181,8 @@ img { display: block; max-width: 100%; }
   flex-direction: column;
   padding-bottom: 20px;
   transition: var(--transition);
+  background: rgba(8,8,8,0.92);
+  backdrop-filter: blur(20px);
 }
 #navbar .memorial-banner {
   position: relative;
