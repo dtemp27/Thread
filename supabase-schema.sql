@@ -54,6 +54,8 @@ create table if not exists public.orders (
   buyer_qr_code      text,                     -- this BUYER's referral code (printed on their hoodie)
   pod_service        text,                     -- 'apliiq' | 'printful' | 'printify'
   pod_order_id       text,                     -- POD service's order ID for fulfilment tracking
+  order_number       text,                     -- customer-facing ID, e.g. TH-LXK2M4-A7FQ
+  email_sent_at      timestamptz,              -- order confirmation email timestamp
   created_at         timestamptz default now()
 );
 
@@ -62,6 +64,14 @@ alter table public.orders add column if not exists print_file_url text;
 alter table public.orders add column if not exists buyer_qr_code  text;
 alter table public.orders add column if not exists pod_service    text;
 alter table public.orders add column if not exists pod_order_id   text;
+alter table public.orders add column if not exists order_number   text;
+alter table public.orders add column if not exists email_sent_at  timestamptz;
+alter table public.orders add column if not exists delivered_at        timestamptz;
+alter table public.orders add column if not exists payment_intent_id   text;
+alter table public.referral_scans add column if not exists clears_at   timestamptz;
+
+create unique index if not exists idx_orders_order_number_unique
+  on public.orders(order_number);
 
 alter table public.orders enable row level security;
 

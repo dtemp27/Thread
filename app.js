@@ -1,3 +1,81 @@
+/* ──
+
+/* ─── BEHAVIOUR TRACKING ─── */
+(async function () {
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) return;
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const PAGE = 'home';
+
+    // Fetch geo once per session and cache it
+    let geo = {};
+    try {
+      const cached = sessionStorage.getItem('thread_geo');
+      if (cached) {
+        geo = JSON.parse(cached);
+      } else {
+        const r = await fetch('https://ipapi.co/json/');
+        if (r.ok) { geo = await r.json(); sessionStorage.setItem('thread_geo', JSON.stringify(geo)); }
+      }
+    } catch(_) {}
+    const ip = geo.ip || null, country = geo.country_name || null, city = geo.city || null;
+
+    // Helper: fire an event (throttled per label to avoid duplicates)
+    async function track(type, label) {
+      const key = `thread_tracked_${type}_${label}`;
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, '1');
+      try {
+        await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_page: PAGE, p_label: label });
+      } catch(_) {}
+    }
+
+    // 1 — Page visit
+    await track('visit', PAGE);
+
+    // 2 — Time on page (fire on leave)
+    const _arrivalTime = Date.now();
+    window.addEventListener('pagehide', () => {
+      const secs = Math.round((Date.now() - _arrivalTime) / 1000);
+      if (secs < 3) return;
+      const bucket = secs < 15 ? '<15s' : secs < 30 ? '15-30s' : secs < 60 ? '30-60s' : secs < 180 ? '1-3m' : '3m+';
+      navigator.sendBeacon && navigator.sendBeacon('/ping'); // no-op beacon to keep session alive
+      sb.rpc('log_page_event', { p_event_type: 'time_on_page', p_ip: ip, p_country: country, p_city: city, p_page: PAGE, p_label: bucket });
+    });
+
+    // 3 — Scroll depth milestones (25 / 50 / 75 / 90 %)
+    const _scrollFired = new Set();
+    window.addEventListener('scroll', () => {
+      const pct = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+      [25, 50, 75, 90].forEach(m => {
+        if (pct >= m && !_scrollFired.has(m)) { _scrollFired.add(m); track('scroll_depth', m + '%'); }
+      });
+    }, { passive: true });
+
+    // 4 — CTA click tracking (delegated)
+    document.addEventListener('click', e => {
+      const el = e.target.closest('a,button,[data-track]');
+      if (!el) return;
+      const label =
+        el.dataset.track ||
+        el.id ||
+        (el.textContent || '').trim().slice(0, 40) ||
+        el.className.split(' ')[0];
+      if (label) track('click', label);
+    });
+
+    // 5 — Section visibility (Intersection Observer)
+    const sections = document.querySelectorAll('section[id], .section[id], [data-section]');
+    if (sections.length && 'IntersectionObserver' in window) {
+      const obs = new IntersectionObserver(entries => {
+        entries.forEach(en => { if (en.isIntersecting) track('section_view', en.target.id || en.target.dataset.section); });
+      }, { threshold: 0.4 });
+      sections.forEach(s => obs.observe(s));
+    }
+
+  } catch(_) {}
+})();
 /* ─── AUTH STATE + GLOBAL NAV ─── */
 async function renderNavAuth() {
   const actions = document.getElementById('navActions');
@@ -18,20 +96,24 @@ async function renderNavAuth() {
     // SIGNED IN — show Dashboard button + Sign Out
     // Try to grab the real name from the Supabase profiles table; fall back to metadata/email
     let displayName = user.user_metadata?.name || user.name || '';
+    let avatarUrl = null;
     try {
       if (window.DB?.profiles?.get && user.id) {
         const profile = await window.DB.profiles.get(user.id);
         if (profile?.name) displayName = profile.name;
+        if (profile?.avatar_url) avatarUrl = profile.avatar_url;
       }
     } catch(_) {}
     if (!displayName) {
-      // Last resort — use the part of email before '@'
       displayName = (user.email || 'You').split('@')[0];
     }
     const initial = (displayName.trim()[0] || 'U').toUpperCase();
+    const avatarHtml = avatarUrl
+      ? `<img src="${avatarUrl}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.outerHTML='<div class=nav-user-avatar>${initial}</div>'" />`
+      : `<div class="nav-user-avatar">${initial}</div>`;
     actions.innerHTML = `
       <a href="dashboard.html" class="nav-user-pill" title="${displayName}'s dashboard">
-        <div class="nav-user-avatar">${initial}</div>
+        ${avatarHtml}
         Dashboard
       </a>
       <button class="btn-ghost btn-signout" onclick="threadSignOut()">Sign Out</button>
@@ -68,13 +150,16 @@ if (document.readyState === 'loading') {
   const scanKey = 'thread_scan_logged_' + ref;
   const alreadyLogged = sessionStorage.getItem(scanKey);
 
-  // Log the scan to Supabase (so referrer sees it on their dashboard)
-  if (!alreadyLogged && window.DB) {
+  // Log the scan to Supabase via RPC (bypasses RLS lookup issues)
+  if (!alreadyLogged) {
     try {
-      const referrer = await window.DB.profiles.getByReferralCode(ref);
-      if (referrer?.id) {
-        await window.DB.referrals.logScan(ref, referrer.id, {});
-        sessionStorage.setItem(scanKey, '1');
+      const cfg = window.THREAD_CONFIG;
+      if (cfg?.supabaseUrl && window.supabase) {
+        const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+        const { data: rpcData, error } = await sb.rpc('log_referral_scan', { ref_code: ref, scan_city: null });
+        console.log('[THREAD] scan log result - ref:', ref, 'data:', rpcData, 'error:', error);
+        if (!error) sessionStorage.setItem(scanKey, '1');
+        else console.error('[THREAD] scan log FAILED:', JSON.stringify(error));
       }
     } catch(e) { console.warn('[ref] scan log failed:', e); }
   }
@@ -83,8 +168,9 @@ if (document.readyState === 'loading') {
   const referrer = await window.DB?.profiles?.getByReferralCode(ref).catch(() => null);
   const banner = document.createElement('div');
   banner.className = 'ref-banner';
-  banner.innerHTML = referrer?.name
-    ? `👕 You were referred by <span>${referrer.name.split(' ')[0]}</span> — they earn when you buy!`
+  const handle = referrer?.username ? `@${referrer.username}` : null;
+  banner.innerHTML = handle
+    ? `👕 You were referred by <span>${handle}</span> — they earn when you buy!`
     : `👕 You arrived via a THREAD referral link — they earn when you buy!`;
   document.body.appendChild(banner);
   setTimeout(() => banner.classList.add('show'), 600);
@@ -423,17 +509,35 @@ const TEE_PHOTO_SLUG = {
   'Clean White': 'clean-white',
   'Raw Stone':   'raw-stone',
   'Jet Black':   'jet-black',
+  'Slate Grey':  'slate-grey',
+  'Deep Navy':   'deep-navy',
 };
 
+// Silently preload all product images so cart/checkout never waits on a first fetch
+(function preloadProductImages() {
+  const hoodieSlugs = Object.values(HOODIE_PHOTO_SLUG);
+  const teeSlugs    = Object.values(TEE_PHOTO_SLUG);
+  const ver = { hoodie: 'hoodie-20260517', tee: 'tee-20260517' };
+  const srcs = [
+    ...hoodieSlugs.map(s => `hoodie-variants/${s}-front.png?v=${ver.hoodie}`),
+    ...teeSlugs.map(s    => `images/tee-${s}-front.png?v=${ver.tee}`),
+  ];
+  srcs.forEach(src => { const img = new Image(); img.src = src; });
+})();
+
 function productThumb(item) {
-  const name = item.name || item;
+  const rawName  = item.name || item;
   const isHoodie = (item.type || 'hoodie') !== 'tee';
+  // Strip type suffix from name in case it was stored as "Raw Stone Tee" or "Phantom Black Hoodie"
+  const name = rawName.replace(/\s+(Tee|Hoodie)$/i, '').trim();
   const slug = isHoodie
     ? (HOODIE_PHOTO_SLUG[name] || 'phantom-black')
     : (TEE_PHOTO_SLUG[name] || name.toLowerCase().replace(/\s+/g,'-'));
   const ver = isHoodie ? 'hoodie-20260517' : 'tee-20260517';
-  const folder = isHoodie ? 'hoodie-variants' : 'images';
-  return `<img src="${folder}/${slug}-front.png?v=${ver}" alt="${name}" style="width:100%;height:100%;object-fit:cover;object-position:center top;background:#0a0a0a;border-radius:8px">`;
+  const src = isHoodie
+    ? `hoodie-variants/${slug}-front.png?v=${ver}`
+    : `images/tee-${slug}-front.png?v=${ver}`;
+  return `<img src="${src}" alt="${name}" style="width:100%;height:100%;object-fit:cover;object-position:center top;background:#0a0a0a;border-radius:8px">`;
 }
 
 // Backward-compat aliases
@@ -504,7 +608,7 @@ function renderCartDrawer() {
   if (discEl && discount) discEl.textContent = '−$' + discount.toFixed(2);
 
   // write to checkout storage
-  localStorage.setItem('thread_checkout', JSON.stringify({ items: cart.items, subtotal, discount, total, ref: localStorage.getItem('thread_ref') }));
+  localStorage.setItem('thread_checkout', JSON.stringify({ items: cart.items, subtotal, discount, total, promoCode: cart.promoCode || null, ref: localStorage.getItem('thread_ref') }));
 }
 
 function addToCart(name, price, size = 'M', type = 'hoodie') {
@@ -532,9 +636,54 @@ function removeCartItem(idx) {
 
 function applyPromo() {
   const code = document.getElementById('promoInput')?.value.trim().toUpperCase();
-  const promos = { 'THREAD10': 10, 'WEAR20': 20, 'FIRST15': 15, 'SCAN25': 25 };
   const cart = getCart();
-  if (promos[code]) {
+
+  // Flat-rate promos
+  const promos = { 'THREAD10': 10, 'WEAR20': 20, 'FIRST15': 15, 'SCAN25': 25 };
+
+  if (code === 'VIVINT') {
+    // 1 free hoodie + 1 free tee — both must be in cart
+    const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
+    const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
+    if (!hasTee || !hasHoodie) {
+      showStoreToast('Add a hoodie + tee to use VIVINT', 'error'); return;
+    }
+    const hoodie  = cart.items.find(i => (i.type || 'hoodie') !== 'tee');
+    const tee     = cart.items.find(i => (i.type || 'hoodie') === 'tee');
+    const discount = parseFloat((hoodie.price + tee.price).toFixed(2));
+    cart.promoCode = code;
+    cart.discount  = discount;
+    saveCart(cart); renderCartDrawer();
+    showStoreToast(`✓ VIVINT applied — hoodie + tee FREE!`);
+  } else if (code === 'BOGOEGG') {
+    // Easter egg — buy a hoodie, get a tee 50% off
+    const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
+    const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
+    if (!hasTee || !hasHoodie) {
+      showStoreToast('Add a hoodie + tee to use BOGOEGG', 'error'); return;
+    }
+    const teeItem = cart.items.find(i => (i.type || 'hoodie') === 'tee');
+    const discount = parseFloat((teeItem.price * 0.5).toFixed(2));
+    cart.promoCode = code;
+    cart.discount  = discount;
+    saveCart(cart); renderCartDrawer();
+    showStoreToast(`🥚 BOGOEGG applied — tee is 50% off!`);
+  } else if (code === 'BIGBIRD') {
+    const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
+    const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
+    let discount = 0;
+    let msg = '';
+    if (hasTee && hasHoodie) { discount = 60; msg = '$60 off your tee + hoodie'; }
+    else if (hasHoodie)      { discount = 32; msg = '$32 off your hoodie'; }
+    else if (hasTee)         { discount = 28; msg = '$28 off your tee'; }
+    else {
+      showStoreToast('Add items to your cart first', 'error'); return;
+    }
+    cart.promoCode = code;
+    cart.discount  = discount;
+    saveCart(cart); renderCartDrawer();
+    showStoreToast(`✓ BIGBIRD applied — ${msg}!`);
+  } else if (promos[code]) {
     cart.promoCode = code;
     cart.discount  = promos[code];
     saveCart(cart); renderCartDrawer();

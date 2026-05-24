@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>THREAD — Verify Your Email</title>
+  <link rel="icon" href="favicon.ico?v=4" sizes="any" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #080808; --surface: #111; --border: rgba(255,255,255,0.08);
+      --text: #f0f0f0; --text2: #888; --accent: #6C63FF; --accent2: #a78bfa;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 56px 48px;
+      max-width: 460px;
+      width: 100%;
+      text-align: center;
+    }
+    .icon { font-size: 64px; margin-bottom: 24px; }
+    .logo {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 32px;
+      display: block;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .logo span { color: var(--accent); }
+    h1 { font-size: 26px; font-weight: 700; margin-bottom: 12px; }
+    .sub {
+      font-size: 15px;
+      color: var(--text2);
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    .email-box {
+      background: #0a0a0a;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 20px;
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      color: var(--accent2);
+      margin-bottom: 32px;
+      word-break: break-all;
+    }
+    .steps {
+      text-align: left;
+      margin-bottom: 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .step-num {
+      width: 28px;
+      height: 28px;
+      background: rgba(108,99,255,0.15);
+      border: 1px solid rgba(108,99,255,0.3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent2);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .step p { font-size: 14px; color: var(--text2); line-height: 1.5; }
+    .step p strong { color: var(--text); }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      margin-bottom: 12px;
+      transition: 0.2s;
+    }
+    .btn:hover { background: var(--accent2); text-decoration: none; }
+    .btn-ghost {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: transparent;
+      color: var(--text2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: 0.2s;
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--text); text-decoration: none; }
+    .note {
+      margin-top: 24px;
+      font-size: 12px;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+    .note a { color: var(--accent2); }
+    @media (max-width: 480px) {
+      .card { padding: 40px 28px; }
+      h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <a href="index.html" class="logo">THREAD<span>.</span></a>
+    <div class="icon">📬</div>
+    <h1>Check your inbox</h1>
+    <p class="sub">We sent a verification link to:</p>
+    <div class="email-box" id="emailDisplay">your email</div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <p>Open the email from <strong>contact@mythread.shop</strong></p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <p>Click the <strong>Verify your email</strong> button inside</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <p>You'll be taken to your dashboard and your <strong>referral QR code</strong> will be ready</p>
+      </div>
+    </div>
+
+    <a href="auth.html?tab=signin" class="btn">Go to Sign In →</a>
+    <a href="index.html" class="btn-ghost">Back to Home</a>
+
+    <p class="note">
+      Didn't get it? Check your spam folder.<br>
+      Still nothing? <a href="auth.html">Try signing up again</a> or <a href="mailto:contact@mythread.shop">contact us</a>.
+    </p>
+  </div>
+
+  <script>
+    // Show the email they signed up with if stored
+    const pending = JSON.parse(localStorage.getItem('thread_pending_profile') || 'null');
+    if (pending?.email) {
+      document.getElementById('emailDisplay').textContent = pending.email;
+    }
+  </script>
+
+  <a href="index.html" class="global-home-btn" title="Back to Home">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </a>
+  <style>
+    .global-home-btn { position:fixed; bottom:24px; left:24px; display:flex; align-items:center; gap:7px; padding:10px 18px; background:rgba(15,15,15,0.92); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.12); border-radius:50px; color:#fff; font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600; text-decoration:none; z-index:9998; transition:all .2s; box-shadow:0 4px 20px rgba(0,0,0,0.4); }
+    .global-home-btn:hover { background:rgba(108,99,255,0.88); border-color:#6C63FF; transform:translateY(-2px); box-shadow:0 8px 28px rgba(108,99,255,0.3); }
+    @media(max-width:480px){ .global-home-btn { bottom:16px; left:16px; padding:9px 14px; font-size:12px; } }
+  </style>
+</body>
+</html>

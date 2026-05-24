@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="auth.css" />
+  <link rel="stylesheet" href="auth.css?v=20260519e" />
 </head>
 <body>
 
@@ -57,14 +57,30 @@
             <input type="text" id="signupName" placeholder="Jordan Williams" required autocomplete="name" />
           </div>
           <div class="form-group">
+            <label>Username <span class="label-public">🌐 Public</span></label>
+            <div class="input-wrap">
+              <span class="input-prefix">@</span>
+              <input type="text" id="signupUsername" placeholder="jordanw" required autocomplete="username" maxlength="20" style="padding-left:36px" />
+            </div>
+            <p class="input-hint">Shown when someone scans your QR code. Letters, numbers, underscores only.</p>
+          </div>
+          <div class="form-group">
+            <label>Date of Birth</label>
+            <input type="date" id="signupDob" required autocomplete="bday" />
+          </div>
+          <div class="form-group">
             <label>Email</label>
             <input type="email" id="signupEmail" placeholder="jordan@email.com" required autocomplete="email" />
           </div>
           <div class="form-group">
             <label>Password</label>
             <div class="input-wrap">
-              <input type="password" id="signupPassword" placeholder="Min 6 characters" required autocomplete="new-password" minlength="6" />
+              <input type="password" id="signupPassword" placeholder="Min 7 chars + special character" required autocomplete="new-password" minlength="7" />
               <button type="button" class="eye-toggle" onclick="togglePass('signupPassword', this)">👁</button>
+            </div>
+            <div class="pw-reqs" id="pwReqs">
+              <span id="pwLen" class="req">✗ At least 7 characters</span>
+              <span id="pwSpec" class="req">✗ One special character (!@#$%^&*)</span>
             </div>
           </div>
           <div class="form-group">
@@ -74,23 +90,23 @@
               <button type="button" class="eye-toggle" onclick="togglePass('signupConfirm', this)">👁</button>
             </div>
           </div>
-          <div class="form-check">
-            <input type="checkbox" id="agreeTerms" required />
-            <label for="agreeTerms">I agree to the <a href="#">Terms</a> and <a href="#">Privacy Policy</a></label>
-          </div>
           <div class="form-error" id="signupError"></div>
           <button type="submit" class="btn-submit" id="signupBtn">
             <span class="btn-text">Create Account & Get My QR Code</span>
             <span class="btn-loader hidden">Creating account…</span>
           </button>
+          <div style="display:flex;align-items:flex-start;gap:10px;margin-top:12px">
+            <input type="checkbox" id="agreeTerms" style="margin-top:3px;width:16px;height:16px;accent-color:#7c3aed;flex-shrink:0;cursor:pointer" />
+            <label for="agreeTerms" style="font-size:13px;color:#aaa;line-height:1.5;cursor:pointer">By creating an account you agree to our <a href="terms.html" target="_blank" style="color:#7c3aed;text-decoration:underline;text-underline-offset:2px">Terms &amp; Conditions</a> &amp; return policy.</label>
+          </div>
           <p class="form-alt">Already have an account? <a href="#" onclick="switchTab('signin')">Sign in</a></p>
         </form>
 
         <!-- SIGN IN FORM -->
         <form id="signinForm" class="auth-form hidden" onsubmit="handleSignIn(event)">
           <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="signinEmail" placeholder="jordan@email.com" required autocomplete="email" />
+            <label>Email or Username</label>
+            <input type="text" id="signinEmail" placeholder="jordan@email.com or @jordanw" required autocomplete="email" />
           </div>
           <div class="form-group">
             <label>Password</label>
@@ -98,6 +114,9 @@
               <input type="password" id="signinPassword" placeholder="Your password" required autocomplete="current-password" />
               <button type="button" class="eye-toggle" onclick="togglePass('signinPassword', this)">👁</button>
             </div>
+          </div>
+          <div class="forgot-wrap">
+            <a href="#" class="forgot-link" onclick="switchTab('forgot'); return false;">Forgot password?</a>
           </div>
           <div class="form-error" id="signinError"></div>
           <button type="submit" class="btn-submit" id="signinBtn">
@@ -107,12 +126,73 @@
           <p class="form-alt">No account? <a href="#" onclick="switchTab('signup')">Create one free</a></p>
         </form>
 
+        <!-- FORGOT PASSWORD FORM -->
+        <form id="forgotForm" class="auth-form hidden" onsubmit="handleForgotPassword(event)">
+          <div class="forgot-header">
+            <h3>Reset your password</h3>
+            <p>Enter your email and we'll send a reset link from contact@mythread.shop</p>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="forgotEmail" placeholder="jordan@email.com" required autocomplete="email" />
+          </div>
+          <div class="form-error" id="forgotError"></div>
+          <div class="form-success" id="forgotSuccess"></div>
+          <button type="submit" class="btn-submit" id="forgotBtn">
+            <span class="btn-text">Send Reset Link</span>
+            <span class="btn-loader hidden">Sending…</span>
+          </button>
+          <p class="form-alt"><a href="#" onclick="switchTab('signin'); return false;">← Back to Sign In</a></p>
+        </form>
+
+        <!-- RESET PASSWORD FORM (shown after clicking email link) -->
+        <form id="resetForm" class="auth-form hidden" onsubmit="handleResetPassword(event)">
+          <div class="forgot-header">
+            <h3>Set new password</h3>
+            <p>Choose a strong password for your THREAD account.</p>
+          </div>
+          <div class="form-group">
+            <label>New Password</label>
+            <div class="input-wrap">
+              <input type="password" id="resetPassword" placeholder="Min 7 chars + special character" required minlength="7" />
+              <button type="button" class="eye-toggle" onclick="togglePass('resetPassword', this)">👁</button>
+            </div>
+            <div class="pw-reqs" id="pwReqsReset">
+              <span id="pwLenReset" class="req">✗ At least 7 characters</span>
+              <span id="pwSpecReset" class="req">✗ One special character (!@#$%^&*)</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Confirm New Password</label>
+            <div class="input-wrap">
+              <input type="password" id="resetConfirm" placeholder="Repeat password" required />
+              <button type="button" class="eye-toggle" onclick="togglePass('resetConfirm', this)">👁</button>
+            </div>
+          </div>
+          <div class="form-error" id="resetError"></div>
+          <button type="submit" class="btn-submit" id="resetBtn">
+            <span class="btn-text">Set New Password</span>
+            <span class="btn-loader hidden">Updating…</span>
+          </button>
+        </form>
+
       </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="config.js"></script>
-  <script src="auth.js"></script>
+  <script src="config.js?v=20260519e"></script>
+  <script src="auth.js?v=20260519e"></script>
+
+  <!-- Global home button -->
+  <a href="index.html" class="global-home-btn" title="Back to Home">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </a>
+  <style>
+    .global-home-btn { position:fixed; bottom:24px; left:24px; display:flex; align-items:center; gap:7px; padding:10px 18px; background:rgba(15,15,15,0.92); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.12); border-radius:50px; color:#fff; font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600; text-decoration:none; z-index:9998; transition:all .2s; box-shadow:0 4px 20px rgba(0,0,0,0.4); }
+    .global-home-btn:hover { background:rgba(108,99,255,0.88); border-color:#6C63FF; transform:translateY(-2px); box-shadow:0 8px 28px rgba(108,99,255,0.3); }
+    @media(max-width:480px){ .global-home-btn { bottom:16px; left:16px; padding:9px 14px; font-size:12px; } }
+  </style>
 </body>
 </html>

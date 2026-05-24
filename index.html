@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=20260519f" />
 </head>
 <body>
 
@@ -107,7 +107,7 @@
         </div>
         <div class="stat-divider"></div>
         <div class="stat">
-          <span class="stat-num" data-target="97">0</span><span class="stat-num-suffix">%</span>
+          <div style="display:flex;align-items:baseline;gap:2px"><span class="stat-num" data-target="97">0</span><span class="stat-num-suffix">%</span></div>
           <span class="stat-label">Would Recommend</span>
         </div>
       </div>
@@ -117,9 +117,7 @@
         <div class="qr-float-glow"></div>
         <div class="qr-float-card" id="shirtMockup">
           <div class="qr-float-inner">
-            <img src="images/mythread-shop-qr.png" alt="THREAD QR Code" class="qr-float-img" id="qrHeroImg"
-                 onerror="this.style.display='none'; document.getElementById('qrHeroSvg').style.display='block';">
-            <svg id="qrHeroSvg" width="210" height="210" viewBox="0 0 210 210" xmlns="http://www.w3.org/2000/svg" style="display:none;"></svg>
+            <div id="heroQrWrap" style="position:relative;display:inline-block;width:210px;height:210px;border-radius:16px;overflow:hidden;background:#fff;"></div>
             <div class="qr-scan-sweep"></div>
           </div>
           <div class="qr-float-footer">
@@ -406,7 +404,7 @@
         <div class="reward-card" data-reward="cash">
           <div class="reward-icon">💵</div>
           <h3>Cash Payout</h3>
-          <p>Direct deposit or Venmo/CashApp transfer. Available 48 hours after a confirmed purchase.</p>
+          <p>Direct deposit or Venmo/CashApp transfer. Earnings clear 72 hours after your referral's order is delivered.</p>
           <div class="reward-rate">20% → 30% per sale</div>
           <div class="reward-disclaimer">Full commission on full-price orders</div>
         </div>
@@ -649,9 +647,7 @@
         <div class="qr-feature-right">
           <div class="qr-demo">
             <div class="qr-demo-inner" id="qrDemo">
-              <img src="images/mythread-shop-qr.png" alt="THREAD QR Code" class="qr-demo-img" id="qrDemoImg"
-                   onerror="this.style.display='none'; document.getElementById('qrDemoSvg').style.display='block';">
-              <svg id="qrDemoSvg" width="180" height="180" viewBox="0 0 210 210" xmlns="http://www.w3.org/2000/svg" style="display:none; border-radius:8px;"></svg>
+              <div id="bottomQrWrap" style="position:relative;display:inline-block;width:180px;height:180px;border-radius:12px;overflow:hidden;background:#fff;"></div>
             </div>
             <div class="qr-demo-label">SCAN TO SHOP · EARN REWARDS</div>
             <div class="qr-pulse-rings">
@@ -714,7 +710,7 @@
     </div>
     <div class="footer-bottom">
       <span>© 2026 THREAD. All rights reserved.</span>
-      <span>Privacy · Terms · Cookie Policy</span>
+      <span>Privacy · <a href="terms.html" style="color:inherit;text-decoration:underline;text-underline-offset:3px">Terms &amp; Conditions</a></span>
     </div>
   </footer>
 
@@ -742,9 +738,112 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
   <script src="config.js"></script>
   <script src="db.js"></script>
   <script src="app.js"></script>
+  <script>
+    (async function renderHeroQR() {
+      const wrap = document.getElementById('heroQrWrap');
+      if (!wrap) return;
+      const size    = 210;
+      const url     = 'https://mythread.shop/secret.html';
+      const logoSrc = new URL('images/Transparent-Logo.png', window.location.href).href;
+
+      if (window.QRCodeStyling) {
+        // Fetch logo as data URL to avoid taint issues
+        let logoDataUrl = null;
+        try {
+          const r = await fetch(logoSrc);
+          if (r.ok) {
+            const b = await r.blob();
+            logoDataUrl = await new Promise(res => { const fr = new FileReader(); fr.onloadend = () => res(fr.result); fr.readAsDataURL(b); });
+          }
+        } catch(_) {}
+
+        const qr = new QRCodeStyling({
+          width:  size * 4, height: size * 4,
+          type:   'canvas',
+          data:   url,
+          margin: 0,
+          qrOptions:            { errorCorrectionLevel: 'H' },
+          dotsOptions:          { color: '#000000', type: 'dots' },
+          cornersSquareOptions: { color: '#000000', type: 'extra-rounded' },
+          cornersDotOptions:    { color: '#000000', type: 'dot' },
+          backgroundOptions:    { color: '#ffffff' },
+          ...(logoDataUrl ? { image: logoDataUrl, imageOptions: { margin: 6, imageSize: 0.25, hideBackgroundDots: true } } : {})
+        });
+        qr.append(wrap);
+        setTimeout(() => {
+          const c = wrap.querySelector('canvas');
+          if (c) { c.style.width = size + 'px'; c.style.height = size + 'px'; }
+        }, 400);
+        return;
+      }
+
+      // Fallback: API image + CSS logo
+      const logoSize = Math.floor(size * 0.18);
+      wrap.style.cssText += 'position:relative;';
+      wrap.innerHTML = `
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=${size*4}x${size*4}&data=${encodeURIComponent('https://mythread.shop/secret.html')}&margin=8&ecc=H"
+             style="width:${size}px;height:${size}px;display:block;" />
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+                    width:${logoSize+8}px;height:${logoSize+8}px;background:#fff;border-radius:6px;
+                    display:flex;align-items:center;justify-content:center;">
+          <img src="images/Transparent-Logo.png" style="width:${logoSize}px;height:${logoSize}px;object-fit:contain;" />
+        </div>`;
+    })();
+
+    // ── Bottom "One code. Infinite reach." QR — also points to easter egg
+    (async function renderBottomQR() {
+      const wrap = document.getElementById('bottomQrWrap');
+      if (!wrap) return;
+      const size    = 180;
+      const url     = 'https://mythread.shop/secret.html';
+      const logoSrc = new URL('images/Transparent-Logo.png', window.location.href).href;
+
+      if (window.QRCodeStyling) {
+        let logoDataUrl = null;
+        try {
+          const r = await fetch(logoSrc);
+          if (r.ok) {
+            const b = await r.blob();
+            logoDataUrl = await new Promise(res => { const fr = new FileReader(); fr.onloadend = () => res(fr.result); fr.readAsDataURL(b); });
+          }
+        } catch(_) {}
+
+        const qr = new QRCodeStyling({
+          width:  size * 4, height: size * 4,
+          type:   'canvas',
+          data:   url,
+          margin: 0,
+          qrOptions:            { errorCorrectionLevel: 'H' },
+          dotsOptions:          { color: '#000000', type: 'dots' },
+          cornersSquareOptions: { color: '#000000', type: 'extra-rounded' },
+          cornersDotOptions:    { color: '#000000', type: 'dot' },
+          backgroundOptions:    { color: '#ffffff' },
+          ...(logoDataUrl ? { image: logoDataUrl, imageOptions: { margin: 6, imageSize: 0.25, hideBackgroundDots: true } } : {})
+        });
+        qr.append(wrap);
+        setTimeout(() => {
+          const c = wrap.querySelector('canvas');
+          if (c) { c.style.width = size + 'px'; c.style.height = size + 'px'; }
+        }, 400);
+        return;
+      }
+
+      // Fallback
+      const logoSize = Math.floor(size * 0.18);
+      wrap.innerHTML = `
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=${size*4}x${size*4}&data=${encodeURIComponent(url)}&margin=8&ecc=H"
+             style="width:${size}px;height:${size}px;display:block;" />
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+                    width:${logoSize+8}px;height:${logoSize+8}px;background:#fff;border-radius:6px;
+                    display:flex;align-items:center;justify-content:center;">
+          <img src="images/Transparent-Logo.png" style="width:${logoSize}px;height:${logoSize}px;object-fit:contain;" />
+        </div>`;
+    })();
+  </script>
 </body>
 </html>
 

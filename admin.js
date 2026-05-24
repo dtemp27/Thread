@@ -88,14 +88,20 @@ async function loadAllData() {
     console.warn('Admin data load error:', e);
   }
 
-  renderOverview();
-  renderOrders();
-  renderCustomers();
-  renderReferrals();
-  loadDropBoxes();
+  const safe = (fn, name) => { try { fn(); } catch(e) { console.error(`[admin crash] ${name}:`, e); refresh.textContent = `ERROR in ${name}: ${e.message}`; } };
+  safe(renderOverview,  'renderOverview');
+  safe(renderOrders,    'renderOrders');
+  safe(renderCustomers, 'renderCustomers');
+  safe(renderReferrals, 'renderReferrals');
+  safe(loadDropBoxes,   'loadDropBoxes');
+  safe(loadAnalytics,   'loadAnalytics');
+  safe(loadTrackedQRs,  'loadTrackedQRs');
+  safe(() => showSection('overview'), 'showSection');
 
-  refresh.textContent = 'Updated ' + new Date().toLocaleTimeString();
+  if (!refresh.textContent.startsWith('ERROR')) refresh.textContent = 'Updated ' + new Date().toLocaleTimeString();
 }
+
+// Auto-refresh removed — refresh manually
 
 /* ─────────────────────────────────────────────────────────────────────────
    DROP BOX QUEUE  (tier-up physical reward fulfillment)
@@ -316,13 +322,13 @@ function renderOrders() {
 
   const tbody = document.getElementById('ordersBody');
   tbody.innerHTML = filtered.length ? filtered.map(o => orderRow(o, true)).join('') :
-    '<tr><td colspan="8" class="ad-empty">No orders match</td></tr>';
+    '<tr><td colspan="9" class="ad-empty">No orders match</td></tr>';
 }
 
 function orderRow(o, showAction) {
   const customer = o.profiles?.name || o.customer_email || '—';
   const items    = Array.isArray(o.items)
-    ? o.items.map(i => `${i.name} ×${i.qty}`).join(', ')
+    ? o.items.map(i => { const type = i.type === "tee" ? "Tee" : "Hoodie"; return `${i.name} ${type}${i.size ? " ("+i.size+")" : ""} ×${i.qty}`; }).join(", ")
     : '—';
   const date = o.created_at
     ? new Date(o.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -331,11 +337,16 @@ function orderRow(o, showAction) {
   const idShort = displayId.length > 16 ? displayId.slice(0, 16) + '...' : displayId;
   const ref     = o.referral_code ? `<code style="font-size:11px">${o.referral_code}</code>` : '—';
 
+  const buyerCode = o.buyer_qr_code || o.referral_code || '';
+  const qrDownload = showAction && buyerCode
+    ? `<button class="ad-action-btn" style="background:#111;color:#fff;margin-right:4px" onclick="downloadQR('${escapeHtml(buyerCode)}','${escapeHtml(o.customer_email||buyerCode)}','black')">⬛ QR</button>`
+    : '';
   const action = showAction
     ? `<button class="ad-action-btn" onclick="openStatusModal('${o.id}')">Edit</button>`
     : '';
 
   return `<tr>
+    <td><input type="checkbox" class="order-checkbox" data-id="${o.id}" onchange="updateDeleteBtn()"></td>
     <td><code style="font-size:11px">${idShort}</code></td>
     <td>${customer}</td>
     <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${items}</td>
@@ -343,8 +354,54 @@ function orderRow(o, showAction) {
     ${showAction ? `<td>${ref}</td>` : ''}
     <td><span class="status-pill s-${o.status||'pending'}">${o.status||'pending'}</span></td>
     <td style="white-space:nowrap">${date}</td>
-    ${showAction ? `<td>${action}</td>` : ''}
+    ${showAction ? `<td>${qrDownload}${action}</td>` : ''}
   </tr>`;
+}
+
+function toggleAllOrders(cb) {
+  document.querySelectorAll('.order-checkbox').forEach(c => c.checked = cb.checked);
+  updateDeleteBtn();
+}
+
+function updateDeleteBtn() {
+  const any = document.querySelectorAll('.order-checkbox:checked').length > 0;
+  const btn = document.getElementById('deleteOrdersBtn');
+  if (btn) btn.style.display = any ? '' : 'none';
+  const selectAll = document.getElementById('selectAllOrders');
+  if (selectAll) {
+    const all  = document.querySelectorAll('.order-checkbox').length;
+    const chk  = document.querySelectorAll('.order-checkbox:checked').length;
+    selectAll.indeterminate = chk > 0 && chk < all;
+    selectAll.checked = all > 0 && chk === all;
+  }
+}
+
+async function deleteSelectedOrders() {
+  const checked = [...document.querySelectorAll('.order-checkbox:checked')];
+  if (!checked.length) return;
+  const ids = checked.map(c => c.dataset.id);
+  if (!confirm(`Delete ${ids.length} order${ids.length > 1 ? 's' : ''}? This cannot be undone.`)) return;
+
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (cfg?.supabaseUrl && window.supabase) {
+      const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+      const { error } = await sb.rpc('delete_orders_by_ids', { order_ids: ids });
+      if (error) { alert('Delete failed: ' + error.message); return; }
+    } else {
+      // localStorage fallback
+      const stored = JSON.parse(localStorage.getItem('thread_orders') || '[]');
+      localStorage.setItem('thread_orders', JSON.stringify(stored.filter(o => !ids.includes(o.id))));
+    }
+    // Remove from local array and re-render
+    allOrders = allOrders.filter(o => !ids.includes(o.id));
+    renderOrders();
+    renderOverview();
+    document.getElementById('deleteOrdersBtn').style.display = 'none';
+    document.getElementById('selectAllOrders').checked = false;
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -368,15 +425,85 @@ function renderCustomers() {
     const joined = c.created_at
       ? new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
       : '—';
+    const referrer = c.referred_by
+      ? allCustomers.find(r => r.referral_code === c.referred_by)
+      : null;
+    const referredBy = referrer
+      ? `<span style="font-weight:600">${referrer.name || '—'}</span><br><span style="font-size:11px;color:#888">${referrer.email || ''}</span>`
+      : (c.referred_by ? `<code style="font-size:11px">${c.referred_by}</code>` : '<span style="color:#555">—</span>');
+    const code = c.referral_code || c.referralCode || '';
+    const username = c.username ? `<span style="color:#a78bfa;font-weight:600">@${escapeHtml(c.username)}</span>` : '<span style="color:#444">—</span>';
+    const qrBtn = code
+      ? `<button class="ad-action-btn" style="background:#111;color:#fff;margin-right:4px" onclick="downloadQR('${escapeHtml(code)}','${escapeHtml(c.name || code)}','black')">⬛ Black</button><button class="ad-action-btn" style="background:#3a3a3a;color:#aaa;border:1px solid #555" onclick="downloadQR('${escapeHtml(code)}','${escapeHtml(c.name || code)}','white')">⬜ White</button>`
+      : '<span style="color:#555">—</span>';
     return `<tr>
       <td><strong>${c.name || '—'}</strong></td>
       <td>${c.email || '—'}</td>
-      <td><code style="font-size:11px">${c.referral_code || c.referralCode || '—'}</code></td>
+      <td>${username}</td>
+      <td>${referredBy}</td>
+      <td><code style="font-size:11px">${code || '—'}</code></td>
       <td>${customerOrders.length}</td>
       <td style="font-family:var(--mono)">$${spent.toFixed(2)}</td>
+      <td>${c.payout_method ? `<span style="font-size:12px;color:#a78bfa;font-weight:600">${c.payout_method}</span><br><span style="font-size:11px;color:#888">${c.payout_handle || '—'}</span>` : '<span style="color:#444">—</span>'}</td>
       <td>${joined}</td>
+      <td>${qrBtn}</td>
+      <td><button class="ad-action-btn" style="background:#7f1d1d;color:#fca5a5;font-size:11px" onclick="clearAccountData('${escapeHtml(c.id || '')}','${escapeHtml(c.email || '')}','${escapeHtml(c.name || '')}')">🗑 Clear</button></td>
     </tr>`;
-  }).join('') : '<tr><td colspan="6" class="ad-empty">No customers</td></tr>';
+  }).join('') : '<tr><td colspan="10" class="ad-empty">No customers</td></tr>';
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   TRACKED QR CODES
+───────────────────────────────────────────────────────────────────────── */
+async function loadTrackedQRs() {
+  const body = document.getElementById('trackedQRBody');
+  if (!body) return;
+  const cfg = window.THREAD_CONFIG;
+  if (!cfg?.supabaseUrl || !window.supabase) return;
+  const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+
+  const { data, error } = await sb.rpc('get_tracked_qr_stats');
+  if (error || !data?.length) {
+    body.innerHTML = '<tr><td colspan="6" class="ad-empty">No tracked codes yet — add one above</td></tr>';
+    return;
+  }
+  body.innerHTML = data.map(row => {
+    const lastScan = row.last_scan
+      ? new Date(row.last_scan).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' })
+      : '—';
+    return `<tr>
+      <td><strong>${escapeHtml(row.label || row.code)}</strong></td>
+      <td><code style="font-size:11px">${escapeHtml(row.code)}</code></td>
+      <td><strong style="font-size:18px;color:#a78bfa">${row.scan_count || 0}</strong></td>
+      <td style="font-size:12px;color:#888">${lastScan}</td>
+      <td><button class="ad-action-btn" style="background:#111;color:#fff" onclick="downloadQR('${escapeHtml(row.code)}','${escapeHtml(row.label||row.code)}','black')">⬛ QR</button></td>
+      <td><button class="ad-action-btn" style="background:#7f1d1d;color:#fca5a5;font-size:11px" onclick="removeTrackedQR('${escapeHtml(row.id)}')">Remove</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function addTrackedQR() {
+  const code  = (document.getElementById('newQRCodeInput')?.value  || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  const label = (document.getElementById('newQRLabelInput')?.value || '').trim();
+  if (!code) { alert('Enter a code first.'); return; }
+  const cfg = window.THREAD_CONFIG;
+  if (!cfg?.supabaseUrl || !window.supabase) return;
+  const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+  const { error } = await sb.rpc('add_tracked_qr', { p_code: code, p_label: label || code });
+  if (error) { alert('Error: ' + error.message); return; }
+  document.getElementById('newQRCodeInput').value  = '';
+  document.getElementById('newQRLabelInput').value = '';
+  loadTrackedQRs();
+}
+
+async function removeTrackedQR(id) {
+  if (!confirm('Remove this tracked code?')) return;
+  const cfg = window.THREAD_CONFIG;
+  if (!cfg?.supabaseUrl || !window.supabase) return;
+  const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+  const { error } = await sb.rpc('remove_tracked_qr', { p_id: id });
+  if (error) { alert('Error: ' + error.message); return; }
+  loadTrackedQRs();
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -392,11 +519,19 @@ function renderReferrals() {
   document.getElementById('refConvRate').textContent     = `${convRate}% conversion rate`;
   document.getElementById('refCommPaid').textContent     = '$' + commTotal.toFixed(2);
 
+  // Helper: look up readable label for a referrer from allCustomers
+  function referrerLabel(referrerId, referralCode) {
+    const cust = allCustomers.find(c => c.id === referrerId || c.user_id === referrerId)
+               || allCustomers.find(c => (c.referral_code || c.referralCode) === referralCode);
+    if (!cust) return referralCode || referrerId || '—';
+    return cust.name && cust.name.trim() ? cust.name : (cust.email || referralCode || '—');
+  }
+
   // Group by referrer
   const byReferrer = {};
   allScans.forEach(s => {
     const key  = s.referrer_id || s.referral_code;
-    const name = s.profiles?.name || s.referral_code || key;
+    const name = referrerLabel(s.referrer_id, s.referral_code);
     if (!byReferrer[key]) byReferrer[key] = { name, code: s.referral_code, scans: 0, convs: 0, earned: 0, pending: 0 };
     byReferrer[key].scans++;
     if (s.converted) {
@@ -416,7 +551,7 @@ function renderReferrals() {
   // Top referrers table
   const topBody = document.getElementById('topReferrersBody');
   topBody.innerHTML = sorted.length ? sorted.slice(0, 20).map(r => `<tr>
-    <td><strong>${r.name}</strong></td>
+    <td><strong>${escapeHtml(r.name)}</strong></td>
     <td><code style="font-size:11px">${r.code}</code></td>
     <td>${r.scans}</td>
     <td>${r.convs}</td>
@@ -431,9 +566,10 @@ function renderReferrals() {
     const when = s.created_at
       ? new Date(s.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
       : '—';
+    const rLabel = referrerLabel(s.referrer_id, s.referral_code);
     return `<tr>
       <td style="white-space:nowrap">${when}</td>
-      <td>${s.profiles?.name || '—'}</td>
+      <td>${escapeHtml(rLabel)}</td>
       <td><code style="font-size:11px">${s.referral_code || '—'}</code></td>
       <td>${s.city || '—'}</td>
       <td>${s.converted
@@ -469,4 +605,311 @@ async function setStatus(status) {
   closeStatusModal();
   renderOverview();
   renderOrders();
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   QR CODE DOWNLOAD
+   Generates a 600×600 QR linking to mythread.shop/?ref=CODE and downloads
+   it as a PNG you can drop straight onto the hoodie/tee print file.
+───────────────────────────────────────────────────────────────────────── */
+async function downloadQR(code, name, color) {
+  if (!window.QRCodeStyling) {
+    alert('QR library not loaded — please refresh and try again.');
+    return;
+  }
+
+  const isWhite  = color === 'white';
+  const dotColor = isWhite ? '#ffffff' : '#000000';
+  // Use a chroma-key background that won't appear in the dots or logo:
+  // black QR  → cyan bg  (#00ffff) → strip R<50 & G>200 & B>200
+  // white QR  → lime bg  (#00ff00) → strip R<50 & G>200 & B<50
+  const bgColor  = isWhite ? '#00ff00' : '#00ffff';
+
+  const url      = `https://mythread.shop/?ref=${encodeURIComponent(code)}`;
+  const safeName = (name || code).replace(/[^a-zA-Z0-9_-]/g, '_');
+  const label    = isWhite ? 'WHITE' : 'BLACK';
+
+  // Black QR uses Transparent-Logo.png, White QR uses No-background-t-Logo.png
+  const logoFile = isWhite ? 'No-background-t-Logo.png' : 'Transparent-Logo.png';
+  let logoDataUrl = null;
+  try {
+    const r = await fetch(`${window.location.origin}/images/${logoFile}`);
+    if (r.ok) {
+      const blob = await r.blob();
+      logoDataUrl = await new Promise(res => {
+        const fr = new FileReader();
+        fr.onloadend = () => res(fr.result);
+        fr.readAsDataURL(blob);
+      });
+    }
+  } catch(_) {}
+
+  const qr = new QRCodeStyling({
+    width:  1200,
+    height: 1200,
+    type:   'canvas',
+    data:   url,
+    margin: 40,
+    qrOptions:            { errorCorrectionLevel: 'H' },
+    dotsOptions:          { color: dotColor, type: 'dots' },
+    cornersSquareOptions: { color: dotColor, type: 'extra-rounded' },
+    cornersDotOptions:    { color: dotColor, type: 'dot' },
+    backgroundOptions:    { color: bgColor },
+    ...(logoDataUrl ? {
+      image: logoDataUrl,
+      imageOptions: { margin: 8, imageSize: 0.25, hideBackgroundDots: true }
+    } : {})
+  });
+
+  const hidden = document.createElement('div');
+  hidden.style.cssText = 'position:fixed;left:-9999px;top:-9999px;';
+  document.body.appendChild(hidden);
+  qr.append(hidden);
+
+  setTimeout(() => {
+    const canvas = hidden.querySelector('canvas');
+    if (!canvas) { qr.download({ name: `THREAD-QR-${label}-${safeName}`, extension: 'png' }); hidden.remove(); return; }
+
+    const out = document.createElement('canvas');
+    out.width  = canvas.width;
+    out.height = canvas.height;
+    const ctx  = out.getContext('2d');
+    ctx.clearRect(0, 0, out.width, out.height);
+    ctx.drawImage(canvas, 0, 0);
+
+    // Strip chroma-key background only — leaves dots and logo untouched
+    const imgData = ctx.getImageData(0, 0, out.width, out.height);
+    const d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      if (isWhite) {
+        // Remove lime green: R<50, G>200, B<50
+        if (d[i] < 50 && d[i+1] > 200 && d[i+2] < 50) d[i+3] = 0;
+      } else {
+        // Remove cyan: R<50, G>200, B>200
+        if (d[i] < 50 && d[i+1] > 200 && d[i+2] > 200) d[i+3] = 0;
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    const link = document.createElement('a');
+    link.download = `THREAD-QR-${label}-${safeName}.png`;
+    link.href = out.toDataURL('image/png');
+    link.click();
+    hidden.remove();
+  }, 1000);
+}
+
+/* ─── CLEAR ACCOUNT DATA ───────────────────────────────────────────────── */
+let _clearTarget = null;
+
+function clearAccountData(userId, email, name) {
+  _clearTarget = { userId, email, name };
+  document.getElementById('clearModalLabel').textContent = name || email || userId;
+  document.getElementById('clearOrders').checked = true;
+  document.getElementById('clearScans').checked  = true;
+  document.getElementById('clearEvents').checked = false;
+  document.getElementById('clearModal').style.display = 'flex';
+}
+
+function closeClearModal() {
+  document.getElementById('clearModal').style.display = 'none';
+  _clearTarget = null;
+}
+
+async function confirmClearData() {
+  if (!_clearTarget) return;
+  const { userId, email, name } = _clearTarget;
+  const doOrders = document.getElementById('clearOrders').checked;
+  const doScans  = document.getElementById('clearScans').checked;
+  const doEvents = document.getElementById('clearEvents').checked;
+  if (!doOrders && !doScans && !doEvents) { alert('Select at least one option.'); return; }
+
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) { alert('Supabase not connected'); return; }
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const { error } = await sb.rpc('clear_account_data', {
+      p_user_id:    userId,
+      p_email:      email,
+      p_orders:     doOrders,
+      p_scans:      doScans,
+      p_events:     doEvents
+    });
+    if (error) { alert('Clear failed: ' + error.message); return; }
+    closeClearModal();
+    await loadAllData();
+    alert('Done — data cleared for ' + (name || email));
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+/* ─── GLOBAL CLEAR ACTIONS ─────────────────────────────────────────────────── */
+async function clearAllScans() {
+  if (!confirm('Delete ALL referral scan records? This cannot be undone.')) return;
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) { alert('Supabase not connected'); return; }
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const { error } = await sb.rpc('clear_all_referral_scans');
+    if (error) { alert('Failed: ' + error.message); return; }
+    allScans = [];
+    renderReferrals();
+    alert('All referral scans cleared.');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function clearAllAnalytics() {
+  if (!confirm('Delete ALL analytics events (visits + carts)? This cannot be undone.')) return;
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) { alert('Supabase not connected'); return; }
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const { error } = await sb.rpc('clear_all_analytics');
+    if (error) { alert('Failed: ' + error.message); return; }
+    loadAnalytics();
+    alert('All analytics events cleared.');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+/* ─── ANALYTICS DOWNLOAD ───────────────────────────────────────────────────── */
+let _analyticsCache = [];
+
+function downloadAnalyticsCSV() {
+  if (!_analyticsCache.length) { alert('No analytics data loaded yet. Open the Analytics tab first.'); return; }
+  const cols = ['time', 'event_type', 'detail', 'page', 'ip_address', 'city', 'country'];
+  const rows = _analyticsCache.map(e => [
+    new Date(e.created_at).toLocaleString(),
+    e.event_type || '',
+    e.page_label || '',
+    e.page || '',
+    e.ip_address || '',
+    e.city || '',
+    e.country || ''
+  ]);
+  const csv = [cols, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `THREAD-analytics-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+/* ─── ANALYTICS ────────────────────────────────────────────────────────────── */
+async function loadAnalytics() {
+  const body = document.getElementById('analyticsBody');
+  if (!body) return;
+
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) {
+      body.innerHTML = '<tr><td colspan="5" class="ad-empty">Supabase not connected</td></tr>';
+      return;
+    }
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+
+    const { data, error } = await sb.rpc('get_all_analytics');
+    if (data) _analyticsCache = data;
+
+    if (error || !data) {
+      body.innerHTML = `<tr><td colspan="5" class="ad-empty">Could not load analytics${error ? ': ' + error.message : ''}</td></tr>`;
+      return;
+    }
+
+    const visits    = data.filter(e => e.event_type === 'visit');
+    const carts     = data.filter(e => e.event_type === 'add_to_cart');
+    const clicks    = data.filter(e => e.event_type === 'click');
+    const scrolls   = data.filter(e => e.event_type === 'scroll_depth');
+    const sections  = data.filter(e => e.event_type === 'section_view');
+    const timings   = data.filter(e => e.event_type === 'time_on_page');
+    const uniqueIPs = new Set(visits.map(e => e.ip_address).filter(Boolean));
+    const cartRate  = visits.length ? Math.round((carts.length / visits.length) * 100) : 0;
+
+    document.getElementById('statUniqueVisitors').textContent = uniqueIPs.size;
+    document.getElementById('statTotalVisits').textContent    = visits.length;
+    document.getElementById('statAddToCarts').textContent     = carts.length;
+    document.getElementById('statCartRate').textContent       = cartRate + '%';
+
+    // Top clicks breakdown
+    const clickCounts = {};
+    clicks.forEach(e => { const l = e.page_label || e.page || '—'; clickCounts[l] = (clickCounts[l]||0)+1; });
+    const topClicks = Object.entries(clickCounts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+
+    // Scroll depth breakdown
+    const scrollCounts = {};
+    scrolls.forEach(e => { const l = e.page_label || e.page || '—'; scrollCounts[l] = (scrollCounts[l]||0)+1; });
+
+    // Section views
+    const sectionCounts = {};
+    sections.forEach(e => { const l = e.page_label || e.page || '—'; sectionCounts[l] = (sectionCounts[l]||0)+1; });
+
+    // Time on page
+    const timingCounts = {};
+    timings.forEach(e => { const l = e.page_label || e.page || '—'; timingCounts[l] = (timingCounts[l]||0)+1; });
+
+    // Render breakdowns
+    const clicksEl = document.getElementById('analyticsClicks');
+    if (clicksEl) {
+      clicksEl.innerHTML = topClicks.length
+        ? topClicks.map(([label, count]) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1a1a1a">
+            <span style="font-size:13px;color:#ccc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px">${escapeHtml(label)}</span>
+            <span style="font-family:var(--mono);font-size:13px;color:#a78bfa;flex-shrink:0;margin-left:12px">${count}×</span>
+          </div>`).join('')
+        : '<div style="color:#555;font-size:13px;padding:8px 0">No click data yet</div>';
+    }
+
+    const scrollEl = document.getElementById('analyticsScroll');
+    if (scrollEl) {
+      const order = ['25%','50%','75%','90%'];
+      scrollEl.innerHTML = order.map(d => {
+        const n = scrollCounts[d] || 0;
+        const pct = visits.length ? Math.round((n/visits.length)*100) : 0;
+        return `<div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#aaa;margin-bottom:4px"><span>${d}</span><span>${n} visitors (${pct}%)</span></div>
+          <div style="background:#1a1a1a;border-radius:4px;height:6px"><div style="background:#7c3aed;height:6px;border-radius:4px;width:${pct}%"></div></div>
+        </div>`;
+      }).join('');
+    }
+
+    const timingEl = document.getElementById('analyticsTiming');
+    if (timingEl) {
+      const order2 = ['<15s','15-30s','30-60s','1-3m','3m+'];
+      timingEl.innerHTML = order2.map(d => {
+        const n = timingCounts[d] || 0;
+        return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px">
+          <span style="color:#aaa">${d}</span><span style="color:#4ade80;font-family:var(--mono)">${n}</span>
+        </div>`;
+      }).join('');
+    }
+
+    if (!data.length) {
+      body.innerHTML = '<tr><td colspan="6" class="ad-empty">No events yet — visit the site to start tracking</td></tr>';
+      return;
+    }
+
+    const EVENT_BADGES = {
+      visit:        '<span style="background:#1a472a;color:#4ade80;padding:2px 7px;border-radius:10px;font-size:11px">👁 Visit</span>',
+      add_to_cart:  '<span style="background:#4c1d95;color:#c4b5fd;padding:2px 7px;border-radius:10px;font-size:11px">🛒 Cart</span>',
+      click:        '<span style="background:#1e3a5f;color:#93c5fd;padding:2px 7px;border-radius:10px;font-size:11px">👆 Click</span>',
+      scroll_depth: '<span style="background:#1c2f1c;color:#86efac;padding:2px 7px;border-radius:10px;font-size:11px">📜 Scroll</span>',
+      section_view: '<span style="background:#2d1b00;color:#fcd34d;padding:2px 7px;border-radius:10px;font-size:11px">📍 Section</span>',
+      time_on_page: '<span style="background:#1f1f1f;color:#9ca3af;padding:2px 7px;border-radius:10px;font-size:11px">⏱ Time</span>',
+    };
+
+    body.innerHTML = data.map(e => {
+      const badge    = EVENT_BADGES[e.event_type] || `<span style="background:#1a1a1a;color:#888;padding:2px 7px;border-radius:10px;font-size:11px">${e.event_type}</span>`;
+      const location = [e.city, e.country].filter(Boolean).join(', ') || '—';
+      const time     = new Date(e.created_at).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+      const label    = e.page_label || '';
+      return `<tr>
+        <td>${badge}</td>
+        <td><code style="font-size:11px;color:#a78bfa">${escapeHtml(e.ip_address || '—')}</code></td>
+        <td>${escapeHtml(location)}</td>
+        <td>${escapeHtml(e.page || '—')}${label ? `<span style="color:#888;font-size:11px"> · ${escapeHtml(label)}</span>` : ''}</td>
+        <td style="color:#888;font-size:12px">${time}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    const body = document.getElementById('analyticsBody');
+    if (body) body.innerHTML = `<tr><td colspan="5" class="ad-empty">Error: ${e.message}</td></tr>`;
+  }
 }

@@ -36,5 +36,5 @@ window.THREAD_CONFIG = {
 
   // ─── Admin ──────────────────────────────────────────────────────────────────
   // Password to access /admin.html  — change this to something secure!
-  adminPassword: 'thread_admin_2024',
+  adminPassword: 'Dtemp5595665!?',
 };

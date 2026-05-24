@@ -57,6 +57,10 @@
           Drop Boxes
           <span class="ad-badge" id="dropBoxBadge">0</span>
         </button>
+        <button class="ad-nav-item" data-section="analytics" onclick="showSection('analytics')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Analytics
+        </button>
       </nav>
       <div class="ad-sidebar-foot">
         <div class="ad-mode-badge" id="adModeBadge">LOCAL MODE</div>
@@ -149,18 +153,22 @@
             <button class="ad-filter" data-filter="shipped"   onclick="filterOrders('shipped',this)">Shipped</button>
             <button class="ad-filter" data-filter="delivered" onclick="filterOrders('delivered',this)">Delivered</button>
           </div>
-          <input type="text" class="ad-search" id="orderSearch"
-            placeholder="Search by email, order ID…" oninput="filterOrders(currentOrderFilter, null)">
+          <div style="display:flex;gap:10px;align-items:center">
+            <input type="text" class="ad-search" id="orderSearch"
+              placeholder="Search by email, order ID…" oninput="filterOrders(currentOrderFilter, null)">
+            <button id="deleteOrdersBtn" class="ad-action-btn" style="background:#dc2626;color:#fff;white-space:nowrap;display:none" onclick="deleteSelectedOrders()">🗑 Delete Selected</button>
+          </div>
         </div>
 
         <div class="ad-card">
           <table class="ad-table ad-table-orders" id="ordersTable">
             <thead><tr>
+              <th><input type="checkbox" id="selectAllOrders" onclick="toggleAllOrders(this)" title="Select all"></th>
               <th>Order ID</th><th>Customer</th><th>Items</th>
               <th>Total</th><th>Referral</th><th>Status</th><th>Date</th><th>Action</th>
             </tr></thead>
             <tbody id="ordersBody">
-              <tr><td colspan="8" class="ad-empty">Loading orders…</td></tr>
+              <tr><td colspan="9" class="ad-empty">Loading orders…</td></tr>
             </tbody>
           </table>
         </div>
@@ -178,11 +186,11 @@
         <div class="ad-card">
           <table class="ad-table">
             <thead><tr>
-              <th>Name</th><th>Email</th><th>Referral Code</th>
-              <th>Orders</th><th>Spent</th><th>Joined</th>
+              <th>Name</th><th>Email</th><th>Username</th><th>Referred By</th><th>Referral Code</th>
+              <th>Orders</th><th>Spent</th><th>Payout</th><th>Joined</th><th>QR Code</th><th>Clear</th>
             </tr></thead>
             <tbody id="customersBody">
-              <tr><td colspan="6" class="ad-empty">Loading customers…</td></tr>
+              <tr><td colspan="9" class="ad-empty">Loading customers…</td></tr>
             </tbody>
           </table>
         </div>
@@ -230,9 +238,34 @@
           </table>
         </div>
 
+        <!-- TRACKED QR CODES -->
+        <div class="ad-card">
+          <div class="ad-card-header">
+            <h3>📍 Tracked QR Codes</h3>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="text" id="newQRCodeInput" placeholder="code (e.g. bogoegg)"
+                style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:7px 12px;color:#fff;font-size:13px;font-family:inherit;outline:none;width:180px"
+                onkeydown="if(event.key==='Enter')addTrackedQR()" />
+              <input type="text" id="newQRLabelInput" placeholder="label (optional)"
+                style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:7px 12px;color:#fff;font-size:13px;font-family:inherit;outline:none;width:140px"
+                onkeydown="if(event.key==='Enter')addTrackedQR()" />
+              <button class="ad-action-btn" style="background:#7c3aed;color:#fff" onclick="addTrackedQR()">+ Add</button>
+            </div>
+          </div>
+          <table class="ad-table">
+            <thead><tr>
+              <th>Label</th><th>Code</th><th>Total Scans</th><th>Last Scan</th><th>QR</th><th>Remove</th>
+            </tr></thead>
+            <tbody id="trackedQRBody">
+              <tr><td colspan="6" class="ad-empty">No tracked codes yet — add one above</td></tr>
+            </tbody>
+          </table>
+        </div>
+
         <div class="ad-card">
           <div class="ad-card-header">
             <h3>Recent Scan Events</h3>
+            <button class="ad-action-btn" style="background:#7f1d1d;color:#fca5a5;font-size:12px" onclick="clearAllScans()">🗑 Clear All Scans</button>
           </div>
           <table class="ad-table">
             <thead><tr>
@@ -315,7 +348,90 @@
 
       </section>
 
+      <!-- ── Analytics ── -->
+      <section id="sec-analytics" class="ad-section" style="display:none">
+        <div class="ad-section-header"><h2>Analytics</h2></div>
+
+        <div class="ad-stats-grid" style="margin-bottom:24px">
+          <div class="ad-stat-card">
+            <div class="ad-stat-num" id="statUniqueVisitors">—</div>
+            <div class="ad-stat-label">Unique Visitors</div>
+          </div>
+          <div class="ad-stat-card">
+            <div class="ad-stat-num" id="statTotalVisits">—</div>
+            <div class="ad-stat-label">Total Visits</div>
+          </div>
+          <div class="ad-stat-card">
+            <div class="ad-stat-num" id="statAddToCarts">—</div>
+            <div class="ad-stat-label">Add to Carts</div>
+          </div>
+          <div class="ad-stat-card">
+            <div class="ad-stat-num" id="statCartRate">—</div>
+            <div class="ad-stat-label">Cart Rate</div>
+          </div>
+        </div>
+
+        <!-- Behaviour breakdown -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
+          <div class="ad-card" style="margin:0;padding:18px">
+            <h4 style="font-size:13px;font-weight:700;margin:0 0 12px;color:#aaa">👆 Top Clicks</h4>
+            <div id="analyticsClicks"><div style="color:#555;font-size:13px">Loading…</div></div>
+          </div>
+          <div class="ad-card" style="margin:0;padding:18px">
+            <h4 style="font-size:13px;font-weight:700;margin:0 0 12px;color:#aaa">📜 Scroll Depth</h4>
+            <div id="analyticsScroll"><div style="color:#555;font-size:13px">Loading…</div></div>
+          </div>
+          <div class="ad-card" style="margin:0;padding:18px">
+            <h4 style="font-size:13px;font-weight:700;margin:0 0 12px;color:#aaa">⏱ Time on Page</h4>
+            <div id="analyticsTiming"><div style="color:#555;font-size:13px">Loading…</div></div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3 style="margin:0;font-size:15px;color:#aaa">All Events <span style="font-size:12px;color:#555;font-weight:400">(newest first)</span></h3>
+          <div style="display:flex;gap:8px">
+            <button class="ad-action-btn" style="background:#1a3a1a;color:#4ade80;font-size:12px" onclick="downloadAnalyticsCSV()">⬇ Download CSV</button>
+            <button class="ad-action-btn" style="background:#7f1d1d;color:#fca5a5;font-size:12px" onclick="clearAllAnalytics()">🗑 Clear All Events</button>
+          </div>
+        </div>
+        <div class="ad-table-wrap">
+          <table class="ad-table">
+            <thead><tr>
+              <th>Event</th><th>IP Address</th><th>Location</th><th>Page / Detail</th><th>Time</th>
+            </tr></thead>
+            <tbody id="analyticsBody"><tr><td colspan="5" class="ad-empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
     </main>
+  </div>
+
+  <!-- Clear account data modal -->
+  <div class="ad-modal-overlay" id="clearModal" style="display:none" onclick="if(event.target===this)closeClearModal()">
+    <div class="ad-modal" style="max-width:400px">
+      <h3 style="margin:0 0 4px">Clear Account Data</h3>
+      <p id="clearModalLabel" style="color:#888;font-size:13px;margin:0 0 20px"></p>
+      <p style="font-size:13px;color:#ccc;margin:0 0 14px">Select what to delete:</p>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px">
+          <input type="checkbox" id="clearOrders" checked style="width:16px;height:16px;accent-color:#7c3aed">
+          <span>Orders <span style="color:#888;font-size:12px">(purchase history)</span></span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px">
+          <input type="checkbox" id="clearScans" checked style="width:16px;height:16px;accent-color:#7c3aed">
+          <span>Referral Scans <span style="color:#888;font-size:12px">(scans + conversions)</span></span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px">
+          <input type="checkbox" id="clearEvents" style="width:16px;height:16px;accent-color:#7c3aed">
+          <span>Analytics Events <span style="color:#888;font-size:12px">(visits + add-to-carts)</span></span>
+        </label>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="ad-action-btn" onclick="closeClearModal()" style="background:#333;color:#fff">Cancel</button>
+        <button class="ad-action-btn" onclick="confirmClearData()" style="background:#dc2626;color:#fff">🗑 Delete Selected</button>
+      </div>
+    </div>
   </div>
 
   <!-- Order status modal -->
@@ -334,10 +450,11 @@
     </div>
   </div>
 
-  <script src="config.js"></script>
+  <script src="config.js?v=20260519d"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="db.js"></script>
-  <script src="tiers.js"></script>
-  <script src="admin.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  <script src="db.js?v=20260519d"></script>
+  <script src="tiers.js?v=20260519d"></script>
+  <script src="admin.js?v=20260520f"></script>
 </body>
 </html>

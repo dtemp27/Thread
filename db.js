@@ -243,13 +243,27 @@
     },
 
     async updateStatus(orderId, status) {
+      const HOLD_MS = 72 * 60 * 60 * 1000; // 72 hours post-delivery
       if (isLive()) {
-        await getSB().from('orders').update({ status }).eq('id', orderId);
+        const update = { status };
+        if (status === 'delivered') update.delivered_at = new Date().toISOString();
+        await getSB().from('orders').update(update).eq('id', orderId);
+        if (status === 'delivered') {
+          const clearsAt = new Date(Date.now() + HOLD_MS).toISOString();
+          await getSB().from('referral_scans')
+            .update({ clears_at: clearsAt })
+            .eq('order_id', orderId)
+            .eq('status', 'pending');
+        }
         return;
       }
       const orders = JSON.parse(localStorage.getItem('thread_orders') || '[]');
       const idx    = orders.findIndex(o => o.id === orderId);
-      if (idx !== -1) { orders[idx].status = status; localStorage.setItem('thread_orders', JSON.stringify(orders)); }
+      if (idx !== -1) {
+        orders[idx].status = status;
+        if (status === 'delivered') orders[idx].delivered_at = new Date().toISOString();
+        localStorage.setItem('thread_orders', JSON.stringify(orders));
+      }
     }
   };
 
@@ -271,21 +285,20 @@
       return null;
     },
 
-    async markConverted(referralCode, orderId, commission) {
+    async markConverted(referralCode, orderId, commission, orderTotal) {
       if (isLive()) {
         const uuidLike = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         const updatePayload = { converted: true, commission, status: 'pending' };
         if (uuidLike.test(String(orderId))) updatePayload.order_id = orderId;
 
-        // Mark the most recent unconverted scan for this referral code
-        const { data } = await getSB().from('referral_scans')
-          .select('id').eq('referral_code', referralCode).eq('converted', false)
-          .order('created_at', { ascending: false }).limit(1);
-        if (data?.length) {
-          await getSB().from('referral_scans')
-            .update(updatePayload)
-            .eq('id', data[0].id);
-        }
+        // Call RPC — runs as SECURITY DEFINER so it bypasses RLS
+        const { error: rpcErr } = await getSB().rpc('convert_referral_scan', {
+          ref_code:       referralCode,
+          p_order_id:     String(orderId || ''),
+          p_order_total:  Number(orderTotal || 0),
+          p_commission:   commission
+        });
+        if (rpcErr) console.warn('[db] convert_referral_scan rpc error:', rpcErr);
         return;
       }
       // Fallback: update referrer's localStorage stats
@@ -344,8 +357,7 @@
     /* Admin: all scans */
     async getAll() {
       if (isLive()) {
-        const { data } = await getSB().from('referral_scans')
-          .select('*').order('created_at', { ascending: false }).limit(200);
+        const { data } = await getSB().rpc('get_all_referral_scans');
         return data || [];
       }
       return [];

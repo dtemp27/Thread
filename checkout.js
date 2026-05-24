@@ -28,7 +28,7 @@ if (!isStripeReturn) {
   }
 }
 
-/* ─── Hoodie photo thumbnail ──────────────────────────────────────────────── */
+/* ─── Product photo thumbnail ─────────────────────────────────────────────── */
 const HOODIE_SLUGS = {
   'Phantom Black': 'phantom-black',
   'Midnight Navy': 'midnight-navy',
@@ -37,10 +37,25 @@ const HOODIE_SLUGS = {
   'Ash Stone':     'ash-stone',
   'Ivory Pure':    'ivory-pure',
 };
+const TEE_SLUGS = {
+  'Clean White': 'clean-white',
+  'Raw Stone':   'raw-stone',
+  'Jet Black':   'jet-black',
+  'Slate Grey':  'slate-grey',
+  'Deep Navy':   'deep-navy',
+};
 
-function miniHoodieSVG(name) {
-  const slug = HOODIE_SLUGS[name] || 'phantom-black';
-  return `<img src="images/${slug}-front.png?v=hoodie-20260517" alt="${name}" style="width:56px;height:56px;object-fit:cover;object-position:center top;border-radius:8px;background:#111">`;
+function miniHoodieSVG(name, type) {
+  const isTee = (type || 'hoodie') === 'tee';
+  // Strip type suffix in case name was stored as "Raw Stone Tee" or "Phantom Black Hoodie"
+  const cleanName = name.replace(/\s+(Tee|Hoodie)$/i, '').trim();
+  const slug = isTee
+    ? (TEE_SLUGS[cleanName] || cleanName.toLowerCase().replace(/\s+/g, '-'))
+    : (HOODIE_SLUGS[cleanName] || 'phantom-black');
+  const src = isTee
+    ? `images/tee-${slug}-front.png?v=tee-20260517`
+    : `hoodie-variants/${slug}-front.png?v=hoodie-20260517`;
+  return `<img src="${src}" alt="${cleanName}" style="width:56px;height:56px;object-fit:cover;object-position:center top;border-radius:8px;background:#111">`;
 }
 
 /* ─── Recalculate totals and save ────────────────────────────────────────── */
@@ -59,6 +74,16 @@ function recalcCheckout() {
     cart.discount = discount;
     localStorage.setItem('thread_cart', JSON.stringify(cart));
   } catch(_) {}
+}
+
+/* ─── Change size from checkout page ────────────────────────────────────── */
+const CO_SIZES = ['XS','S','M','L','XL','XXL'];
+
+function changeCheckoutSize(idx, size) {
+  if (!checkoutData?.items?.[idx]) return;
+  checkoutData.items[idx].size = size;
+  recalcCheckout();
+  renderSummary();
 }
 
 /* ─── Update qty from checkout page ─────────────────────────────────────── */
@@ -85,17 +110,120 @@ function removeCheckoutItem(idx) {
   renderSummary();
 }
 
+/* ─── Promo code on checkout page ───────────────────────────────────────── */
+function applyCheckoutPromo() {
+  const input  = document.getElementById('coPromoInput');
+  const msgEl  = document.getElementById('coPromoMsg');
+  const code   = (input?.value || '').trim().toUpperCase();
+  if (!code) return;
+
+  const setMsg = (txt, type) => {
+    if (!msgEl) return;
+    msgEl.textContent = txt;
+    msgEl.className = 'co-promo-msg ' + (type || '');
+  };
+
+  const items = checkoutData.items || [];
+  const promos = { 'THREAD10': 10, 'WEAR20': 20, 'FIRST15': 15, 'SCAN25': 25 };
+
+  let discount = 0;
+  let label = '';
+
+  if (code === 'VIVINT') {
+    // 1 free hoodie + 1 free tee
+    const hasTee    = items.some(i => (i.type || 'hoodie') === 'tee');
+    const hasHoodie = items.some(i => (i.type || 'hoodie') !== 'tee');
+    if (!hasTee || !hasHoodie) { setMsg('Add a hoodie + tee to use VIVINT.', 'error'); return; }
+    const hoodie = items.find(i => (i.type || 'hoodie') !== 'tee');
+    const tee    = items.find(i => (i.type || 'hoodie') === 'tee');
+    discount = parseFloat((hoodie.price + tee.price).toFixed(2));
+    label    = '1 hoodie + 1 tee FREE 🎉';
+  } else if (code === 'DTEMPER') {
+    // 90% off a tee
+    const teeItem = items.find(i => (i.type || 'hoodie') === 'tee');
+    if (!teeItem) { setMsg('Add a t-shirt to use DTEMPER.', 'error'); return; }
+    discount = parseFloat((teeItem.price * 0.90).toFixed(2));
+    label    = '90% off a tee 🔥';
+  } else if (code === 'BOGOEGG') {
+    // Easter egg — buy a hoodie, get a tee 50% off
+    const hasTee    = items.some(i => (i.type || 'hoodie') === 'tee');
+    const hasHoodie = items.some(i => (i.type || 'hoodie') !== 'tee');
+    if (!hasTee || !hasHoodie) { setMsg('Add a hoodie + tee to use this code.', 'error'); return; }
+    const teeItem = items.find(i => (i.type || 'hoodie') === 'tee');
+    discount = parseFloat((teeItem.price * 0.5).toFixed(2));
+    label    = 'tee 50% off 🥚';
+  } else if (code === 'BIGBIRD') {
+    const hasTee    = items.some(i => (i.type || 'hoodie') === 'tee');
+    const hasHoodie = items.some(i => (i.type || 'hoodie') !== 'tee');
+    if (hasTee && hasHoodie) { discount = 60; label = '$60 off your tee + hoodie'; }
+    else if (hasHoodie)      { discount = 32; label = '$32 off your hoodie'; }
+    else if (hasTee)         { discount = 28; label = '$28 off your tee'; }
+    else { setMsg('Add items to apply this code.', 'error'); return; }
+  } else if (promos[code]) {
+    discount = promos[code];
+    label = `$${discount} off`;
+  } else {
+    setMsg('Invalid promo code.', 'error');
+    return;
+  }
+
+  checkoutData.discount  = discount;
+  checkoutData.promoCode = code;
+  recalcCheckout();
+  renderSummary();
+  setMsg(`✓ ${code} applied — ${label}!`, 'success');
+  if (input) { input.value = ''; }
+
+  // Also sync back to cart
+  try {
+    const cart = JSON.parse(localStorage.getItem('thread_cart') || '{}');
+    cart.discount  = discount;
+    cart.promoCode = code;
+    localStorage.setItem('thread_cart', JSON.stringify(cart));
+  } catch(_) {}
+}
+
+function removeCheckoutPromo() {
+  checkoutData.discount  = 0;
+  checkoutData.promoCode = null;
+  recalcCheckout();
+  renderSummary();
+  // Clear message + input so it looks like nothing was ever entered
+  const msgEl   = document.getElementById('coPromoMsg');
+  const inputEl = document.getElementById('coPromoInput');
+  if (msgEl)   { msgEl.textContent = ''; msgEl.className = 'co-promo-msg'; }
+  if (inputEl) { inputEl.value = ''; }
+  // Sync cart
+  try {
+    const cart = JSON.parse(localStorage.getItem('thread_cart') || '{}');
+    cart.discount  = 0;
+    cart.promoCode = null;
+    localStorage.setItem('thread_cart', JSON.stringify(cart));
+  } catch(_) {}
+}
+
 /* ─── Render order summary ────────────────────────────────────────────────── */
 function renderSummary() {
   const data = checkoutData;
   const container = document.getElementById('coItems');
 
-  container.innerHTML = data.items.map((item, idx) => `
+  container.innerHTML = data.items.map((item, idx) => {
+    const isTee = (item.type || 'hoodie') === 'tee';
+    const typeLabel = isTee ? 'Oversized Tee' : 'Oversized Heavyweight';
+    const baseName = item.name.replace(/\s+(Tee|Hoodie)$/i, '').trim();
+    const displayName = isTee ? `${baseName} Tee` : `${baseName} Hoodie`;
+    return `
     <div class="co-item">
-      <div class="co-item-thumb">${miniHoodieSVG(item.name)}</div>
+      <div class="co-item-thumb">${miniHoodieSVG(item.name, item.type)}</div>
       <div class="co-item-info">
-        <div class="co-item-name">${item.name} Hoodie</div>
-        <div class="co-item-meta">THREAD Classic — Size ${item.size || 'M'}</div>
+        <div class="co-item-name">${displayName}</div>
+        <div class="co-item-meta">${typeLabel}</div>
+        <div class="co-size-row">
+          ${CO_SIZES.map(s => {
+            const active = (item.size || 'M') === s;
+            return `<button class="co-size-btn${active ? ' active' : ''}" onclick="changeCheckoutSize(${idx},'${s}')">${s}</button>`;
+          }).join('')}
+        </div>
       </div>
       <div class="co-item-right">
         <div class="co-item-price">$${(item.price * item.qty).toFixed(2)}</div>
@@ -107,7 +235,8 @@ function renderSummary() {
         </div>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 
   document.getElementById('coSubtotal').textContent    = `$${data.subtotal.toFixed(2)}`;
   document.getElementById('coTotal').textContent       = `$${data.total.toFixed(2)}`;
@@ -119,6 +248,9 @@ function renderSummary() {
     document.getElementById('coPromoApplied').style.display = '';
     document.getElementById('coPromoCode').textContent      = data.promoCode || '';
     document.getElementById('coPromoSaving').textContent    = data.discount.toFixed(2);
+  } else {
+    document.getElementById('coDiscountRow').style.display  = 'none';
+    document.getElementById('coPromoApplied').style.display = 'none';
   }
 
   // Referral attribution. Keep this optional so checkout still works if db.js
@@ -127,7 +259,7 @@ function renderSummary() {
     window.DB.profiles.getByReferralCode(refCode).then(referrer => {
       if (referrer) {
         document.getElementById('coRefNotice').style.display = 'flex';
-        document.getElementById('coRefName').textContent     = referrer.name;
+        document.getElementById('coRefName').textContent     = referrer.username ? '@' + referrer.username : referrer.name;
       }
     }).catch(() => {});
   }
@@ -218,6 +350,7 @@ async function launchStripeCheckout(email) {
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({
         items:        checkoutData.items,
+        discount:     checkoutData.discount || 0,
         total:        checkoutData.total,
         orderId:      orderId,
         customerEmail: email || '',
@@ -334,13 +467,27 @@ async function finalizeOrder(orderId, customerEmail = '') {
   //   2. localStorage thread_ref       — current-browser session fallback
   //   3. URL ?ref= param               — if they're checking out directly from a scan
   let refResult = null;
-  let effectiveRefCode = refCode;  // starts as localStorage value
+  // Always prefer the localStorage ref (direct from QR scan URL).
+  // Only fall back to profile.referred_by when localStorage has nothing.
+  // Also: if referred_by looks like a UUID (user ID not a code), resolve it
+  // to the actual referral_code string via a profile lookup.
+  let effectiveRefCode = refCode;
+  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   try {
-    const buyer = await window.DB.auth.getUser();
-    if (buyer) {
-      const profile = await window.DB.profiles.get(buyer.id);
-      if (profile?.referredBy || profile?.referred_by) {
-        effectiveRefCode = profile.referredBy || profile.referred_by;
+    if (!effectiveRefCode) {
+      const buyer = await window.DB.auth.getUser();
+      if (buyer) {
+        const profile = await window.DB.profiles.get(buyer.id);
+        const stored = profile?.referredBy || profile?.referred_by;
+        if (stored) {
+          if (uuidRe.test(stored)) {
+            // stored is a user ID — look up their referral code
+            const referrerProfile = await window.DB.profiles.get(stored).catch(() => null);
+            effectiveRefCode = referrerProfile?.referralCode || referrerProfile?.referral_code || stored;
+          } else {
+            effectiveRefCode = stored;
+          }
+        }
       }
     }
   } catch(_) {}
@@ -350,19 +497,14 @@ async function finalizeOrder(orderId, customerEmail = '') {
       // 1. Count the referrer's past converted sales BEFORE crediting this new one
       const pastConversions = await window.DB.referrals.countConvertedForCode(effectiveRefCode);
 
-      // 2. Look up their current tier from that count
-      const tier = window.ThreadTiers
-        ? window.ThreadTiers.getTierForReferrals(pastConversions)
-        : { perSale: 20, name: 'Starter' };
+      // Commission = 20% of order total (server also enforces this via RPC)
+      const orderTotal = parseFloat(checkoutData.total || 0);
+      const commission = parseFloat((orderTotal * 0.20).toFixed(2));
 
-      // 3. Commission = per-sale amount × number of hoodies in this order
-      const itemCount  = checkoutData.items.reduce((s, i) => s + i.qty, 0);
-      const commission = parseFloat((tier.perSale * itemCount).toFixed(2));
-
-      await window.DB.referrals.markConverted(effectiveRefCode, orderId, commission);
+      await window.DB.referrals.markConverted(effectiveRefCode, orderId, commission, orderTotal);
       const referrer = await window.DB.profiles.getByReferralCode(effectiveRefCode);
       if (referrer) {
-        refResult = { name: referrer.name, commission, tier: tier.name };
+        refResult = { name: referrer.username ? '@' + referrer.username : referrer.name, commission, tier: tier.name };
       }
       console.log('[checkout] Credited referrer:',
         { code: effectiveRefCode, tier: tier.name, perSale: tier.perSale, itemCount, commission });

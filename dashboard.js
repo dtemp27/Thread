@@ -55,9 +55,11 @@ let _sb  = null;
           user = {
             id:           profile.id,
             email:        profile.email,
-            name:         profile.name  || '',
+            name:         profile.name     || '',
+            username:     profile.username || '',
             referralCode: profile.referral_code || '',
             avatar:       (profile.name || profile.email || 'U').slice(0, 2).toUpperCase(),
+            avatar_url:   profile.avatar_url || null,
             stats:        { totalScans: 0, conversions: 0, pendingEarnings: 0, totalEarned: 0, scanHistory: [] },
             purchases:    []
           };
@@ -67,10 +69,10 @@ let _sb  = null;
             .select('*').eq('referrer_id', data.user.id)
             .order('created_at', { ascending: false });
           if (scans?.length) {
+            const now      = Date.now();
             const convs    = scans.filter(s => s.converted);
             const earned   = convs.reduce((s, r) => s + parseFloat(r.commission || 0), 0);
-            const pending  = convs.filter(s => s.status === 'pending')
-                                  .reduce((s, r) => s + parseFloat(r.commission || 0), 0);
+            const pending  = convs.filter(s => isScanPending(s, now)).reduce((s, r) => s + parseFloat(r.commission || 0), 0);
             user.stats = {
               totalScans:      scans.length,
               conversions:     convs.length,
@@ -82,7 +84,8 @@ let _sb  = null;
                 city:      s.city || 'Unknown',
                 converted: s.converted,
                 amount:    parseFloat(s.commission || 0),
-                status:    s.status || 'completed'
+                status:    s.status || 'completed',
+                clears_at: s.clears_at || null
               }))
             };
           }
@@ -123,26 +126,47 @@ let _sb  = null;
   bootUI();
 })();
 
+function handleNewScan(scan) {
+  const entry = {
+    type:      scan.converted ? 'conversion' : 'scan',
+    date:      scan.created_at || new Date().toISOString(),
+    city:      scan.city || 'Unknown',
+    converted: scan.converted || false,
+    amount:    parseFloat(scan.commission || 0),
+    status:    scan.status || 'completed'
+  };
+  user.stats.totalScans++;
+  user.stats.scanHistory.unshift(entry);
+  if (scan.converted) {
+    user.stats.conversions++;
+    user.stats.totalEarned     = parseFloat((user.stats.totalEarned + entry.amount).toFixed(2));
+    user.stats.pendingEarnings = parseFloat((user.stats.pendingEarnings + entry.amount).toFixed(2));
+  }
+  renderStats(); renderActivity(); renderTransactions();
+  showToast('👁 New scan — ' + (entry.city !== 'Unknown' ? entry.city : 'someone just scanned your code!'), 'success');
+}
+
 /* ═══════════════════════════════════════════════
    UI INIT (runs after user is loaded)
 ═══════════════════════════════════════════════ */
 function bootUI() {
 
   /* ─── REFERRAL URL ─── */
-  const baseURL = window.location.href.replace('dashboard.html','index.html').split('?')[0];
+  const baseURL = window.location.origin + '/';
   const refURL  = baseURL + '?ref=' + user.referralCode;
 
   /* ─── INIT STATIC UI ─── */
-  document.getElementById('suAvatar').textContent      = user.avatar;
+  renderOwnAvatar();
   document.getElementById('suName').textContent        = user.name;
   document.getElementById('suEmail').textContent       = user.email;
-  document.getElementById('topbarAvatar').textContent  = user.avatar;
+  renderSidebarUsername();
   document.getElementById('tcValue').textContent       = user.referralCode;
   document.getElementById('refLinkInput').value        = refURL;
   document.getElementById('qcdValue').textContent      = user.referralCode;
   document.getElementById('qcdUrl').textContent        = refURL;
   document.getElementById('miniCodeLabel').textContent = user.referralCode;
-  document.getElementById('welcomeMsg').textContent    = `Welcome back, ${(user.name||'').split(' ')[0] || 'there'}! 👋`;
+  const displayHandle = user.username ? `@${user.username}` : ((user.name||'').split(' ')[0] || 'there');
+  document.getElementById('welcomeMsg').textContent    = `Welcome back, ${displayHandle}! 👋`;
   document.getElementById('welcomeSub').textContent    = `Here's how your referrals are performing today.`;
   document.getElementById('topbarDate').textContent    = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
 
@@ -250,6 +274,53 @@ function bootUI() {
 
   /* ─── RENDER ALL ─── */
   renderAll();
+
+  /* ─── REAL-TIME SCAN LISTENER + POLLING FALLBACK ─── */
+  if (_sb && user.id) {
+    // Realtime (instant when it works)
+    _sb.channel('dashboard_scans_' + user.id)
+      .on('postgres_changes', {
+        event:  'INSERT',
+        schema: 'public',
+        table:  'referral_scans',
+        filter: `referrer_id=eq.${user.id}`
+      }, payload => handleNewScan(payload.new))
+      .subscribe();
+
+    // Polling fallback every 15s — catches scans if realtime drops
+    setInterval(async () => {
+      try {
+        const { data: scans } = await _sb.from('referral_scans')
+          .select('*').eq('referrer_id', user.id)
+          .order('created_at', { ascending: false });
+        if (!scans) return;
+        if (scans.length > user.stats.totalScans) {
+          const newCount = scans.length - user.stats.totalScans;
+          const now      = Date.now();
+          const convs    = scans.filter(s => s.converted);
+          const earned   = convs.reduce((s, r) => s + parseFloat(r.commission || 0), 0);
+          const pending  = convs.filter(s => isScanPending(s, now)).reduce((s, r) => s + parseFloat(r.commission || 0), 0);
+          user.stats = {
+            totalScans:      scans.length,
+            conversions:     convs.length,
+            totalEarned:     parseFloat(earned.toFixed(2)),
+            pendingEarnings: parseFloat(pending.toFixed(2)),
+            scanHistory:     scans.map(s => ({
+              type:      s.converted ? 'conversion' : 'scan',
+              date:      s.created_at,
+              city:      s.city || 'Unknown',
+              converted: s.converted,
+              amount:    parseFloat(s.commission || 0),
+              status:    s.status || 'completed',
+              clears_at: s.clears_at || null
+            }))
+          };
+          renderStats(); renderActivity(); renderTransactions();
+          showToast(`👁 ${newCount} new scan${newCount > 1 ? 's' : ''}!`, 'success');
+        }
+      } catch(e) {}
+    }, 15000);
+  }
   // scheduleNextScan() is NOT called here — it only runs when Demo Mode is on
 }
 
@@ -263,7 +334,7 @@ function switchSection(name) {
   const nav = document.querySelector(`.nav-item[data-section="${name}"]`);
   if (sec) sec.classList.add('active');
   if (nav) nav.classList.add('active');
-  const titles = { overview:'Overview', qrcode:'My QR Code', earnings:'Earnings', activity:'Activity', purchases:'My Purchases' };
+  const titles = { overview:'Overview', qrcode:'My QR Code', earnings:'Earnings', activity:'Activity', purchases:'My Closet' };
   document.getElementById('topbarTitle').textContent = titles[name] || 'Dashboard';
   document.getElementById('sidebar').classList.remove('open');
 }
@@ -329,51 +400,81 @@ async function drawQR(canvasId, text, size) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
 
-  const hoodieColor = getUserHoodieColor();
-  const { fg, bg } = getQRColors(hoodieColor);
-
-  // Build absolute URL so fetch resolves correctly regardless of page path
-  const logoSrc     = new URL('images/BrowserLogo.png', window.location.href).href;
-  const logoDataUrl = await _imgToDataURL(logoSrc);
-
-  // Hide original canvas, inject a div for qr-code-styling
   canvas.style.display = 'none';
   const containerId = canvasId + '_qr';
   const old = document.getElementById(containerId);
   if (old) old.remove();
+
   const div = document.createElement('div');
   div.id = containerId;
-  div.style.cssText = 'display:inline-block;border-radius:14px;overflow:hidden;';
+  div.style.cssText = `display:inline-block;width:${size}px;height:${size}px;border-radius:16px;overflow:hidden;flex-shrink:0;`;
   canvas.parentElement.insertBefore(div, canvas);
 
-  const qrOpts = {
-    width:  size,
-    height: size,
-    type:   'canvas',
-    data:   text,
-    dotsOptions:         { color: fg, type: 'rounded' },
-    cornersSquareOptions:{ color: fg, type: 'extra-rounded' },
-    cornersDotOptions:   { color: fg, type: 'dot' },
-    backgroundOptions:   { color: bg },
-  };
+  // Render at 4x for crisp high-res display, scaled down via CSS
+  const renderSize  = size * 4;
+  const logoDataUrl = await _imgToDataURL(new URL('images/Transparent-Logo.png', window.location.href).href);
 
-  if (logoDataUrl) {
-    qrOpts.image = logoDataUrl;
-    qrOpts.imageOptions = { margin: 4, imageSize: 0.32 };
+  if (window.QRCodeStyling) {
+    const qrOpts = {
+      width:  renderSize,
+      height: renderSize,
+      type:   'canvas',
+      data:   text,
+      margin: 0,
+      qrOptions: { errorCorrectionLevel: 'H' },
+      dotsOptions:          { color: '#000000', type: 'dots' },
+      cornersSquareOptions: { color: '#000000', type: 'extra-rounded' },
+      cornersDotOptions:    { color: '#000000', type: 'dot' },
+      backgroundOptions:    { color: '#ffffff' },
+    };
+    if (logoDataUrl) {
+      qrOpts.image        = logoDataUrl;
+      qrOpts.imageOptions = { margin: 6, imageSize: 0.25, hideBackgroundDots: true };
+    }
+    const qr = new QRCodeStyling(qrOpts);
+    qr.append(div);
+    // Scale high-res canvas down to display size for crispness
+    setTimeout(() => {
+      const c = div.querySelector('canvas');
+      if (c) { c.style.width = size + 'px'; c.style.height = size + 'px'; }
+    }, 400);
+    return;
   }
 
-  new QRCodeStyling(qrOpts).append(div);
+  // Fallback: API image with CSS logo overlay
+  const encoded  = encodeURIComponent(text);
+  const logoSize = Math.floor(size * 0.18);
+  div.style.cssText = `position:relative;display:inline-block;width:${size}px;height:${size}px;border-radius:16px;overflow:hidden;background:#fff;`;
+  div.innerHTML = `
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=${renderSize}x${renderSize}&data=${encoded}&margin=8&ecc=H"
+         style="width:${size}px;height:${size}px;display:block;image-rendering:crisp-edges;" />
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+                width:${logoSize+8}px;height:${logoSize+8}px;background:#fff;border-radius:6px;
+                display:flex;align-items:center;justify-content:center;">
+      <img src="images/Transparent-Logo.png" style="width:${logoSize}px;height:${logoSize}px;display:block;object-fit:contain;" />
+    </div>`;
 }
 
 /* ═══════════════════════════════════════════════
    STATS RENDERING
 ═══════════════════════════════════════════════ */
+
+const FALLBACK_HOLD_MS = 14 * 24 * 60 * 60 * 1000; // 14 days from conversion date
+
+function isScanPending(scan, now) {
+  if (scan.status !== 'pending') return false;
+  if (scan.clears_at) return new Date(scan.clears_at).getTime() > now;
+  // No delivery confirmation yet — hold for 14 days from conversion date as fallback
+  const scanDate = new Date(scan.date || scan.created_at || 0).getTime();
+  return (now - scanDate) < FALLBACK_HOLD_MS;
+}
+
 function renderStats() {
   const s     = user.stats;
   const scans = s.totalScans  || 0;
   const conv  = s.conversions || 0;
   const rate  = scans > 0 ? ((conv / scans) * 100).toFixed(1) : 0;
-  const avail = Math.max(0, (s.totalEarned||0) - (s.withdrawn||0));
+  const avail = Math.max(0, (s.totalEarned||0) - (s.pendingEarnings||0) - (s.withdrawn||0));
 
   setNum('statScans', scans);
   setNum('statConv',  conv);
@@ -759,13 +860,33 @@ function renderPurchases() {
   if (!filtered.length) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
       <span>👕</span><p>No pieces yet.</p>
-      <a href="index.html" class="btn-shop-now">Browse the Collection →</a>
+      <a href="catalog.html" class="btn-shop-now">Browse the Collection →</a>
     </div>`;
     return;
   }
-  grid.innerHTML = filtered.map(p => `
+  const HOODIE_PHOTO_SLUGS = {
+    'Phantom Black':'phantom-black','Midnight Navy':'midnight-navy',
+    'Ember Crimson':'ember-crimson','Forest Shadow':'forest-shadow',
+    'Ash Stone':'ash-stone','Ivory Pure':'ivory-pure',
+  };
+  const TEE_PHOTO_SLUGS = {
+    'Clean White':'clean-white','Raw Stone':'raw-stone',
+    'Jet Black':'jet-black','Slate Grey':'slate-grey','Deep Navy':'deep-navy',
+  };
+  grid.innerHTML = filtered.map(p => {
+    const isTee = (p.type || '').toLowerCase() === 'tee' || (p.name||'').toLowerCase().includes('tee');
+    const cleanName = (p.name || '').replace(/\s+(Tee|Hoodie)$/i, '').trim();
+    const slug = isTee
+      ? (TEE_PHOTO_SLUGS[cleanName] || cleanName.toLowerCase().replace(/\s+/g,'-'))
+      : (HOODIE_PHOTO_SLUGS[cleanName] || 'phantom-black');
+    const imgSrc = isTee
+      ? `images/tee-${slug}-front.png?v=tee-20260517`
+      : `hoodie-variants/${slug}-front.png?v=hoodie-20260517`;
+    return `
     <div class="purchase-card">
-      <div class="pc-img">${hoodieSVG(p.name)}</div>
+      <div class="pc-img">
+        <img src="${imgSrc}" alt="${cleanName}" style="width:100%;height:auto;display:block;background:#1a1a1a">
+      </div>
       <div class="pc-info">
         <h3>${p.name}</h3>
         <p>Ordered ${new Date(p.date).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</p>
@@ -774,23 +895,202 @@ function renderPurchases() {
           <span class="pc-scan-count">All scans tracked</span>
         </div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════
+   USERNAME
+═══════════════════════════════════════════════ */
+function renderSidebarUsername() {
+  const el = document.getElementById('suUsername');
+  if (el) el.textContent = user.username ? `@${user.username}` : 'Set username';
+}
+
+function openUsernameEdit() {
+  const input = document.getElementById('newUsernameInput');
+  const err   = document.getElementById('usernameEditError');
+  if (input) input.value = user.username || '';
+  if (err)   err.style.display = 'none';
+  openModal('usernameModal');
+}
+
+async function saveUsername() {
+  const input    = document.getElementById('newUsernameInput');
+  const err      = document.getElementById('usernameEditError');
+  const btn      = document.getElementById('saveUsernameBtn');
+  const newName  = (input?.value || '').trim().toLowerCase();
+
+  err.style.display = 'none';
+  if (!newName)          { err.textContent = 'Please enter a username.'; err.style.display = 'block'; return; }
+  if (newName.length < 3){ err.textContent = 'Must be at least 3 characters.'; err.style.display = 'block'; return; }
+  if (!/^[a-z0-9_]+$/.test(newName)) { err.textContent = 'Letters, numbers, and underscores only.'; err.style.display = 'block'; return; }
+  if (newName === user.username) { closeModal('usernameModal'); return; }
+
+  btn.textContent = 'Saving…'; btn.disabled = true;
+  try {
+    if (!_sb) throw new Error('Not connected');
+
+    // Check availability
+    const { data: available } = await _sb.rpc('check_username_available', { p_username: newName });
+    if (available === false) {
+      err.textContent = 'That username is already taken.'; err.style.display = 'block';
+      btn.textContent = 'Save Username'; btn.disabled = false; return;
+    }
+
+    const { error } = await _sb.from('profiles').update({ username: newName }).eq('id', user.id);
+    if (error) throw new Error(error.message);
+
+    user.username = newName;
+    renderSidebarUsername();
+    // Update welcome message
+    document.getElementById('welcomeMsg').textContent = `Welcome back, @${newName}! 👋`;
+    closeModal('usernameModal');
+    showToast('✓ Username updated to @' + newName, 'success');
+  } catch(e) {
+    err.textContent = 'Error: ' + e.message; err.style.display = 'block';
+  }
+  btn.textContent = 'Save Username'; btn.disabled = false;
+}
+
+/* ═══════════════════════════════════════════════
+   PROFILE PICTURE
+═══════════════════════════════════════════════ */
+function renderOwnAvatar() {
+  const sideEl   = document.getElementById('suAvatar');
+  const topEl    = document.getElementById('topbarAvatar');
+  const imgStyle = 'width:100%;height:100%;object-fit:cover;border-radius:50%';
+  if (user.avatar_url) {
+    if (sideEl) sideEl.innerHTML = `<img src="${user.avatar_url}" style="${imgStyle}" onerror="this.parentElement.textContent='${user.avatar}'" />`;
+    if (topEl)  topEl.innerHTML  = `<img src="${user.avatar_url}" style="${imgStyle};border-radius:50%" onerror="this.parentElement.textContent='${user.avatar}'" />`;
+  } else {
+    if (sideEl) sideEl.textContent = user.avatar;
+    if (topEl)  topEl.textContent  = user.avatar;
+  }
+}
+
+function triggerAvatarUpload() {
+  document.getElementById('avatarFileInput')?.click();
+}
+
+async function handleAvatarUpload(input) {
+  const file = input.files?.[0];
+  if (!file || !_sb || !user?.id) return;
+
+  // Resize to max 400px using canvas before upload
+  const img = new Image();
+  const reader = new FileReader();
+  reader.onload = e => {
+    img.onload = async () => {
+      const MAX = 400;
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(async blob => {
+        try {
+          showToast('Uploading…', 'success');
+          const path = `${user.id}.jpg`;
+          const { error: upErr } = await _sb.storage.from('avatars').upload(path, blob, {
+            contentType: 'image/jpeg', upsert: true
+          });
+          if (upErr) throw new Error(upErr.message);
+
+          const { data: urlData } = _sb.storage.from('avatars').getPublicUrl(path);
+          const publicUrl = urlData.publicUrl + '?t=' + Date.now();
+
+          const { error: dbErr } = await _sb.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id);
+          if (dbErr) throw new Error(dbErr.message);
+
+          user.avatar_url = publicUrl;
+          renderOwnAvatar();
+          showToast('Profile picture updated', 'success');
+        } catch(e) { showToast('Upload failed: ' + e.message, 'error'); }
+      }, 'image/jpeg', 0.88);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
 }
 
 /* ═══════════════════════════════════════════════
    PAYOUT
 ═══════════════════════════════════════════════ */
-function loadPayoutMethod() {
-  const m = user.payoutMethod || 'cash';
-  const r = document.querySelector(`input[name="payout"][value="${m}"]`);
-  if (r) r.checked = true;
+const PAYOUT_META = {
+  venmo:    { label: 'Your Venmo username',       placeholder: '@username',           hint: 'e.g. @jordanw — the handle people use to send you money' },
+  paypal:   { label: 'Your PayPal email',         placeholder: 'you@email.com',       hint: 'The email address on your PayPal account' },
+  zelle:    { label: 'Your Zelle phone or email', placeholder: '(801) 555-0000',      hint: 'Phone number or email linked to your Zelle account' },
+  cashapp:  { label: 'Your Cash App $Cashtag',    placeholder: '$cashtag',            hint: 'e.g. $jordanw' },
+  giftcard: { label: 'Preferred gift card brand', placeholder: 'Amazon, Nike, Apple...', hint: "We'll send a digital gift card to your email on file" },
+  other:    { label: 'Describe your preference',  placeholder: 'e.g. Bitcoin, Venmo...', hint: "We'll reach out to confirm the best way to pay you" },
+};
+
+let _selectedPayoutMethod = null;
+
+function selectPayoutMethod(method) {
+  _selectedPayoutMethod = method;
+
+  // Highlight selected pill
+  document.querySelectorAll('.pp-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.method === method);
+  });
+
+  const meta  = PAYOUT_META[method] || PAYOUT_META.other;
+  const wrap  = document.getElementById('payoutHandleWrap');
+  const label = document.getElementById('payoutHandleLabel');
+  const input = document.getElementById('payoutHandleInput');
+  const hint  = document.getElementById('payoutHandleHint');
+
+  label.textContent       = meta.label;
+  input.placeholder       = meta.placeholder;
+  hint.textContent        = meta.hint;
+  wrap.style.display      = 'block';
+  input.focus();
 }
-function savePayoutMethod() {
-  const s = document.querySelector('input[name="payout"]:checked');
-  if (!s) return;
-  user.payoutMethod = s.value;
-  updateUser(user);
-  showToast('✓ Payout preference saved', 'success');
+
+function loadPayoutMethod() {
+  const method = user.payout_method || user.payoutMethod || null;
+  const handle = user.payout_handle || null;
+  if (!method) return;
+
+  // Pre-select pill
+  selectPayoutMethod(method);
+
+  // Pre-fill handle
+  const input = document.getElementById('payoutHandleInput');
+  if (input && handle) input.value = handle;
+
+  // Show saved badge
+  const badge = document.getElementById('payoutSavedBadge');
+  if (badge && handle) badge.style.display = 'inline-flex';
+}
+
+async function savePayoutMethod() {
+  if (!_selectedPayoutMethod) { showToast('Select a payout method first', 'error'); return; }
+  const handle = (document.getElementById('payoutHandleInput')?.value || '').trim();
+  if (!handle) { showToast('Enter your payout details', 'error'); return; }
+
+  try {
+    const sb = getSB();
+    if (sb && user.id) {
+      const { error } = await sb.from('profiles').update({
+        payout_method: _selectedPayoutMethod,
+        payout_handle: handle,
+      }).eq('id', user.id);
+      if (error) throw new Error(error.message);
+    }
+    // Update local cache
+    user.payout_method = _selectedPayoutMethod;
+    user.payout_handle = handle;
+
+    const badge = document.getElementById('payoutSavedBadge');
+    if (badge) badge.style.display = 'inline-flex';
+    showToast('✓ Payout method saved', 'success');
+  } catch(e) {
+    showToast('Save failed: ' + e.message, 'error');
+  }
 }
 
 /* ═══════════════════════════════════════════════
@@ -835,21 +1135,56 @@ function shareLink(type) {
 /* ═══════════════════════════════════════════════
    DOWNLOAD QR
 ═══════════════════════════════════════════════ */
-function downloadQR() {
-  const c   = document.getElementById('bigQrCanvas');
-  const tmp = document.createElement('canvas');
-  tmp.width = 300; tmp.height = 340;
-  const ctx = tmp.getContext('2d');
-  ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,300,340);
-  ctx.drawImage(c, 40, 40);
-  ctx.fillStyle = '#111'; ctx.font = 'bold 13px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('THREAD · ' + user.referralCode, 150, 320);
-  const a = document.createElement('a');
-  a.download = 'THREAD_QR_' + user.referralCode + '.png';
-  a.href = tmp.toDataURL('image/png');
-  a.click();
-  showToast('✓ QR code downloaded!', 'success');
+async function downloadQR() {
+  const size    = 300;
+  const refURL  = document.getElementById('refLinkInput').value;
+  const encoded = encodeURIComponent(refURL);
+  const apiUrl  = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encoded}&margin=8`;
+
+  try {
+    // Fetch QR image and draw it onto a canvas with the logo + label
+    const resp = await fetch(apiUrl);
+    const blob = await resp.blob();
+    const qrDataUrl = await new Promise(resolve => {
+      const r = new FileReader(); r.onloadend = () => resolve(r.result); r.readAsDataURL(blob);
+    });
+
+    const tmp = document.createElement('canvas');
+    tmp.width = size; tmp.height = size + 40;
+    const ctx = tmp.getContext('2d');
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, tmp.width, tmp.height);
+
+    // Draw QR
+    const qrImg = new Image();
+    await new Promise(resolve => { qrImg.onload = resolve; qrImg.src = qrDataUrl; });
+    ctx.drawImage(qrImg, 0, 0, size, size);
+
+    // Draw TLogo in center
+    const logoSize = Math.floor(size * 0.22);
+    const lx = (size - logoSize) / 2, ly = (size - logoSize) / 2;
+    try {
+      const logo = new Image();
+      await new Promise((resolve, reject) => { logo.onload = resolve; logo.onerror = reject; logo.src = 'images/Transparent-Logo.png'; });
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(lx - 4, ly - 4, logoSize + 8, logoSize + 8);
+      ctx.drawImage(logo, lx, ly, logoSize, logoSize);
+    } catch(_) {}
+
+    // Label
+    ctx.fillStyle = '#111'; ctx.font = 'bold 13px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('THREAD · ' + user.referralCode, size / 2, size + 26);
+
+    const a = document.createElement('a');
+    a.download = 'THREAD_QR_' + user.referralCode + '.png';
+    a.href = tmp.toDataURL('image/png');
+    a.click();
+    showToast('✓ QR code downloaded!', 'success');
+  } catch(e) {
+    // Fallback: just open the QR API URL directly
+    window.open(apiUrl, '_blank');
+    showToast('✓ QR code opened!', 'success');
+  }
 }
 
 /* ═══════════════════════════════════════════════
@@ -992,6 +1327,7 @@ function loadDemoData() {
 
   _updateDemoBtn(true);
   renderAll();
+  renderDemoFollowing();
   scheduleNextScan();   // start live scan simulation only in demo mode
   showToast('📊 Demo mode on — live scans simulated', 'success');
 }
@@ -1010,6 +1346,7 @@ function clearDemoData() {
   stopDemoScans();      // stop live scan simulation
   _updateDemoBtn(false);
   renderAll();
+  loadFollowing();      // restore real following data
   showToast('Demo mode off — showing your real data', '');
 }
 
@@ -1050,4 +1387,201 @@ function renderAll() {
   renderTransactions();
   renderPurchases();
   loadPayoutMethod();
+  loadFollowing();
 }
+
+/* ═══════════════════════════════════════════════
+   FOLLOWING
+═══════════════════════════════════════════════ */
+let _followTab = 'following';
+let _followSearchTimer = null;
+
+function switchFollowTab(tab) {
+  _followTab = tab;
+  document.getElementById('fwTabFollowing').classList.toggle('active', tab === 'following');
+  document.getElementById('fwTabRequests').classList.toggle('active', tab === 'requests');
+  document.getElementById('followingList').style.display  = tab === 'following' ? '' : 'none';
+  document.getElementById('requestsList').style.display   = tab === 'requests'  ? '' : 'none';
+  document.getElementById('followSearchResults').style.display = 'none';
+  document.getElementById('followSearchInput').value = '';
+}
+
+function followSearch(query) {
+  clearTimeout(_followSearchTimer);
+  const results = document.getElementById('followSearchResults');
+  if (!query.trim()) { results.style.display = 'none'; return; }
+  _followSearchTimer = setTimeout(() => doFollowSearch(query.trim()), 350);
+}
+
+async function doFollowSearch(query) {
+  const results = document.getElementById('followSearchResults');
+  results.style.display = 'block';
+  results.innerHTML = '<div style="padding:8px 16px;color:#666;font-size:13px">Searching…</div>';
+  try {
+    if (!_sb) { results.innerHTML = '<div style="padding:8px 16px;color:#666;font-size:13px">Not connected</div>'; return; }
+    const q = query.replace(/^@/, '').toLowerCase();
+    const { data, error } = await _sb.rpc('search_users_for_follow', { p_query: q, p_self_id: user.id });
+    if (error || !data?.length) {
+      results.innerHTML = '<div style="padding:10px 16px;color:#555;font-size:13px">No users found</div>';
+      return;
+    }
+    results.innerHTML = data.map(u => {
+      const statusMap = { accepted: 'Following', pending: 'Requested', incoming: 'Accept?' };
+      const status = u.follow_status;
+      const btnHtml = status === 'accepted'
+        ? `<button class="fw-action-btn fw-unfollow" onclick="unfollowUser('${u.id}','${escFw(u.name)}')">Unfollow</button>`
+        : status === 'pending'
+        ? `<button class="fw-action-btn" style="opacity:.5;cursor:default">Requested</button>`
+        : status === 'incoming'
+        ? `<button class="fw-action-btn fw-accept" onclick="acceptFollowFromSearch('${u.follow_id}')">Accept</button>`
+        : `<button class="fw-action-btn fw-follow" onclick="sendFollowRequest('${u.id}','${escFw(u.name)}',this)">Follow</button>`;
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #1a1a1a">
+        <div>
+          <div style="font-weight:600;font-size:14px">${escFw(u.name || 'Unknown')}</div>
+          <div style="font-size:12px;color:#7c3aed">@${escFw(u.username || '—')}</div>
+        </div>
+        ${btnHtml}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    results.innerHTML = `<div style="padding:8px 16px;color:#f87171;font-size:13px">Error: ${e.message}</div>`;
+  }
+}
+
+async function sendFollowRequest(targetId, targetName, btn) {
+  if (!_sb || !user?.id) return;
+  if (btn) { btn.textContent = '…'; btn.disabled = true; }
+  try {
+    const { error } = await _sb.rpc('send_follow_request', { p_target_id: targetId });
+    if (error) throw new Error(error.message);
+    if (btn) { btn.textContent = 'Requested'; btn.disabled = true; btn.style.opacity = '.5'; }
+    showToast(`Follow request sent to ${targetName}`, 'success');
+  } catch(e) {
+    if (btn) { btn.textContent = 'Follow'; btn.disabled = false; }
+    showToast('Failed: ' + e.message, 'error');
+  }
+}
+
+async function acceptFollowFromSearch(followId) {
+  await respondToRequest(followId, true);
+  doFollowSearch(document.getElementById('followSearchInput').value);
+}
+
+const DEMO_FOLLOWING = [
+  { following_id:'d1', name:'Marcus Reid',   username:'marcusreid',  total_scans:312, total_earned:847, avatar_url:null },
+  { following_id:'d2', name:'Ava Chen',      username:'avachen',     total_scans:198, total_earned:512, avatar_url:null },
+  { following_id:'d3', name:'Jordan Wells',  username:'jordanwells', total_scans:87,  total_earned:210, avatar_url:null },
+];
+
+function renderDemoFollowing() {
+  renderFollowingList(DEMO_FOLLOWING);
+  // Show empty requests in demo
+  const badge = document.getElementById('fwRequestBadge');
+  if (badge) badge.style.display = 'none';
+  const reqEl = document.getElementById('requestsList');
+  if (reqEl) reqEl.innerHTML = '<div class="lb-empty">No pending requests</div>';
+}
+
+async function loadFollowing() {
+  if (isDemoActive()) { renderDemoFollowing(); return; }
+  if (!_sb || !user?.id) {
+    document.getElementById('followingList').innerHTML = '<div class="lb-empty">Sign in to use following</div>';
+    return;
+  }
+  try {
+    // Load following
+    const { data: following } = await _sb.rpc('get_my_following', { p_user_id: user.id });
+    renderFollowingList(following || []);
+
+    // Load incoming requests
+    const { data: requests } = await _sb.rpc('get_my_follow_requests', { p_user_id: user.id });
+    renderRequestsList(requests || []);
+  } catch(e) {
+    document.getElementById('followingList').innerHTML = `<div class="lb-empty">Error loading</div>`;
+  }
+}
+
+function renderFollowingList(list) {
+  const el = document.getElementById('followingList');
+  if (!list.length) {
+    el.innerHTML = '<div class="lb-empty">Not following anyone yet — search a username above to send a request</div>';
+    return;
+  }
+  el.innerHTML = list.map(f => `
+    <div class="fw-row">
+      <div class="fw-avatar">${f.avatar_url ? `<img src="${f.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />` : (f.name||'?')[0].toUpperCase()}</div>
+      <div class="fw-info">
+        <div class="fw-name">${escFw(f.name || '—')}</div>
+        <div class="fw-handle">@${escFw(f.username || '—')}</div>
+      </div>
+      <div class="fw-stats">
+        <div class="fw-stat"><span class="fw-stat-val">${f.total_scans || 0}</span><span class="fw-stat-label">scans</span></div>
+        <div class="fw-stat"><span class="fw-stat-val green">$${parseFloat(f.total_earned||0).toFixed(0)}</span><span class="fw-stat-label">earned</span></div>
+      </div>
+      <button class="fw-action-btn fw-unfollow" onclick="unfollowUser('${f.following_id}','${escFw(f.name)}')">Unfollow</button>
+    </div>
+  `).join('');
+}
+
+function renderRequestsList(list) {
+  const badge = document.getElementById('fwRequestBadge');
+  if (badge) { badge.textContent = list.length; badge.style.display = list.length ? 'inline' : 'none'; }
+  const el = document.getElementById('requestsList');
+  if (!list.length) { el.innerHTML = '<div class="lb-empty">No pending requests</div>'; return; }
+  el.innerHTML = list.map(r => `
+    <div class="fw-row" id="fwreq-${r.follow_id}">
+      <div class="fw-avatar">${(r.name||'?')[0].toUpperCase()}</div>
+      <div class="fw-info">
+        <div class="fw-name">${escFw(r.name || '—')}</div>
+        <div class="fw-handle">@${escFw(r.username || '—')}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+        <button class="fw-action-btn fw-follow" onclick="acceptAndFollowBack('${r.follow_id}','${r.follower_id}','${escFw(r.name)}',this)">Follow Back</button>
+        <button class="fw-action-btn fw-accept" onclick="respondToRequest('${r.follow_id}', true)">Accept</button>
+        <button class="fw-action-btn fw-decline" onclick="respondToRequest('${r.follow_id}', false)">Decline</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function respondToRequest(followId, accept) {
+  if (!_sb) return;
+  try {
+    const { error } = await _sb.rpc('respond_to_follow_request', { p_follow_id: followId, p_accept: accept });
+    if (error) throw new Error(error.message);
+    showToast(accept ? 'Request accepted' : 'Request declined', 'success');
+    loadFollowing();
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function acceptAndFollowBack(followId, requesterId, requesterName, btn) {
+  if (!_sb) return;
+  btn.textContent = '…'; btn.disabled = true;
+  try {
+    // Accept their request
+    const { error: e1 } = await _sb.rpc('respond_to_follow_request', { p_follow_id: followId, p_accept: true });
+    if (e1) throw new Error(e1.message);
+    // Send a follow request back to them
+    const { error: e2 } = await _sb.rpc('send_follow_request', { p_target_id: requesterId });
+    if (e2) throw new Error(e2.message);
+    showToast(`Accepted & followed ${requesterName} back`, 'success');
+    loadFollowing();
+  } catch(e) {
+    btn.textContent = 'Follow Back'; btn.disabled = false;
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+async function unfollowUser(targetId, targetName) {
+  if (!_sb || !user?.id) return;
+  if (!confirm(`Unfollow ${targetName}?`)) return;
+  try {
+    const { error } = await _sb.rpc('unfollow_user', { p_target_id: targetId });
+    if (error) throw new Error(error.message);
+    showToast(`Unfollowed ${targetName}`, 'success');
+    loadFollowing();
+    doFollowSearch(document.getElementById('followSearchInput').value);
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+function escFw(s) { return String(s||'').replace(/'/g,"&#39;").replace(/"/g,"&quot;"); }

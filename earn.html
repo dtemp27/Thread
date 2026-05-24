@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>THREAD. — Wear It. Get Paid.</title>
+  <link rel="icon" href="favicon.ico?v=4" sizes="any" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080808;
+      --accent: #6C63FF;
+      --accent2: #a78bfa;
+      --green: #22c55e;
+      --text: #f0f0f0;
+      --text2: #aaa;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+
+    /* ── MINI NAV ── */
+    .lp-nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: linear-gradient(to bottom, rgba(8,8,8,0.95), transparent);
+    }
+    .lp-logo {
+      font-family: 'Space Mono', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .lp-logo span { color: var(--accent); }
+    .lp-nav-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 10px 22px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Space Grotesk', sans-serif;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .lp-nav-btn:hover { background: var(--accent2); transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    .lp-hero {
+      position: relative;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      overflow: hidden;
+    }
+
+    .lp-hero-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('ADS/instagram-ad-test.png');
+      background-size: cover;
+      background-position: center center;
+      filter: brightness(0.6);
+      transform: scale(1.03);
+      transition: transform 8s ease-out;
+    }
+    .lp-hero-bg.loaded { transform: scale(1); }
+
+    /* Dark gradient overlays — heavier at bottom for text legibility */
+    .lp-hero-overlay {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to bottom,
+          rgba(8,8,8,0.6) 0%,
+          rgba(8,8,8,0.1) 35%,
+          rgba(8,8,8,0.15) 55%,
+          rgba(8,8,8,0.92) 85%,
+          rgba(8,8,8,1) 100%
+        );
+    }
+
+    /* Subtle purple vignette matching ad color grade */
+    .lp-hero-vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 70% 40%, rgba(108,99,255,0.12) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .lp-hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 0 24px 52px;
+      max-width: 600px;
+    }
+
+    /* Ad copy: YOUR CODE. THEIR SCAN. YOUR INCOME. */
+    .lp-ad-copy {
+      margin-bottom: 20px;
+    }
+    .lp-ad-copy p {
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(11px, 2.8vw, 13px);
+      letter-spacing: 0.12em;
+      line-height: 1.9;
+      color: #ccc;
+    }
+    .lp-ad-copy p:last-child { color: var(--accent2); font-weight: 700; }
+
+    .lp-commission-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(34,197,94,0.12);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: #22c55e;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 50px;
+      margin-bottom: 14px;
+    }
+    .lp-commission-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+      flex-shrink: 0;
+    }
+
+    .lp-headline {
+      font-size: clamp(42px, 11vw, 72px);
+      font-weight: 700;
+      line-height: 1.0;
+      letter-spacing: -1px;
+      margin-bottom: 6px;
+    }
+    .lp-headline .accent { color: var(--accent2); }
+
+    .lp-tagline {
+      font-size: clamp(13px, 3.5vw, 16px);
+      color: var(--text2);
+      margin-bottom: 28px;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+    }
+    .lp-tagline strong { color: var(--green); font-weight: 700; }
+
+    .lp-cta-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .lp-btn-main {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 16px 32px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: 'Space Grotesk', sans-serif;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+      letter-spacing: 0.02em;
+    }
+    .lp-btn-main:hover {
+      background: var(--accent2);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px rgba(108,99,255,0.45);
+    }
+
+    .lp-btn-ghost {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50px;
+      padding: 15px 28px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'Space Grotesk', sans-serif;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .lp-btn-ghost:hover { border-color: var(--accent2); background: rgba(108,99,255,0.08); }
+
+    /* ── FLOATING NOTIFICATION CARDS ── */
+    @keyframes floatFromTop {
+      from { opacity: 0; transform: translateY(-16px) scale(0.92); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes floatFromLeft {
+      from { opacity: 0; transform: translateX(-16px) scale(0.92); }
+      to   { opacity: 1; transform: translateX(0) scale(1); }
+    }
+    @keyframes floatFromRight {
+      from { opacity: 0; transform: translateX(16px) scale(0.92); }
+      to   { opacity: 1; transform: translateX(0) scale(1); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(167,139,250,0.4); }
+      50% { opacity: 0.8; transform: scale(1.1); box-shadow: 0 0 0 6px rgba(167,139,250,0); }
+    }
+
+    /* shared base */
+    .lp-notif {
+      position: absolute;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: rgba(16,16,16,0.92);
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+    }
+
+    /* 1 — top left pop-in */
+    .lp-notif-topleft {
+      top: 120px;
+      left: 16px;
+      border-radius: 50px;
+      padding: 8px 14px 8px 10px;
+      gap: 8px;
+      animation: floatFromTop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.8s both;
+    }
+    .lp-notif-topleft .pulse-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent2);
+      animation: pulse 2s infinite;
+      flex-shrink: 0;
+    }
+    .lp-notif-topleft span {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    /* 2 — left side mid */
+    .lp-notif-left {
+      left: 16px;
+      top: 38%;
+      border-radius: 14px;
+      padding: 10px 14px;
+      gap: 10px;
+      animation: floatFromLeft 0.5s cubic-bezier(0.34,1.56,0.64,1) 1.4s both;
+      max-width: 185px;
+    }
+    .lp-notif-left .nl-icon {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: rgba(108,99,255,0.25);
+      border: 1px solid rgba(108,99,255,0.4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .lp-notif-left .nl-text { font-size: 11px; color: #ccc; font-weight: 600; line-height: 1.4; }
+    .lp-notif-left .nl-sub  { font-size: 10px; color: #666; }
+
+    /* 3 — mid right commission */
+    .lp-notif-botright {
+      top: 42%;
+      right: 16px;
+      border-radius: 14px;
+      padding: 10px 14px;
+      gap: 10px;
+      animation: floatFromRight 0.5s cubic-bezier(0.34,1.56,0.64,1) 2s both;
+      max-width: 175px;
+    }
+    .lp-earn-icon {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--green);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .lp-earn-label {
+      font-size: 9px;
+      color: #777;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .lp-earn-name {
+      font-size: 11px;
+      color: #ddd;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .lp-earn-amount {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--green);
+      margin-left: auto;
+      white-space: nowrap;
+      padding-left: 6px;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .lp-how {
+      background: #0a0a0a;
+      padding: 72px 24px 64px;
+      text-align: center;
+    }
+
+    .lp-how-label {
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .lp-how-title {
+      font-size: clamp(26px, 6vw, 40px);
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .lp-how-sub {
+      font-size: 15px;
+      color: var(--text2);
+      margin-bottom: 48px;
+      max-width: 420px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .lp-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      max-width: 480px;
+      margin: 0 auto 48px;
+      text-align: left;
+    }
+
+    .lp-step {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      padding: 24px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .lp-step:last-child { border-bottom: none; }
+
+    .lp-step-num {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: rgba(108,99,255,0.15);
+      border: 1px solid rgba(108,99,255,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent2);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .lp-step-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .lp-step-desc {
+      font-size: 14px;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+
+    /* ── PROOF STRIP ── */
+    .lp-proof {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+      padding: 0 24px 16px;
+    }
+
+    .lp-proof-stat {
+      text-align: center;
+    }
+
+    .lp-proof-num {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -1px;
+    }
+    .lp-proof-num span { color: var(--accent2); }
+
+    .lp-proof-label {
+      font-size: 12px;
+      color: var(--text2);
+      margin-top: 2px;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── BOTTOM CTA ── */
+    .lp-bottom-cta {
+      background: linear-gradient(to bottom, #0a0a0a, #0d0b18);
+      padding: 64px 24px 80px;
+      text-align: center;
+    }
+
+    .lp-bottom-cta h2 {
+      font-size: clamp(28px, 7vw, 48px);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+
+    .lp-bottom-cta p {
+      font-size: 15px;
+      color: var(--text2);
+      margin-bottom: 32px;
+      max-width: 380px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .lp-bottom-cta .lp-btn-main {
+      font-size: 17px;
+      padding: 18px 40px;
+    }
+
+    .lp-fine {
+      margin-top: 16px;
+      font-size: 12px;
+      color: #555;
+    }
+    .lp-fine a { color: #666; text-decoration: underline; }
+
+    /* ── FOOTER ── */
+    .lp-footer {
+      padding: 24px;
+      text-align: center;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-size: 12px;
+      color: #444;
+    }
+    .lp-footer a { color: #555; margin: 0 8px; }
+
+    /* ── RESPONSIVE ── */
+    @media (min-width: 600px) {
+      .lp-hero-content { padding: 0 48px 72px; }
+      .lp-notif-topleft { left: 24px; }
+      .lp-notif-botright { right: 24px; top: 40%; }
+      .lp-steps { text-align: left; }
+    }
+
+    @media (min-width: 900px) {
+      .lp-hero {
+        min-height: 100vh;
+      }
+      .lp-hero-bg {
+        background-position: center 15%;
+      }
+      .lp-hero-content {
+        padding: 0 80px 100px;
+        max-width: 680px;
+      }
+      .lp-notif-topleft { left: 48px; top: 90px; }
+      .lp-notif-botright { right: 48px; top: 38%; }
+      .lp-steps {
+        flex-direction: row;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 24px;
+        max-width: 800px;
+        text-align: left;
+      }
+      .lp-step {
+        flex-direction: column;
+        padding: 28px 24px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+      }
+      .lp-proof { gap: 64px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── NAV ── -->
+  <nav class="lp-nav">
+    <div class="lp-logo">THREAD<span>.</span></div>
+    <a href="auth.html" class="lp-nav-btn" data-track="nav-join">Join Free</a>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <section class="lp-hero">
+    <div class="lp-hero-bg" id="lpHeroBg"></div>
+    <div class="lp-hero-overlay"></div>
+    <div class="lp-hero-vignette"></div>
+
+    <!-- TOP LEFT: new scan pop-in -->
+    <div class="lp-notif lp-notif-topleft">
+      <div class="pulse-dot"></div>
+      <span>New scan · just now 🔥</span>
+    </div>
+
+    <!-- MID RIGHT: commission paid -->
+    <div class="lp-notif lp-notif-botright">
+      <div class="lp-earn-icon">$</div>
+      <div>
+        <div class="lp-earn-label">Commission Paid</div>
+        <div class="lp-earn-name">Jake · +$25</div>
+      </div>
+    </div>
+
+    <div class="lp-hero-content">
+      <div class="lp-ad-copy">
+        <p>YOUR CODE.</p>
+        <p>THEIR SCAN.</p>
+        <p>YOUR INCOME.</p>
+      </div>
+
+      <h1 class="lp-headline">
+        Wear It.<br />
+        <span class="accent">Get Paid.</span>
+      </h1>
+
+      <p class="lp-tagline">
+        Every THREAD piece has a QR code on the back.<br />
+        Someone scans it. They buy. <strong>You earn 20%+.</strong> No effort.
+      </p>
+
+      <div class="lp-cta-row">
+        <a href="auth.html" class="lp-btn-main" data-track="hero-join">Start Earning →</a>
+        <a href="#how-it-works" class="lp-btn-ghost" data-track="hero-how">See How It Works</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── HOW IT WORKS ── -->
+  <section class="lp-how" id="how-it-works">
+    <p class="lp-how-label">Simple as it gets</p>
+    <h2 class="lp-how-title">Three steps. Passive income.</h2>
+    <p class="lp-how-sub">No selling, no posting, no effort. Just wear the shirt.</p>
+
+    <div class="lp-steps">
+      <div class="lp-step">
+        <div class="lp-step-num">1</div>
+        <div>
+          <div class="lp-step-title">Get Your Shirt</div>
+          <div class="lp-step-desc">Every piece comes printed with your own unique QR code linked to your account.</div>
+        </div>
+      </div>
+      <div class="lp-step">
+        <div class="lp-step-num">2</div>
+        <div>
+          <div class="lp-step-title">People Scan It</div>
+          <div class="lp-step-desc">Someone sees your QR, scans it on their phone, lands on the THREAD store.</div>
+        </div>
+      </div>
+      <div class="lp-step">
+        <div class="lp-step-num">3</div>
+        <div>
+          <div class="lp-step-title">You Earn 20%</div>
+          <div class="lp-step-desc">Every sale that comes through your code puts 20%+ commission straight to you.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Social proof numbers -->
+    <div class="lp-proof">
+      <div class="lp-proof-stat">
+        <div class="lp-proof-num"><span>20</span>%</div>
+        <div class="lp-proof-label">Per Sale Earned</div>
+      </div>
+      <div class="lp-proof-stat">
+        <div class="lp-proof-num">$<span>0</span></div>
+        <div class="lp-proof-label">To Get Started</div>
+      </div>
+      <div class="lp-proof-stat">
+        <div class="lp-proof-num"><span>∞</span></div>
+        <div class="lp-proof-label">Earning Potential</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── BOTTOM CTA ── -->
+  <section class="lp-bottom-cta">
+    <h2>Ready to start<br />earning?</h2>
+    <p>Create your free account, get your unique QR code, and start earning from day one.</p>
+    <a href="auth.html" class="lp-btn-main" data-track="bottom-join">Get Started Free →</a>
+    <p class="lp-fine">Free to join. <a href="terms.html" target="_blank">Terms apply.</a></p>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer class="lp-footer">
+    <span>© 2026 THREAD.</span>
+    <a href="index.html">Main Site</a>
+    <a href="terms.html">Terms</a>
+    <a href="auth.html">Sign Up</a>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="app.js?v=202605221"></script>
+  <script>
+    // Lazy load hero background
+    const bg = document.getElementById('lpHeroBg');
+    const img = new Image();
+    img.onload = () => {
+      bg.style.backgroundImage = "url('ADS/instagram-ad-test.png')";
+      requestAnimationFrame(() => bg.classList.add('loaded'));
+    };
+    img.src = 'ADS/instagram-ad-test.png';
+
+    // Smooth scroll for "See How It Works"
+    document.querySelectorAll('a[href="#how-it-works"]').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+  </script>
+</body>
+</html>

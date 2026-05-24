@@ -53,7 +53,7 @@
     .cat-card:hover { transform:translateY(-6px); border-color:rgba(108,99,255,0.3); box-shadow:0 20px 50px rgba(0,0,0,0.4); }
 
     /* ── CAROUSEL ── */
-    .carousel { position:relative; background:#fff; aspect-ratio:1/1; overflow:hidden; }
+    .carousel { position:relative; background:#2a2a2a; aspect-ratio:1/1; overflow:hidden; }
     .carousel-track { display:flex; height:100%; transition:transform 0.35s cubic-bezier(0.4,0,0.2,1); }
     .carousel-slide { min-width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
     .carousel-slide img { width:100%; height:100%; object-fit:contain; object-position:center; }
@@ -116,6 +116,11 @@
       </div>
     </div>
     <div id="cdFooter" style="display:none;padding:20px 24px;border-top:1px solid rgba(255,255,255,0.08);">
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <input type="text" id="promoInput" placeholder="Promo code" style="flex:1;padding:10px 14px;background:#1a1a1a;border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#f0f0f0;font-family:'Space Grotesk',sans-serif;font-size:13px;outline:none;" onkeydown="if(event.key==='Enter')applyPromo()" />
+        <button onclick="applyPromo()" style="padding:10px 16px;background:#6C63FF;color:#fff;border:none;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">Apply</button>
+      </div>
+      <div id="cdDiscountRow" style="display:none;justify-content:space-between;margin-bottom:8px;color:#22c55e;font-size:13px;"><span>Discount</span><span id="cdDiscount"></span></div>
       <div style="display:flex;justify-content:space-between;margin-bottom:8px;color:#888;font-size:14px;"><span>Subtotal</span><span id="cdSubtotal">$0.00</span></div>
       <div style="display:flex;justify-content:space-between;margin-bottom:16px;font-size:16px;font-weight:700;color:#f0f0f0;"><span>Total</span><span id="cdTotal">$0.00</span></div>
       <button onclick="goToCheckout()" style="display:block;width:100%;padding:14px;background:#6C63FF;color:#fff;text-align:center;border-radius:50px;font-weight:700;font-size:15px;border:none;cursor:pointer;">Checkout →</button>
@@ -199,31 +204,31 @@
       type:'tee', name:'Jet Black', price:65, earn:'20%',
       badge:{text:'OVERSIZED TEE', cls:'badge-tee'},
       stars:'4.9', reviews:54,
-      photos:['images/tee-jet-black-2.png','images/tee-jet-black-model.png','images/tee-jet-black-back-2.png']
+      photos:['images/tee-jet-black-2.png','images/tee-jet-black-back-2.png','images/tee-jet-black-detail.png','images/tee-jet-black-model.png']
     },
     {
       type:'tee', name:'Deep Navy', price:65, earn:'20%',
       badge:{text:'OVERSIZED TEE', cls:'badge-tee'},
       stars:'4.8', reviews:31,
-      photos:['images/tee-deep-navy-2.png','images/tee-deep-navy-model.png','images/tee-deep-navy-back-2.png']
+      photos:['images/tee-deep-navy-2.png','images/tee-deep-navy-back-2.png','images/tee-deep-navy-detail.png','images/tee-deep-navy-model.png']
     },
     {
       type:'tee', name:'Slate Grey', price:65, earn:'20%',
       badge:{text:'OVERSIZED TEE', cls:'badge-tee'},
       stars:'4.7', reviews:28,
-      photos:['images/tee-slate-grey-2.png','images/tee-slate-grey-model.png','images/tee-slate-grey-back-2.png']
+      photos:['images/tee-slate-grey-2.png','images/tee-slate-grey-back-2.png','images/tee-slate-grey-detail.png','images/tee-slate-grey-model.png']
     },
     {
       type:'tee', name:'Raw Stone', price:65, earn:'20%',
       badge:{text:'OVERSIZED TEE', cls:'badge-tee'},
       stars:'4.8', reviews:19,
-      photos:['images/tee-raw-stone-2.png','images/tee-raw-stone-model.png','images/tee-raw-stone-back-2.png']
+      photos:['images/tee-raw-stone-2.png','images/tee-raw-stone-back-2.png','images/tee-raw-stone-detail.png','images/tee-raw-stone-model.png']
     },
     {
       type:'tee', name:'Clean White', price:65, earn:'20%',
       badge:{text:'OVERSIZED TEE', cls:'badge-tee'},
       stars:'4.9', reviews:22,
-      photos:['images/tee-clean-white-2.png','images/tee-clean-white-model.png','images/tee-clean-white-back-2.png']
+      photos:['images/tee-clean-white-2.png','images/tee-clean-white-back-2.png','images/tee-clean-white-detail.png','images/tee-clean-white-model.png']
     }
   ];
 
@@ -341,9 +346,9 @@
     cdItems.innerHTML = cart.items.map((item, idx) => {
       const isHoodie = (item.type || 'hoodie') !== 'tee';
       const typeLabel = isHoodie ? 'Oversized Heavyweight' : 'Oversized Tee';
-      const slugMap = {'Phantom Black':'phantom-black','Midnight Navy':'midnight-navy','Ember Crimson':'ember-crimson','Forest Shadow':'forest-shadow','Ash Stone':'ash-stone','Ivory Pure':'ivory-pure','Silver Mist':'silver-mist','Bone':'bone','Tawny Dusk':'tawny-dusk','Clean White':'clean-white','Raw Stone':'raw-stone','Jet Black':'jet-black'};
+      const slugMap = {'Phantom Black':'phantom-black','Midnight Navy':'midnight-navy','Ember Crimson':'ember-crimson','Forest Shadow':'forest-shadow','Ash Stone':'ash-stone','Ivory Pure':'ivory-pure','Silver Mist':'silver-mist','Bone':'bone','Tawny Dusk':'tawny-dusk','Clean White':'clean-white','Raw Stone':'raw-stone','Jet Black':'jet-black','Deep Navy':'deep-navy','Slate Grey':'slate-grey'};
       const slug = slugMap[item.name] || item.name.toLowerCase().replace(/\s+/g,'-');
-      const imgSrc = isHoodie ? `hoodie-variants/${slug}-front.png?v=hoodie-20260517` : `images/${slug}-front.png?v=tee-20260517`;
+      const imgSrc = isHoodie ? `hoodie-variants/${slug}-front.png?v=hoodie-20260517` : `images/tee-${slug}-2.png`;
       return `
       <div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
         <img src="${imgSrc}" alt="${item.name}" style="width:54px;height:54px;object-fit:cover;object-position:center top;border-radius:8px;background:#111;flex-shrink:0;">
@@ -382,22 +387,79 @@
     overlay.style.display = open ? 'none' : 'block';
   }
 
+  /* ── SIZE PICKER MODAL ── */
   function addToCart(name, price, btn) {
-    const cart = getCart();
-    const existing = cart.items.find(i => i.name === name);
-    // Look up product type from PRODUCTS array
     const product = PRODUCTS.find(p => p.name === name);
-    const type = product ? product.type : 'hoodie';
+    const type    = product ? product.type : 'hoodie';
+    showSizePicker(name, price, type, btn);
+  }
+
+  function showSizePicker(name, price, type, btn) {
+    const existing = document.getElementById('sizePickerModal');
+    if (existing) existing.remove();
+
+    const sizes = ['XS','S','M','L','XL','XXL'];
+    const modal = document.createElement('div');
+    modal.id = 'sizePickerModal';
+    modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;`;
+    modal.innerHTML = `
+      <div style="background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:32px 28px;max-width:360px;width:100%;text-align:center;">
+        <h3 style="font-size:18px;font-weight:700;margin-bottom:4px;">${name}</h3>
+        <p style="font-size:13px;color:#888;margin-bottom:24px;">Select your size</p>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;">
+          ${sizes.map(s => `
+            <button onclick="confirmAddToCart('${name}',${price},'${type}','${s}')"
+              style="padding:14px 8px;background:#1a1a1a;border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#f0f0f0;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:.2s;"
+              onmouseover="this.style.background='#6C63FF';this.style.borderColor='#6C63FF';"
+              onmouseout="this.style.background='#1a1a1a';this.style.borderColor='rgba(255,255,255,0.08)';">
+              ${s}
+            </button>`).join('')}
+        </div>
+        <button onclick="document.getElementById('sizePickerModal').remove()"
+          style="width:100%;padding:12px;background:transparent;border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#888;font-family:'Space Grotesk',sans-serif;font-size:14px;cursor:pointer;">
+          Cancel
+        </button>
+      </div>`;
+
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+    document.body.appendChild(modal);
+    // store btn ref to update after confirmation
+    modal._btn = btn;
+    modal._price = price;
+  }
+
+  function confirmAddToCart(name, price, type, size) {
+    const modal = document.getElementById('sizePickerModal');
+    const btn   = modal?._btn;
+    modal?.remove();
+
+    const cart = getCart();
+    const existing = cart.items.find(i => i.name === name && i.size === size);
     if (existing) { existing.qty = (existing.qty||1) + 1; }
-    else { cart.items.push({name, price:parseFloat(price), qty:1, size:'M', type}); }
+    else { cart.items.push({name, price:parseFloat(price), qty:1, size, type}); }
     saveCart(cart);
     renderCartDrawer();
-    // Flash feedback on button
+
+    // Track add-to-cart event
+    (async function() {
+      try {
+        const cfg = window.THREAD_CONFIG;
+        if (!cfg?.supabaseUrl || !window.supabase) return;
+        const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+        let ip = null, country = null, city = null;
+        try {
+          const geo = await fetch('https://ipapi.co/json/');
+          if (geo.ok) { const d = await geo.json(); ip = d.ip; country = d.country_name; city = d.city; }
+        } catch(_) {}
+        await sb.rpc('log_page_event', { p_event_type: 'add_to_cart', p_ip: ip, p_country: country, p_city: city, p_page: name });
+      } catch(_) {}
+    })();
+
     if (btn) {
-      btn.textContent = '✓ Added!';
+      btn.textContent = `✓ Size ${size} Added!`;
       btn.style.background = '#22c55e';
       btn.style.color = '#fff';
-      setTimeout(() => { btn.textContent = `Add to Cart — $${price}`; btn.style.background = ''; btn.style.color = ''; }, 1400);
+      setTimeout(() => { btn.textContent = `Add to Cart — $${price}`; btn.style.background = ''; btn.style.color = ''; }, 1600);
     }
   }
 
@@ -433,7 +495,87 @@
     card._tx = null;
   }, { passive:true });
 
+  /* ── PROMO CODE ── */
+  function applyPromo() {
+    const input = document.getElementById('promoInput');
+    const code  = (input?.value || '').trim().toUpperCase();
+    if (!code) return;
+
+    const cart   = getCart();
+    const promos = { 'THREAD10': 10, 'WEAR20': 20, 'FIRST15': 15, 'SCAN25': 25 };
+    let discount = 0;
+    let msg = '';
+
+    if (code === 'VIVINT') {
+      const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
+      const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
+      if (!hasTee || !hasHoodie) { showCatalogToast('Add a hoodie + tee to use VIVINT', true); return; }
+      const hoodie  = cart.items.find(i => (i.type || 'hoodie') !== 'tee');
+      const tee     = cart.items.find(i => (i.type || 'hoodie') === 'tee');
+      discount = parseFloat((hoodie.price + tee.price).toFixed(2));
+      msg = '🎉 Hoodie + tee FREE!';
+    } else if (code === 'DTEMPER') {
+      const teeItem = cart.items.find(i => (i.type || 'hoodie') === 'tee');
+      if (!teeItem) { showCatalogToast('Add a t-shirt to use DTEMPER', true); return; }
+      discount = parseFloat((teeItem.price * 0.90).toFixed(2));
+      msg = '90% off your tee 🔥';
+    } else if (code === 'BOGOEGG') {
+      const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
+      const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
+      if (!hasTee || !hasHoodie) { showCatalogToast('Add a hoodie + tee to use BOGOEGG', true); return; }
+      const teeItem = cart.items.find(i => (i.type || 'hoodie') === 'tee');
+      discount = parseFloat((teeItem.price * 0.5).toFixed(2));
+      msg = '🥚 Tee is 50% off!';
+    } else if (code === 'BIGBIRD') {
+      const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
+      const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
+      if (hasTee && hasHoodie) { discount = 60; msg = '$60 off tee + hoodie'; }
+      else if (hasHoodie)      { discount = 32; msg = '$32 off your hoodie'; }
+      else if (hasTee)         { discount = 28; msg = '$28 off your tee'; }
+      else { showCatalogToast('Add items first', true); return; }
+    } else if (promos[code]) {
+      discount = promos[code];
+      msg = `$${discount} off`;
+    } else {
+      showCatalogToast('Invalid promo code', true); return;
+    }
+
+    cart.promoCode = code;
+    cart.discount  = discount;
+    saveCart(cart);
+    renderCartDrawer();
+    if (input) input.value = '';
+    showCatalogToast(`✓ ${code} — ${msg}`);
+  }
+
+  function showCatalogToast(msg, isError) {
+    let toast = document.getElementById('catalogToast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'catalogToast';
+      toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 22px;border-radius:10px;font-family:\'Space Grotesk\',sans-serif;font-size:14px;font-weight:600;z-index:9999;transition:opacity .3s;pointer-events:none;';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.background = isError ? '#ef4444' : '#22c55e';
+    toast.style.color = '#fff';
+    toast.style.opacity = '1';
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => { toast.style.opacity = '0'; }, 2500);
+  }
+
   render();
   </script>
+
+  <!-- Global home button -->
+  <a href="index.html" class="global-home-btn" title="Back to Home">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </a>
+  <style>
+    .global-home-btn { position:fixed; bottom:24px; left:24px; display:flex; align-items:center; gap:7px; padding:10px 18px; background:rgba(15,15,15,0.92); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.12); border-radius:50px; color:#fff; font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:600; text-decoration:none; z-index:9998; transition:all .2s; box-shadow:0 4px 20px rgba(0,0,0,0.4); }
+    .global-home-btn:hover { background:rgba(108,99,255,0.88); border-color:#6C63FF; transform:translateY(-2px); box-shadow:0 8px 28px rgba(108,99,255,0.3); }
+    @media(max-width:480px){ .global-home-btn { bottom:16px; left:16px; padding:9px 14px; font-size:12px; } }
+  </style>
 </body>
 </html>

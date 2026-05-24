@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="dashboard.css" />
+  <link rel="stylesheet" href="dashboard.css?v=20260520f" />
 </head>
 <body>
 
@@ -22,6 +22,9 @@
       <button class="sidebar-close" id="sidebarClose">✕</button>
     </div>
     <nav class="sidebar-nav">
+      <a class="nav-item" href="index.html">
+        <span class="nav-icon">🏠</span> Home
+      </a>
       <a class="nav-item active" data-section="overview">
         <span class="nav-icon">📊</span> Overview
       </a>
@@ -37,20 +40,28 @@
         <span class="nav-badge" id="activityBadge" style="display:none"></span>
       </a>
       <a class="nav-item" data-section="purchases">
-        <span class="nav-icon">👕</span> My Purchases
+        <span class="nav-icon">👕</span> My Closet
       </a>
-      <a class="nav-item" href="index.html">
+      <a class="nav-item" href="catalog.html" onclick="window.location.href='catalog.html'; return false;">
         <span class="nav-icon">🛍️</span> Shop
       </a>
     </nav>
     <div class="sidebar-bottom">
       <div class="sidebar-user">
-        <div class="su-avatar" id="suAvatar"></div>
+        <div class="su-avatar-wrap" onclick="triggerAvatarUpload()" title="Change profile picture">
+          <div class="su-avatar" id="suAvatar"></div>
+          <div class="su-avatar-overlay">📷</div>
+        </div>
         <div class="su-info">
           <strong id="suName"></strong>
           <span id="suEmail"></span>
+          <div class="su-username-row">
+            <span id="suUsername" class="su-username"></span>
+            <button class="su-edit-btn" onclick="openUsernameEdit()" title="Change username">✏️</button>
+          </div>
         </div>
       </div>
+      <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)" />
       <button class="signout-btn" onclick="signOut()">Sign Out</button>
     </div>
   </aside>
@@ -148,7 +159,7 @@
         <div class="stat-card" id="sc-pending">
           <div class="sc-top"><span class="sc-label">Pending</span></div>
           <div class="sc-value purple">$<span id="statPending">0.00</span></div>
-          <div class="sc-bottom"><span class="sc-icon-sm">⏳</span><span class="sc-sub">Clears in 3–5 days</span></div>
+          <div class="sc-bottom"><span class="sc-icon-sm">⏳</span><span class="sc-sub">Clears 72h after delivery</span></div>
         </div>
         <div class="stat-card" id="sc-earned">
           <div class="sc-top"><span class="sc-label">Total Earned</span></div>
@@ -188,6 +199,38 @@
           </div>
           <div class="bar-chart" id="barChart"></div>
           <div class="bar-days" id="barDays"></div>
+        </div>
+      </div>
+
+      <!-- FOLLOWING -->
+      <div class="leaderboard-card" id="followingCard">
+        <div class="lb-header" style="flex-wrap:wrap;gap:10px">
+          <h3>👥 Following</h3>
+          <div style="display:flex;gap:8px;align-items:center;flex:1;min-width:220px">
+            <input type="text" id="followSearchInput" placeholder="Search @username or email…"
+              style="flex:1;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:8px 12px;color:#fff;font-size:13px;font-family:inherit;outline:none"
+              oninput="followSearch(this.value)" />
+          </div>
+          <!-- Tab pills -->
+          <div style="display:flex;gap:6px;width:100%;margin-top:2px">
+            <button class="fw-tab active" id="fwTabFollowing" onclick="switchFollowTab('following')">Following</button>
+            <button class="fw-tab" id="fwTabRequests" onclick="switchFollowTab('requests')">
+              Requests <span id="fwRequestBadge" style="display:none;background:#7c3aed;color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px">0</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Search results -->
+        <div id="followSearchResults" style="display:none;border-bottom:1px solid #1e1e1e;padding:12px 0"></div>
+
+        <!-- Following list -->
+        <div id="followingList">
+          <div class="lb-empty">Loading…</div>
+        </div>
+
+        <!-- Requests list -->
+        <div id="requestsList" style="display:none">
+          <div class="lb-empty">No pending requests</div>
         </div>
       </div>
 
@@ -317,7 +360,7 @@
           <div class="em-row">
             <div class="em-item">
               <span class="em-val purple" id="ebPending">$0.00</span>
-              <span class="em-label">Pending (3–5 days)</span>
+              <span class="em-label">Pending (clears 72h after delivery)</span>
             </div>
             <div class="em-item">
               <span class="em-val" id="ebMonth">$0.00</span>
@@ -347,47 +390,33 @@
 
       <!-- PAYOUT METHOD -->
       <div class="payout-section">
-        <h3>Payout Method</h3>
-        <p>Choose how you want to receive your earnings.</p>
-        <div class="payout-grid">
-          <label class="payout-opt" data-method="cash">
-            <input type="radio" name="payout" value="cash" />
-            <div class="po-card">
-              <span class="po-icon">💵</span>
-              <strong>Cash</strong>
-              <p>Venmo · CashApp · PayPal</p>
-              <span class="po-rate">100% value</span>
-            </div>
-          </label>
-          <label class="payout-opt" data-method="giftcard">
-            <input type="radio" name="payout" value="giftcard" />
-            <div class="po-card">
-              <span class="po-icon">🎁</span>
-              <strong>Gift Card</strong>
-              <p>Amazon · Nike · Apple · Visa</p>
-              <span class="po-rate po-bonus">+10% bonus</span>
-            </div>
-          </label>
-          <label class="payout-opt" data-method="store">
-            <input type="radio" name="payout" value="store" />
-            <div class="po-card">
-              <span class="po-icon">👕</span>
-              <strong>Store Credit</strong>
-              <p>Use on next THREAD order</p>
-              <span class="po-rate po-bonus">+20% bonus</span>
-            </div>
-          </label>
-          <label class="payout-opt" data-method="charity">
-            <input type="radio" name="payout" value="charity" />
-            <div class="po-card">
-              <span class="po-icon">🌱</span>
-              <strong>Donate</strong>
-              <p>Partner charities</p>
-              <span class="po-rate po-bonus">2x matched</span>
-            </div>
-          </label>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+          <div>
+            <h3 style="margin:0 0 4px">Payout Method</h3>
+            <p style="margin:0;font-size:13px;color:#888">How do you want to receive your earnings?</p>
+          </div>
+          <span id="payoutSavedBadge" style="display:none;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);color:#4ade80;font-size:11px;padding:4px 10px;border-radius:20px;align-self:center">✓ Saved</span>
         </div>
-        <button class="btn-save-payout" onclick="savePayoutMethod()">Save Preference</button>
+
+        <!-- Method pills -->
+        <div class="payout-pills" id="payoutPills">
+          <button class="pp-btn" data-method="venmo"   onclick="selectPayoutMethod('venmo')">💸 Venmo</button>
+          <button class="pp-btn" data-method="paypal"  onclick="selectPayoutMethod('paypal')">🅿 PayPal</button>
+          <button class="pp-btn" data-method="zelle"   onclick="selectPayoutMethod('zelle')">⚡ Zelle</button>
+          <button class="pp-btn" data-method="cashapp" onclick="selectPayoutMethod('cashapp')">💚 Cash App</button>
+          <button class="pp-btn" data-method="giftcard" onclick="selectPayoutMethod('giftcard')">🎁 Gift Card</button>
+          <button class="pp-btn" data-method="other"   onclick="selectPayoutMethod('other')">✏️ Other</button>
+        </div>
+
+        <!-- Handle input — shown after method selected -->
+        <div id="payoutHandleWrap" style="display:none;margin-top:16px">
+          <label id="payoutHandleLabel" style="display:block;font-size:13px;color:#aaa;margin-bottom:8px">Your handle</label>
+          <div style="display:flex;gap:10px">
+            <input type="text" id="payoutHandleInput" placeholder="" style="flex:1;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:12px 16px;color:#fff;font-size:14px;font-family:inherit;outline:none" />
+            <button onclick="savePayoutMethod()" style="background:#7c3aed;color:#fff;border:none;border-radius:10px;padding:12px 20px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap">Save</button>
+          </div>
+          <p id="payoutHandleHint" style="font-size:11px;color:#555;margin-top:8px"></p>
+        </div>
       </div>
 
       <!-- TRANSACTION HISTORY -->
@@ -488,7 +517,7 @@
           <h2 class="section-h2">Your THREAD pieces</h2>
           <p class="section-p">Every piece has your QR code built in. More pieces = more scan chances = more earnings.</p>
         </div>
-        <a href="index.html" class="btn-add-piece">+ Add More Pieces</a>
+        <a href="catalog.html" class="btn-add-piece" onclick="window.location.href='catalog.html'; return false;">+ Add More Pieces</a>
       </div>
 
       <div class="wardrobe-tabs">
@@ -500,7 +529,7 @@
         <div class="empty-state" style="grid-column:1/-1">
           <span>👕</span>
           <p>No pieces yet. Every hoodie you buy comes with your permanent referral QR code on the back.</p>
-          <a href="index.html" class="btn-shop-now">Browse the Collection →</a>
+          <a href="catalog.html" class="btn-shop-now">Browse the Collection →</a>
         </div>
       </div>
 
@@ -527,6 +556,23 @@
     </section>
 
   </main>
+
+  <!-- ─── USERNAME EDIT MODAL ─── -->
+  <div class="modal-overlay" id="usernameModal">
+    <div class="modal-box" style="max-width:380px">
+      <button class="modal-close" onclick="closeModal('usernameModal')">✕</button>
+      <h3>Change Username</h3>
+      <p style="font-size:13px;color:#888;margin:6px 0 20px">Your @username is shown on your profile and QR referral banner.</p>
+      <div style="position:relative">
+        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#7c3aed;font-weight:700">@</span>
+        <input type="text" id="newUsernameInput" maxlength="20"
+          style="width:100%;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:12px 14px 12px 30px;color:#fff;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box"
+          placeholder="newusername" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9_]/g,'')" />
+      </div>
+      <div class="form-error" id="usernameEditError" style="margin-top:10px;font-size:13px;color:#f87171;display:none"></div>
+      <button class="btn-submit-modal" id="saveUsernameBtn" onclick="saveUsername()" style="margin-top:16px">Save Username</button>
+    </div>
+  </div>
 
   <!-- ─── CASHOUT MODAL ─── -->
   <div class="modal-overlay" id="cashoutModal">
@@ -560,11 +606,12 @@
   <!-- TOAST -->
   <div class="db-toast" id="dbToast"></div>
 
-  <script src="https://unpkg.com/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="config.js"></script>
-  <script src="db.js"></script>
-  <script src="tiers.js"></script>
-  <script src="dashboard.js"></script>
+  <script src="config.js?v=20260519c"></script>
+  <script src="db.js?v=20260519c"></script>
+  <script src="tiers.js?v=20260519c"></script>
+  <script src="dashboard.js?v=20260520g"></script>
 </body>
 </html>

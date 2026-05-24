@@ -22,6 +22,7 @@ Deno.serve(async (req) => {
   try {
     const {
       items = [],
+      discount = 0,
       orderId = '',
       customerEmail = '',
       referralCode = '',
@@ -55,15 +56,46 @@ Deno.serve(async (req) => {
     }
 
     items.forEach((item, i) => {
-      const name = `${item.name || 'THREAD'} Hoodie`;
+      // Use the correct product type label (tee vs hoodie)
+      const isTee  = (item.type || '').toLowerCase() === 'tee';
+      const suffix = isTee ? 'Tee' : 'Hoodie';
+      const name   = `${item.name || 'THREAD'} ${suffix}`;
+      const desc   = isTee
+        ? `THREAD Oversized Tee - Size ${item.size || 'M'} - Referral QR included`
+        : `THREAD Oversized Heavyweight - Size ${item.size || 'M'} - Referral QR included`;
       const unitAmount = Math.max(50, Math.round(Number(item.price || 0) * 100));
       const qty = Math.max(1, parseInt(item.qty || 1, 10));
       body.append(`line_items[${i}][price_data][currency]`, 'usd');
       body.append(`line_items[${i}][price_data][product_data][name]`, name);
-      body.append(`line_items[${i}][price_data][product_data][description]`, `THREAD Classic - Size ${item.size || 'M'} - Referral QR included`);
+      body.append(`line_items[${i}][price_data][product_data][description]`, desc);
+      body.append(`line_items[${i}][price_data][product_data][metadata][size]`, item.size || 'M');
+      body.append(`line_items[${i}][price_data][product_data][metadata][type]`, item.type || 'hoodie');
       body.append(`line_items[${i}][price_data][unit_amount]`, String(unitAmount));
       body.append(`line_items[${i}][quantity]`, String(qty));
     });
+
+    // If a discount was applied on the frontend, create a one-time Stripe coupon
+    // and attach it so the discount shows up (and is enforced) on Stripe's page.
+    if (discount > 0) {
+      const couponBody = new URLSearchParams();
+      couponBody.append('amount_off', String(Math.round(Number(discount) * 100)));
+      couponBody.append('currency', 'usd');
+      couponBody.append('duration', 'once');
+      if (promoCode) couponBody.append('name', promoCode);
+
+      const couponRes = await fetch('https://api.stripe.com/v1/coupons', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${stripeKey}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: couponBody.toString(),
+      });
+      const coupon = await couponRes.json();
+      if (coupon?.id) {
+        body.append('discounts[0][coupon]', coupon.id);
+      }
+    }
 
     const stripeRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {
       method: 'POST',
