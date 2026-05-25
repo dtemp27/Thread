@@ -92,46 +92,46 @@
   // Clean URL so refresh doesn't re-trigger
   history.replaceState({}, '', window.location.pathname);
 
-  // Wait for navbar to be in DOM then inject banner below it
+  // Wait for DOM + layout to settle, then inject welcome bar below navbar
   window.addEventListener('DOMContentLoaded', () => {
-    const bar = document.createElement('div');
-    bar.id = 'welcomeBar';
-    bar.style.cssText = [
-      'position:fixed',
-      'left:0','right:0',
-      'z-index:998',
-      'background:linear-gradient(90deg,#14532d,#166534)',
-      'color:#fff',
-      'padding:11px 16px',
-      'display:flex','align-items:center','justify-content:center','gap:10px',
-      'font-family:Space Grotesk,sans-serif','font-size:13px','font-weight:600',
-      'box-shadow:0 2px 12px rgba(0,0,0,0.4)',
-    ].join(';');
+    // rAF ensures CSS layout is computed so getBoundingClientRect is accurate
+    requestAnimationFrame(() => {
+      const navbar = document.getElementById('navbar');
+      const navH = navbar ? Math.round(navbar.getBoundingClientRect().height) : 68;
 
-    // Position it just below the fixed navbar
-    const navH = document.getElementById('navbar')?.offsetHeight || 130;
-    bar.style.top = navH + 'px';
+      const bar = document.createElement('div');
+      bar.id = 'welcomeBar';
+      bar.style.cssText = [
+        'position:fixed',
+        'left:0','right:0',
+        'z-index:999',
+        'background:linear-gradient(90deg,#14532d,#166534)',
+        'color:#fff',
+        'padding:11px 16px',
+        'display:flex','align-items:center','justify-content:center','gap:10px',
+        'font-family:Space Grotesk,sans-serif','font-size:13px','font-weight:600',
+        'box-shadow:0 2px 12px rgba(0,0,0,0.4)',
+        'top:' + navH + 'px',
+      ].join(';');
 
-    bar.innerHTML = `
-      <span style="font-size:16px">✓</span>
-      <span>You're in! <span style="font-weight:400;opacity:.9">Order your hoodie below — your QR code gets printed on it and you start earning.</span></span>
-      <a href="#shop" onclick="document.getElementById('shop')?.scrollIntoView({behavior:'smooth'});return false;"
-         style="background:#22c55e;color:#fff;border-radius:50px;padding:6px 14px;font-size:12px;font-weight:700;white-space:nowrap;text-decoration:none;flex-shrink:0">
-        Shop Now →
-      </a>
-      <button onclick="document.getElementById('welcomeBar')?.remove()"
-              style="background:none;border:none;color:#fff;opacity:.6;cursor:pointer;font-size:18px;line-height:1;padding:0;flex-shrink:0">✕</button>
-    `;
-    document.body.appendChild(bar);
+      bar.innerHTML = `
+        <span style="font-size:16px">✓</span>
+        <span>You're in! <span style="font-weight:400;opacity:.9">Order your hoodie below — your QR code gets printed on it and you start earning.</span></span>
+        <a href="#shop" onclick="document.getElementById('shop')?.scrollIntoView({behavior:'smooth'});return false;"
+           style="background:#22c55e;color:#fff;border-radius:50px;padding:6px 14px;font-size:12px;font-weight:700;white-space:nowrap;text-decoration:none;flex-shrink:0">
+          Shop Now →
+        </a>
+        <button onclick="document.getElementById('welcomeBar')?.remove()"
+                style="background:none;border:none;color:#fff;opacity:.6;cursor:pointer;font-size:18px;line-height:1;padding:0;flex-shrink:0">✕</button>
+      `;
+      document.body.appendChild(bar);
 
-    // Push page content down so bar doesn't cover it
-    document.body.style.marginTop = (navH + bar.offsetHeight + 2) + 'px';
-
-    // Auto-scroll to shop after brief pause
-    setTimeout(() => {
-      const shop = document.getElementById('shop');
-      if (shop) shop.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 900);
+      // Auto-scroll to shop after brief pause
+      setTimeout(() => {
+        const shop = document.getElementById('shop');
+        if (shop) shop.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 900);
+    });
   });
 })();
 
