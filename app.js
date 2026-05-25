@@ -92,26 +92,26 @@
   // Clean URL so refresh doesn't re-trigger
   history.replaceState({}, '', window.location.pathname);
 
-  // Wait for DOM + layout to settle, then inject welcome bar below navbar
+  // Append welcome bar as the last child of #navbar so it always sits flush
+  // below the nav-inner — no height measurement needed, works on all devices.
   window.addEventListener('DOMContentLoaded', () => {
-    // rAF ensures CSS layout is computed so getBoundingClientRect is accurate
     requestAnimationFrame(() => {
       const navbar = document.getElementById('navbar');
-      const navH = navbar ? Math.round(navbar.getBoundingClientRect().height) : 68;
+      if (!navbar) return;
+
+      // Make the navbar stack its children vertically so the bar flows below nav-inner
+      navbar.style.flexDirection = 'column';
 
       const bar = document.createElement('div');
       bar.id = 'welcomeBar';
       bar.style.cssText = [
-        'position:fixed',
-        'left:0','right:0',
-        'z-index:999',
+        'width:100%',
         'background:linear-gradient(90deg,#14532d,#166534)',
         'color:#fff',
         'padding:11px 16px',
         'display:flex','align-items:center','justify-content:center','gap:10px',
         'font-family:Space Grotesk,sans-serif','font-size:13px','font-weight:600',
         'box-shadow:0 2px 12px rgba(0,0,0,0.4)',
-        'top:' + navH + 'px',
       ].join(';');
 
       bar.innerHTML = `
@@ -121,10 +121,10 @@
            style="background:#22c55e;color:#fff;border-radius:50px;padding:6px 14px;font-size:12px;font-weight:700;white-space:nowrap;text-decoration:none;flex-shrink:0">
           Shop Now →
         </a>
-        <button onclick="document.getElementById('welcomeBar')?.remove()"
+        <button onclick="document.getElementById('welcomeBar')?.remove();var nb=document.getElementById('navbar');if(nb)nb.style.flexDirection='';"
                 style="background:none;border:none;color:#fff;opacity:.6;cursor:pointer;font-size:18px;line-height:1;padding:0;flex-shrink:0">✕</button>
       `;
-      document.body.appendChild(bar);
+      navbar.appendChild(bar);
 
       // Auto-scroll to shop after brief pause
       setTimeout(() => {

@@ -554,6 +554,31 @@ async function showSuccess(orderId, refResult) {
   overlay.style.display = 'flex';
   document.getElementById('successOrderId').textContent = orderId;
 
+  // Show ordered items with sizes in the confirmation card
+  const card = overlay.querySelector('.co-success-card');
+  if (card && checkoutData?.items?.length) {
+    const itemsHtml = checkoutData.items.map(item => {
+      const isTee = (item.type || 'hoodie') === 'tee';
+      const baseName = item.name.replace(/\s+(Tee|Hoodie)$/i, '').trim();
+      const displayName = isTee ? `${baseName} Tee` : `${baseName} Hoodie`;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px;">
+        <div>
+          <span style="font-weight:600;color:#f0f0f0">${displayName}</span>
+          <span style="color:#888;margin-left:8px">· Size: <strong style="color:#a78bfa">${item.size || 'M'}</strong></span>
+          ${item.qty > 1 ? `<span style="color:#666;margin-left:6px">×${item.qty}</span>` : ''}
+        </div>
+        <span style="color:#a78bfa;font-weight:700;font-family:'Space Mono',monospace">$${(item.price * item.qty).toFixed(2)}</span>
+      </div>`;
+    }).join('');
+
+    const itemsSection = document.createElement('div');
+    itemsSection.style.cssText = 'margin:16px 0 4px;text-align:left;border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;width:100%;';
+    itemsSection.innerHTML = `<p style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Items Ordered</p>${itemsHtml}`;
+
+    const successSub = card.querySelector('.success-sub');
+    if (successSub) successSub.after(itemsSection);
+  }
+
   if (refResult) {
     document.getElementById('successRefMsg').style.display  = 'flex';
     document.getElementById('successRefName').textContent   = refResult.name;

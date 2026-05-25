@@ -1752,7 +1752,7 @@ body.cart-open { overflow: hidden; }
     background: rgba(108,99,255,0.12);
     color: var(--accent2);
   }
-  .hero { padding: 160px 20px 60px; }
+  .hero { padding: 110px 20px 60px; }
   .hero-cta { flex-wrap: wrap; gap: 12px; }
   .btn-hero-primary, .btn-hero-ghost { flex: 1; min-width: 140px; justify-content: center; }
 }
@@ -1768,7 +1768,7 @@ body.cart-open { overflow: hidden; }
   }
 
   /* Hero */
-  .hero { padding: 140px 16px 56px; }
+  .hero { padding: 100px 16px 56px; }
   .hero-title { font-size: clamp(36px, 10vw, 52px); letter-spacing: -1px; }
   .hero-sub { font-size: 15px; }
   .hero-cta { flex-direction: column; }

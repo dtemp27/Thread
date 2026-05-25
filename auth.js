@@ -428,36 +428,49 @@ async function handleResetPassword(event) {
 /* ─── SUCCESS OVERLAY ────────────────────────────────────────────────────── */
 function showSuccessOverlay(name, code) {
   if (!document.getElementById('authSuccessOverlay')) {
+    const firstName = (name || 'there').split(' ')[0];
+    // QR code encodes the user's personal referral link — hosted via free API, no library needed
+    const referralUrl = `https://mythread.shop/?ref=${encodeURIComponent(code)}`;
+    const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(referralUrl)}&color=ffffff&bgcolor=111111&margin=14`;
+
     const el = document.createElement('div');
     el.id = 'authSuccessOverlay';
     el.style.cssText = `
-      position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);
-      display:flex;align-items:center;justify-content:center;z-index:1000;
-      animation:fadeIn .3s ease;
+      position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(14px);
+      display:flex;align-items:center;justify-content:center;z-index:10000;
+      animation:fadeIn .3s ease;padding:16px;
     `;
     el.innerHTML = `
-      <div style="background:#111;border:1px solid #222;border-radius:24px;padding:48px 40px;
-                  max-width:400px;width:90%;text-align:center;">
-        <div style="font-size:48px;margin-bottom:16px">🎉</div>
-        <h2 style="font-size:22px;font-weight:700;margin-bottom:8px">Welcome to THREAD!</h2>
-        <p style="color:#888;font-size:14px;margin-bottom:24px">
-          Your account is ready. Here's your unique referral code:
+      <div style="background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:24px;
+                  padding:36px 32px;max-width:360px;width:100%;text-align:center;
+                  box-shadow:0 24px 64px rgba(0,0,0,0.6);">
+        <div style="font-size:36px;margin-bottom:10px">🎉</div>
+        <h2 style="font-size:21px;font-weight:700;margin-bottom:6px;color:#f0f0f0">
+          Welcome, ${firstName}!
+        </h2>
+        <p style="color:#777;font-size:13px;margin-bottom:20px;line-height:1.5;">
+          Your personal QR code is ready — it goes on every hoodie you order.<br>
+          When someone scans it and buys, <strong style="color:#a78bfa">you earn.</strong>
         </p>
-        <div style="background:#0a0a0a;border:1px solid #222;border-radius:12px;
-                    padding:16px;font-family:'Space Mono',monospace;font-size:22px;
-                    font-weight:700;letter-spacing:4px;color:#fff;margin-bottom:24px"
-             id="successCodeDisplay">${code || 'Generating…'}</div>
-        <p style="color:#666;font-size:12px;margin-bottom:28px">
-          This code is printed on every THREAD piece you order.<br>
-          When someone scans it and buys — you earn.
-        </p>
-        <div style="width:100%;background:#1a1a1a;border-radius:8px;height:4px;margin-bottom:8px;overflow:hidden">
-          <div id="successBar" style="height:100%;background:#fff;width:0%;transition:width 3s linear;border-radius:8px"></div>
+        <div style="display:inline-flex;align-items:center;justify-content:center;
+                    background:#0a0a0a;border:1px solid rgba(255,255,255,0.08);
+                    border-radius:16px;padding:14px;margin-bottom:14px;">
+          <img src="${qrSrc}" width="150" height="150"
+               alt="Your QR Code" loading="eager"
+               style="display:block;border-radius:8px;image-rendering:crisp-edges;" />
         </div>
-        <p style="color:#555;font-size:12px">Check your email to verify your account…</p>
+        <p style="color:#555;font-size:11px;margin-bottom:20px;font-family:'Space Mono',monospace;
+                  letter-spacing:.05em;">
+          CODE: ${code}
+        </p>
+        <div style="width:100%;background:#1a1a1a;border-radius:8px;height:3px;margin-bottom:10px;overflow:hidden">
+          <div id="successBar" style="height:100%;background:linear-gradient(90deg,#6C63FF,#a78bfa);
+               width:0%;transition:width 3.2s linear;border-radius:8px"></div>
+        </div>
+        <p style="color:#444;font-size:12px;">Check your email to verify your account…</p>
       </div>`;
     document.body.appendChild(el);
-    setTimeout(() => { const bar = document.getElementById('successBar'); if (bar) bar.style.width = '100%'; }, 50);
+    setTimeout(() => { const bar = document.getElementById('successBar'); if (bar) bar.style.width = '100%'; }, 60);
   }
   const _fromEarn = new URLSearchParams(window.location.search).get('from') === 'earn';
   setTimeout(() => window.location.href = _fromEarn ? 'index.html?welcome=1' : 'verify.html', 3200);
