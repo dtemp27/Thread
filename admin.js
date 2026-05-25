@@ -901,6 +901,19 @@ async function resetCartStat() {
   } catch(e) { alert('Error: ' + e.message); }
 }
 
+async function deleteEventsByIP(ip) {
+  if (!ip) return;
+  if (!confirm(`Delete ALL analytics events from IP ${ip}? This cannot be undone.`)) return;
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) { alert('Supabase not connected'); return; }
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const { error } = await sb.rpc('delete_events_by_ip', { p_ip: ip });
+    if (error) { alert('Failed: ' + error.message); return; }
+    loadAnalytics();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
 async function clearAllAnalytics() {
   if (!confirm('Delete ALL analytics events (visits + carts)? This cannot be undone.')) return;
   try {
@@ -1047,9 +1060,16 @@ async function loadAnalytics() {
       const location = [e.city, e.country].filter(Boolean).join(', ') || '—';
       const time     = new Date(e.created_at).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
       const label    = e.page_label || '';
+      const ip       = e.ip_address || '';
+      const ipCell   = ip
+        ? `<code style="font-size:11px;color:#a78bfa">${escapeHtml(ip)}</code>
+           <button onclick="deleteEventsByIP('${escapeHtml(ip)}')"
+             style="margin-left:6px;padding:1px 6px;background:#2a0a0a;border:1px solid #7f1d1d;border-radius:4px;color:#fca5a5;font-size:10px;cursor:pointer;vertical-align:middle"
+             title="Delete all events from this IP">🗑</button>`
+        : '—';
       return `<tr>
         <td>${badge}</td>
-        <td><code style="font-size:11px;color:#a78bfa">${escapeHtml(e.ip_address || '—')}</code></td>
+        <td style="white-space:nowrap">${ipCell}</td>
         <td>${escapeHtml(location)}</td>
         <td>${escapeHtml(e.page || '—')}${label ? `<span style="color:#888;font-size:11px"> · ${escapeHtml(label)}</span>` : ''}</td>
         <td style="color:#888;font-size:12px">${time}</td>
