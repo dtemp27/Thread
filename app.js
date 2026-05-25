@@ -116,7 +116,7 @@
 
       bar.innerHTML = `
         <span style="font-size:16px">✓</span>
-        <span>You're in! <span style="font-weight:400;opacity:.9">Order your hoodie below — your QR code gets printed on it and you start earning.</span></span>
+        <span>You're in! <span style="font-weight:400;opacity:.9">Order your piece below — your QR code gets printed on it and you start earning.</span></span>
         <a href="#shop" onclick="document.getElementById('shop')?.scrollIntoView({behavior:'smooth'});return false;"
            style="background:#22c55e;color:#fff;border-radius:50px;padding:6px 14px;font-size:12px;font-weight:700;white-space:nowrap;text-decoration:none;flex-shrink:0">
           Shop Now →
