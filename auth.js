@@ -209,6 +209,17 @@ async function completeSignUp({ name, username, dob, email, password, parentEmai
       if (parentEmail) { profileData.parent_email = parentEmail; profileData.is_minor = true; }
       await sb.from('profiles').upsert(profileData, { onConflict: 'id' });
       localStorage.removeItem('thread_pending_profile');
+
+      // Auto sign-in: attempt a real Supabase session first (works when email confirmation
+      // is disabled). Even if that fails, store a local session so every auth-gate in
+      // the app (checkout, dashboard) treats the user as signed in right away.
+      try {
+        await sb.auth.signInWithPassword({ email, password });
+      } catch(_) {}
+      localStorage.setItem('thread_session', JSON.stringify({
+        id: data.user.id, email, name, username,
+        referralCode, referral_code: referralCode,
+      }));
     }
 
     setLoading('signup', false);
@@ -429,14 +440,8 @@ async function handleResetPassword(event) {
 function showSuccessOverlay(name, code) {
   if (!document.getElementById('authSuccessOverlay')) {
     const firstName = (name || 'there').split(' ')[0];
-    // QR encodes the user's personal referral link
     const referralUrl = `https://mythread.shop/?ref=${encodeURIComponent(code)}`;
-    // High-res QR (4x) — white background, black dots, high error correction so logo doesn't break it
-    const qrSize = 160, qrRender = qrSize * 4;
-    const qrEncoded = encodeURIComponent(referralUrl);
-    const qrImgSrc = `https://api.qrserver.com/v1/create-qr-code/?size=${qrRender}x${qrRender}&data=${qrEncoded}&margin=10&ecc=H`;
-    // Logo overlay — same white-circle + THREAD logo used by dashboard
-    const logoSize = Math.round(qrSize * 0.20); // 20% of QR size
+    const qrSize = 180; // display size in px
 
     const el = document.createElement('div');
     el.id = 'authSuccessOverlay';
@@ -447,7 +452,7 @@ function showSuccessOverlay(name, code) {
     `;
     el.innerHTML = `
       <div style="background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:24px;
-                  padding:36px 32px;max-width:360px;width:100%;text-align:center;
+                  padding:36px 32px;max-width:380px;width:100%;text-align:center;
                   box-shadow:0 24px 64px rgba(0,0,0,0.6);">
         <div style="font-size:36px;margin-bottom:10px">🎉</div>
         <h2 style="font-size:21px;font-weight:700;margin-bottom:6px;color:#f0f0f0">
@@ -457,20 +462,9 @@ function showSuccessOverlay(name, code) {
           Your personal QR code is ready — it goes on every hoodie you order.<br>
           When someone scans it and buys, <strong style="color:#a78bfa">you earn.</strong>
         </p>
-        <div style="display:inline-block;background:#fff;border-radius:16px;padding:12px;
+        <div style="display:inline-flex;background:#fff;border-radius:16px;padding:12px;
                     margin-bottom:14px;box-shadow:0 4px 20px rgba(0,0,0,0.4);">
-          <div style="position:relative;width:${qrSize}px;height:${qrSize}px;border-radius:10px;overflow:hidden;">
-            <img src="${qrImgSrc}" width="${qrSize}" height="${qrSize}" loading="eager"
-                 style="display:block;image-rendering:crisp-edges;" alt="Your QR Code" />
-            <!-- THREAD logo overlay — white backing so it covers QR dots cleanly -->
-            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-                        width:${logoSize+8}px;height:${logoSize+8}px;background:#fff;
-                        border-radius:6px;display:flex;align-items:center;justify-content:center;">
-              <img src="images/Transparent-Logo.png"
-                   style="width:${logoSize}px;height:${logoSize}px;display:block;object-fit:contain;"
-                   alt="THREAD" />
-            </div>
-          </div>
+          <div id="authQrHolder" style="width:${qrSize}px;height:${qrSize}px;border-radius:10px;overflow:hidden;"></div>
         </div>
         <p style="color:#888;font-size:11px;margin-bottom:20px;font-family:'Space Mono',monospace;
                   letter-spacing:.08em;">
@@ -484,9 +478,77 @@ function showSuccessOverlay(name, code) {
       </div>`;
     document.body.appendChild(el);
     setTimeout(() => { const bar = document.getElementById('successBar'); if (bar) bar.style.width = '100%'; }, 60);
+
+    // Render QR — uses QRCodeStyling with the IDENTICAL config as dashboard.js drawQR()
+    _buildAuthQR(referralUrl, qrSize);
   }
   const _fromEarn = new URLSearchParams(window.location.search).get('from') === 'earn';
   setTimeout(() => window.location.href = _fromEarn ? 'index.html?welcome=1' : 'verify.html', 3200);
+}
+
+async function _buildAuthQR(referralUrl, size) {
+  const div = document.getElementById('authQrHolder');
+  if (!div) return;
+
+  const renderSize = size * 4; // 4x for crispness on retina
+
+  if (window.QRCodeStyling) {
+    // Convert logo to data URL so QRCodeStyling can embed it (same as dashboard _imgToDataURL)
+    let logoDataUrl = null;
+    try {
+      logoDataUrl = await new Promise(resolve => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          const c = document.createElement('canvas');
+          c.width = img.naturalWidth || 64; c.height = img.naturalHeight || 64;
+          c.getContext('2d').drawImage(img, 0, 0);
+          resolve(c.toDataURL('image/png'));
+        };
+        img.onerror = () => resolve(null);
+        img.src = 'images/Transparent-Logo.png';
+      });
+    } catch(_) {}
+
+    // Exact same options used in dashboard.js drawQR()
+    const qrOpts = {
+      width:  renderSize,
+      height: renderSize,
+      type:   'canvas',
+      data:   referralUrl,
+      margin: 0,
+      qrOptions: { errorCorrectionLevel: 'H' },
+      dotsOptions:          { color: '#000000', type: 'dots' },
+      cornersSquareOptions: { color: '#000000', type: 'extra-rounded' },
+      cornersDotOptions:    { color: '#000000', type: 'dot' },
+      backgroundOptions:    { color: '#ffffff' },
+    };
+    if (logoDataUrl) {
+      qrOpts.image        = logoDataUrl;
+      qrOpts.imageOptions = { margin: 6, imageSize: 0.25, hideBackgroundDots: true };
+    }
+    const qr = new QRCodeStyling(qrOpts);
+    qr.append(div);
+    // Scale high-res canvas down to display size (same trick as dashboard)
+    setTimeout(() => {
+      const c = div.querySelector('canvas');
+      if (c) { c.style.width = size + 'px'; c.style.height = size + 'px'; }
+    }, 400);
+    return;
+  }
+
+  // Fallback if library failed to load: API image + CSS logo overlay
+  const logoSize = Math.round(size * 0.20);
+  const encoded  = encodeURIComponent(referralUrl);
+  div.style.cssText = `position:relative;width:${size}px;height:${size}px;border-radius:10px;overflow:hidden;`;
+  div.innerHTML = `
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=${renderSize}x${renderSize}&data=${encoded}&margin=10&ecc=H"
+         width="${size}" height="${size}" style="display:block;image-rendering:crisp-edges;" />
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+                width:${logoSize+8}px;height:${logoSize+8}px;background:#fff;border-radius:6px;
+                display:flex;align-items:center;justify-content:center;">
+      <img src="images/Transparent-Logo.png" width="${logoSize}" height="${logoSize}" style="object-fit:contain;" />
+    </div>`;
 }
 
 /* ─── PASSWORD TOGGLE ────────────────────────────────────────────────────── */
