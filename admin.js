@@ -889,6 +889,18 @@ async function clearAllScans() {
   } catch(e) { alert('Error: ' + e.message); }
 }
 
+async function resetCartStat() {
+  if (!confirm('Clear all Add to Cart events? Visits and other analytics will be kept. This cannot be undone.')) return;
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) { alert('Supabase not connected'); return; }
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const { error } = await sb.rpc('clear_cart_events');
+    if (error) { alert('Failed: ' + error.message); return; }
+    loadAnalytics();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
 async function clearAllAnalytics() {
   if (!confirm('Delete ALL analytics events (visits + carts)? This cannot be undone.')) return;
   try {
