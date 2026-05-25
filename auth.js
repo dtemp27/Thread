@@ -47,10 +47,64 @@ let _pendingSignup = null;
   const params = new URLSearchParams(window.location.search);
   if (params.get('tab') === 'signin') switchTab('signin');
 
-  // Detect password reset link (Supabase puts type=recovery in the URL hash)
-  const hash = window.location.hash;
-  if (hash.includes('type=recovery') || hash.includes('type=signup')) {
+  // Detect Supabase callback types in the URL hash or query params
+  const hash    = window.location.hash;
+  const _qp     = new URLSearchParams(window.location.search);
+  const _type   = _qp.get('type') || (hash.match(/[#&]type=([^&]+)/) || [])[1] || '';
+  const _code   = _qp.get('code') || ''; // PKCE flow
+
+  if (_type === 'recovery') {
+    // Password reset link → show the reset-password form
     switchTab('reset');
+  } else if (_type === 'signup' || _code) {
+    // Email verification link clicked → exchange token for real session,
+    // store thread_session, then send user to home page scrolled to the shop.
+    (async function () {
+      try {
+        const sb = getSB();
+        if (sb) {
+          let session = null;
+          if (_code) {
+            // PKCE flow: exchange the one-time code for a session
+            const { data: d } = await sb.auth.exchangeCodeForSession(_code);
+            session = d?.session;
+          } else {
+            // Implicit flow: Supabase JS reads tokens from the URL hash automatically
+            const { data: d } = await sb.auth.getSession();
+            session = d?.session;
+          }
+
+          if (session?.user) {
+            // Pull name/referral code from profiles table
+            let name = session.user.user_metadata?.name || '';
+            let username = session.user.user_metadata?.username || '';
+            let referralCode = '';
+            try {
+              const { data: prof } = await sb.from('profiles')
+                .select('name, username, referral_code')
+                .eq('id', session.user.id).single();
+              if (prof) {
+                name         = prof.name         || name;
+                username     = prof.username      || username;
+                referralCode = prof.referral_code || '';
+              }
+            } catch(_) {}
+
+            // Update thread_session with verified data
+            localStorage.setItem('thread_session', JSON.stringify({
+              id: session.user.id,
+              email: session.user.email,
+              name, username, referralCode, referral_code: referralCode,
+              avatar: (name || session.user.email || 'U').slice(0, 2).toUpperCase(),
+              stats: { totalScans: 0, conversions: 0, pendingEarnings: 0, totalEarned: 0, scanHistory: [] },
+              purchases: [],
+            }));
+          }
+        }
+      } catch(e) { console.warn('[auth] email verify error:', e); }
+      // Send them to the home page with the shop section in view
+      window.location.href = 'index.html?welcome=1';
+    })();
   }
 
   // Prevent future dates in the DOB picker
@@ -192,7 +246,12 @@ async function completeSignUp({ name, username, dob, email, password, parentEmai
 
     const { data, error } = await sb.auth.signUp({
       email, password,
-      options: { data: { name, username } }
+      options: {
+        data: { name, username },
+        // After the user clicks the verification link, Supabase redirects here.
+        // auth.js detects type=signup and forwards them to the home page → shop section.
+        emailRedirectTo: 'https://mythread.shop/auth.html',
+      }
     });
     if (error) throw new Error(error.message);
 
@@ -474,27 +533,25 @@ function showSuccessOverlay(name, code) {
                   letter-spacing:.08em;">
           CODE: ${code}
         </p>
-        <a href="dashboard.html" id="authGoToDash"
-           style="display:block;width:100%;padding:14px;background:#6C63FF;color:#fff;
-                  border-radius:12px;font-family:'Space Grotesk',sans-serif;font-size:15px;
-                  font-weight:700;text-decoration:none;text-align:center;margin-bottom:10px;
-                  transition:.2s;">
-          Go to My Dashboard →
-        </a>
+        <div style="width:100%;background:#1a1a1a;border-radius:8px;height:3px;margin-bottom:10px;overflow:hidden">
+          <div id="successBar" style="height:100%;background:linear-gradient(90deg,#6C63FF,#a78bfa);
+               width:0%;transition:width 3.2s linear;border-radius:8px"></div>
+        </div>
         <p style="color:#555;font-size:12px;line-height:1.5;">
-          Check your email to verify your account. You can still use your dashboard in the meantime.
+          📬 Check your email — click the link to verify and start shopping.
         </p>
       </div>`;
     document.body.appendChild(el);
+    setTimeout(() => { const bar = document.getElementById('successBar'); if (bar) bar.style.width = '100%'; }, 60);
 
     // Render QR — uses QRCodeStyling with the IDENTICAL config as dashboard.js drawQR()
     _buildAuthQR(referralUrl, qrSize);
   }
   const _fromEarn = new URLSearchParams(window.location.search).get('from') === 'earn';
-  // Auto-redirect to dashboard after 4 seconds so the user can see their QR, then lands logged in.
+  // After showing the QR, forward to the verify-email waiting page
   setTimeout(() => {
-    window.location.href = _fromEarn ? 'index.html?welcome=1' : 'dashboard.html';
-  }, 4000);
+    window.location.href = _fromEarn ? 'index.html?welcome=1' : 'verify.html';
+  }, 3200);
 }
 
 async function _buildAuthQR(referralUrl, size) {
