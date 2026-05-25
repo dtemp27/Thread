@@ -807,26 +807,30 @@ function applyPromo() {
   }
 }
 
-function toggleCart() {
-  const drawer  = document.getElementById('cartDrawer');
-  const overlay = document.getElementById('cartOverlay');
-  if (!drawer || !overlay) return;
-  // Close mobile menu first so we don't get overlapping panels
-  if (typeof closeMobileMenu === 'function') closeMobileMenu();
-  drawer.classList.toggle('open');
-  overlay.classList.toggle('open');
-  document.body.classList.toggle('cart-open', drawer.classList.contains('open'));
-}
+// iOS Safari ignores overflow:hidden on body — pin it with position:fixed instead,
+// saving/restoring the scroll offset so the page doesn't jump.
+let _cartScrollY = 0;
+
 function openCart() {
   if (typeof closeMobileMenu === 'function') closeMobileMenu();
+  _cartScrollY = window.scrollY;
+  document.body.style.top = `-${_cartScrollY}px`;
+  document.body.classList.add('cart-open');
   document.getElementById('cartDrawer')?.classList.add('open');
   document.getElementById('cartOverlay')?.classList.add('open');
-  document.body.classList.add('cart-open');
 }
 function closeCart() {
   document.getElementById('cartDrawer')?.classList.remove('open');
   document.getElementById('cartOverlay')?.classList.remove('open');
   document.body.classList.remove('cart-open');
+  document.body.style.top = '';
+  window.scrollTo(0, _cartScrollY);
+}
+function toggleCart() {
+  const drawer = document.getElementById('cartDrawer');
+  if (!drawer) return;
+  if (typeof closeMobileMenu === 'function') closeMobileMenu();
+  if (drawer.classList.contains('open')) { closeCart(); } else { openCart(); }
 }
 // Esc closes cart
 document.addEventListener('keydown', e => {

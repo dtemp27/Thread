@@ -17,16 +17,7 @@ if (!isStripeReturn && (!checkoutData || !checkoutData.items?.length)) {
   window.location.href = 'index.html';
 }
 
-// Require login — redirect to sign in if not logged in
-if (!isStripeReturn) {
-  const cfg = window.THREAD_CONFIG;
-  const ref = cfg?.supabaseUrl?.replace('https://', '').split('.')[0] || '';
-  const hasSupabaseSession = ref && localStorage.getItem('sb-' + ref + '-auth-token');
-  const hasLocalSession    = localStorage.getItem('thread_session');
-  if (!hasSupabaseSession && !hasLocalSession) {
-    window.location.href = 'auth.html?tab=signin&next=checkout.html';
-  }
-}
+// No login gate — guests and signed-in users can both checkout.
 
 /* ─── Product photo thumbnail ─────────────────────────────────────────────── */
 const HOODIE_SLUGS = {

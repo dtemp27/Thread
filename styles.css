@@ -1422,6 +1422,7 @@ img { display: block; max-width: 100%; }
   border-left: 1px solid var(--border);
   z-index: 2000;                /* above navbar (1000) so header doesn't overlap */
   display: flex; flex-direction: column;
+  overflow: hidden;             /* clip children so nothing escapes the drawer bounds */
   transform: translateX(100%);
   transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
   box-shadow: -20px 0 60px rgba(0,0,0,0.5);
@@ -1448,8 +1449,9 @@ img { display: block; max-width: 100%; }
 }
 .cd-close:hover, .cd-close:active { color: var(--text); }
 
-/* Body class added when cart is open — lock scroll behind it */
-body.cart-open { overflow: hidden; }
+/* Body class added when cart is open — lock scroll behind it.
+   position:fixed is required on iOS Safari where overflow:hidden alone doesn't stop scroll. */
+body.cart-open { overflow: hidden; position: fixed; width: 100%; }
 
 .cd-items { flex: 1; overflow-y: auto; padding: 16px 24px; display: flex; flex-direction: column; gap: 14px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; min-height: 0; }
 .cd-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; height: 100%; text-align: center; color: var(--text2); }
