@@ -34,6 +34,15 @@ let _pendingSignup = null;
 /* ─── REDIRECT IF ALREADY SIGNED IN ─────────────────────────────────────── */
 (async function () {
   try {
+    // Never auto-redirect when this page is being loaded as an email-verification
+    // callback — the type=signup / code handler below needs to run first.
+    const _cbQp   = new URLSearchParams(window.location.search);
+    const _cbHash = window.location.hash;
+    const _isVerifyCallback = _cbQp.get('type') === 'signup'
+                           || _cbQp.get('code')
+                           || _cbHash.includes('type=signup');
+    if (_isVerifyCallback) return;
+
     const sb = getSB();
     if (sb) {
       const { data } = await sb.auth.getUser();
