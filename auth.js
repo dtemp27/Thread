@@ -353,8 +353,10 @@ async function handleSignIn(event) {
     } catch(_) {}
 
     setLoading('signin', false);
-    const next = new URLSearchParams(window.location.search).get('next');
-    window.location.href = next || 'dashboard.html';
+    const _params   = new URLSearchParams(window.location.search);
+    const _next     = _params.get('next');
+    const _fromEarn = _params.get('from') === 'earn';
+    window.location.href = _next || (_fromEarn ? 'index.html?welcome=1' : 'dashboard.html');
 
   } catch(e) {
     setLoading('signin', false);
@@ -457,7 +459,8 @@ function showSuccessOverlay(name, code) {
     document.body.appendChild(el);
     setTimeout(() => { const bar = document.getElementById('successBar'); if (bar) bar.style.width = '100%'; }, 50);
   }
-  setTimeout(() => window.location.href = 'verify.html', 3200);
+  const _fromEarn = new URLSearchParams(window.location.search).get('from') === 'earn';
+  setTimeout(() => window.location.href = _fromEarn ? 'index.html?welcome=1' : 'verify.html', 3200);
 }
 
 /* ─── PASSWORD TOGGLE ────────────────────────────────────────────────────── */
