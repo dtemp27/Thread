@@ -1667,6 +1667,8 @@ body.cart-open { overflow: hidden; }
   .section { padding: 70px 0; }
   .nav-links { display: none; }
   .hamburger { display: flex; }
+  /* Center nav items when nav-links (the auto-margin spacer) is hidden */
+  .nav-inner { justify-content: center; gap: 16px; }
   .hero-title { letter-spacing: -1px; }
   .products-grid { grid-template-columns: 1fr; }
   .qr-back-hint { font-size: 0; }
@@ -1758,8 +1760,8 @@ body.cart-open { overflow: hidden; }
 }
 
 @media (max-width: 480px) {
-  /* Nav — show both Log In + Join Free, compact sizing */
-  .nav-inner { gap: 10px; }
+  /* Nav — show both Log In + Join Free, compact sizing, centered */
+  .nav-inner { justify-content: center; gap: 10px; }
   .nav-actions { gap: 8px; }
   .nav-actions .btn-ghost,
   .nav-actions .btn-primary {
