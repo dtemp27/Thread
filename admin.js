@@ -810,6 +810,17 @@ async function executeDeleteUser() {
     const cfg = window.THREAD_CONFIG;
     if (!cfg?.supabaseUrl || !window.supabase) { alert('Supabase not connected'); return; }
     const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+
+    // Wipe all data first — orders, referral scans, and analytics events
+    await sb.rpc('clear_account_data', {
+      p_user_id: userId,
+      p_email:   email,
+      p_orders:  true,
+      p_scans:   true,
+      p_events:  true,
+    });
+
+    // Now delete the auth account and profile row itself
     const { error } = await sb.rpc('delete_user_account', { p_user_id: userId, p_email: email });
     if (error) { alert('Delete failed: ' + error.message); return; }
     closeDeleteUserModal();
