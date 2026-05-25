@@ -376,7 +376,6 @@
           <div class="ad-stat-card">
             <div class="ad-stat-num" id="statAddToCarts">—</div>
             <div class="ad-stat-label">Add to Carts</div>
-            <button onclick="resetCartStat()" style="margin-top:8px;padding:4px 10px;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#888;font-size:11px;cursor:pointer;font-family:inherit" title="Clear all add-to-cart events">↺ Reset</button>
           </div>
           <div class="ad-stat-card">
             <div class="ad-stat-num" id="statCartRate">—</div>
@@ -402,8 +401,9 @@
 
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
           <h3 style="margin:0;font-size:15px;color:#aaa">All Events <span style="font-size:12px;color:#555;font-weight:400">(newest first)</span></h3>
-          <div style="display:flex;gap:8px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="ad-action-btn" style="background:#1a3a1a;color:#4ade80;font-size:12px" onclick="downloadAnalyticsCSV()">⬇ Download CSV</button>
+            <button class="ad-action-btn" style="background:#1a1a3a;color:#a78bfa;font-size:12px" onclick="resetCartStat()">↺ Reset Cart Stat</button>
             <button class="ad-action-btn" style="background:#7f1d1d;color:#fca5a5;font-size:12px" onclick="clearAllAnalytics()">🗑 Clear All Events</button>
           </div>
         </div>
@@ -518,6 +518,6 @@
   <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
   <script src="db.js?v=20260519d"></script>
   <script src="tiers.js?v=20260519d"></script>
-  <script src="admin.js?v=20260525e"></script>
+  <script src="admin.js?v=20260525f"></script>
 </body>
 </html>
