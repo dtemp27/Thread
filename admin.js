@@ -900,11 +900,14 @@ async function loadAnalytics() {
 
     const timingEl = document.getElementById('analyticsTiming');
     if (timingEl) {
-      const order2 = ['<15s','15-30s','30-60s','1-3m','3m+'];
+      const order2 = ['15s+','30s+','1m+','3m+','5m+'];
       timingEl.innerHTML = order2.map(d => {
         const n = timingCounts[d] || 0;
-        return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-size:13px">
-          <span style="color:#aaa">${d}</span><span style="color:#4ade80;font-family:var(--mono)">${n}</span>
+        const maxN = Math.max(...order2.map(x => timingCounts[x] || 0), 1);
+        const pct = Math.round((n / maxN) * 100);
+        return `<div style="margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#aaa;margin-bottom:4px"><span>${d}</span><span style="color:#4ade80;font-family:var(--mono)">${n}</span></div>
+          <div style="background:#1a1a1a;border-radius:4px;height:5px"><div style="background:#4ade80;height:5px;border-radius:4px;width:${pct}%"></div></div>
         </div>`;
       }).join('');
     }

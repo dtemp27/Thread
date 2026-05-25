@@ -40,6 +40,11 @@
       } catch(_) {}
     }
 
+    // Expose raw (non-deduped) tracker for cart events fired outside this IIFE
+    window._threadTrackRaw = async function(type, label) {
+      try { await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_page: PAGE, p_label: label }); } catch(_) {}
+    };
+
     // 1 — Page visit
     await track('visit', PAGE);
 
@@ -650,6 +655,8 @@ function addToCart(name, price, size = 'M', type = 'hoodie') {
   saveCart(cart);
   renderCartDrawer();
   openCart();
+  // Track add-to-cart as its own event type (non-deduped — each add counts)
+  window._threadTrackRaw?.('add_to_cart', `${name} (${size})`);
 }
 
 function updateCartQty(idx, delta) {
