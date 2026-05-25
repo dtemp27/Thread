@@ -210,15 +210,19 @@ async function completeSignUp({ name, username, dob, email, password, parentEmai
       await sb.from('profiles').upsert(profileData, { onConflict: 'id' });
       localStorage.removeItem('thread_pending_profile');
 
-      // Auto sign-in: attempt a real Supabase session first (works when email confirmation
-      // is disabled). Even if that fails, store a local session so every auth-gate in
-      // the app (checkout, dashboard) treats the user as signed in right away.
+      // Establish a real Supabase session (works when email confirmation is disabled).
+      // Even if this fails, the thread_session fallback keeps the user logged in everywhere.
       try {
         await sb.auth.signInWithPassword({ email, password });
       } catch(_) {}
+
+      // Always store a local session — dashboard.js, checkout.js all read this as fallback.
       localStorage.setItem('thread_session', JSON.stringify({
         id: data.user.id, email, name, username,
         referralCode, referral_code: referralCode,
+        avatar: (name || email || 'U').slice(0, 2).toUpperCase(),
+        stats: { totalScans: 0, conversions: 0, pendingEarnings: 0, totalEarned: 0, scanHistory: [] },
+        purchases: [],
       }));
     }
 
@@ -470,20 +474,27 @@ function showSuccessOverlay(name, code) {
                   letter-spacing:.08em;">
           CODE: ${code}
         </p>
-        <div style="width:100%;background:#1a1a1a;border-radius:8px;height:3px;margin-bottom:10px;overflow:hidden">
-          <div id="successBar" style="height:100%;background:linear-gradient(90deg,#6C63FF,#a78bfa);
-               width:0%;transition:width 3.2s linear;border-radius:8px"></div>
-        </div>
-        <p style="color:#444;font-size:12px;">Check your email to verify your account…</p>
+        <a href="dashboard.html" id="authGoToDash"
+           style="display:block;width:100%;padding:14px;background:#6C63FF;color:#fff;
+                  border-radius:12px;font-family:'Space Grotesk',sans-serif;font-size:15px;
+                  font-weight:700;text-decoration:none;text-align:center;margin-bottom:10px;
+                  transition:.2s;">
+          Go to My Dashboard →
+        </a>
+        <p style="color:#555;font-size:12px;line-height:1.5;">
+          Check your email to verify your account. You can still use your dashboard in the meantime.
+        </p>
       </div>`;
     document.body.appendChild(el);
-    setTimeout(() => { const bar = document.getElementById('successBar'); if (bar) bar.style.width = '100%'; }, 60);
 
     // Render QR — uses QRCodeStyling with the IDENTICAL config as dashboard.js drawQR()
     _buildAuthQR(referralUrl, qrSize);
   }
   const _fromEarn = new URLSearchParams(window.location.search).get('from') === 'earn';
-  setTimeout(() => window.location.href = _fromEarn ? 'index.html?welcome=1' : 'verify.html', 3200);
+  // Auto-redirect to dashboard after 4 seconds so the user can see their QR, then lands logged in.
+  setTimeout(() => {
+    window.location.href = _fromEarn ? 'index.html?welcome=1' : 'dashboard.html';
+  }, 4000);
 }
 
 async function _buildAuthQR(referralUrl, size) {
