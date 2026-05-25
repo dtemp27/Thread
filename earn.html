@@ -674,20 +674,35 @@
         const PAGE = 'earn';
         const OWNER_IPS = ['65.130.60.246', '187.199.28.205', '187.199.69.171'];
 
-        // Fetch geo (reuse session cache from app.js if available)
-        let geo = {};
+        // let so _threadTrackRaw can close over them and pick up values after geo resolves
+        let ip = null, country = null, city = null;
+
+        // Expose raw tracker immediately — before the geo fetch — so any cart event
+        // fired quickly is never dropped (same fix as app.js on the home page).
+        window._threadTrackRaw = async function(type, label) {
+          try { await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_page: PAGE, p_label: label }); } catch(_) {}
+        };
+
+        // Fetch geo (reuse session cache from index.html/app.js if already set)
         try {
           const cached = sessionStorage.getItem('thread_geo');
-          if (cached) {
-            geo = JSON.parse(cached);
+          const geo = cached ? JSON.parse(cached) : null;
+          if (geo) {
+            ip = geo.ip || null; country = geo.country_name || null; city = geo.city || null;
           } else {
             const r = await fetch('https://ipapi.co/json/');
-            if (r.ok) { geo = await r.json(); sessionStorage.setItem('thread_geo', JSON.stringify(geo)); }
+            if (r.ok) {
+              const g = await r.json();
+              sessionStorage.setItem('thread_geo', JSON.stringify(g));
+              ip = g.ip || null; country = g.country_name || null; city = g.city || null;
+            }
           }
         } catch(_) {}
 
-        const ip = geo.ip || null, country = geo.country_name || null, city = geo.city || null;
-        if (OWNER_IPS.includes(ip)) return; // skip owner traffic
+        if (OWNER_IPS.includes(ip)) {
+          window._threadTrackRaw = null; // disable tracker for owner
+          return;
+        }
 
         // Helper: fire once per session per label
         async function track(type, label) {
