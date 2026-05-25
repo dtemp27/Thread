@@ -556,10 +556,11 @@ function showSuccessOverlay(name, code) {
     // Render QR — uses QRCodeStyling with the IDENTICAL config as dashboard.js drawQR()
     _buildAuthQR(referralUrl, qrSize);
   }
-  const _fromEarn = new URLSearchParams(window.location.search).get('from') === 'earn';
-  // After showing the QR, forward to the verify-email waiting page
+  // Always send to verify.html — works the same whether they signed up from
+  // the main site or the /earn page. The email verification callback handles
+  // the redirect to the shop for everyone.
   setTimeout(() => {
-    window.location.href = _fromEarn ? 'index.html?welcome=1' : 'verify.html';
+    window.location.href = 'verify.html';
   }, 3200);
 }
 
