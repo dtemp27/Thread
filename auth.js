@@ -429,9 +429,14 @@ async function handleResetPassword(event) {
 function showSuccessOverlay(name, code) {
   if (!document.getElementById('authSuccessOverlay')) {
     const firstName = (name || 'there').split(' ')[0];
-    // QR code encodes the user's personal referral link — hosted via free API, no library needed
+    // QR encodes the user's personal referral link
     const referralUrl = `https://mythread.shop/?ref=${encodeURIComponent(code)}`;
-    const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(referralUrl)}&color=ffffff&bgcolor=111111&margin=14`;
+    // High-res QR (4x) — white background, black dots, high error correction so logo doesn't break it
+    const qrSize = 160, qrRender = qrSize * 4;
+    const qrEncoded = encodeURIComponent(referralUrl);
+    const qrImgSrc = `https://api.qrserver.com/v1/create-qr-code/?size=${qrRender}x${qrRender}&data=${qrEncoded}&margin=10&ecc=H`;
+    // Logo overlay — same white-circle + THREAD logo used by dashboard
+    const logoSize = Math.round(qrSize * 0.20); // 20% of QR size
 
     const el = document.createElement('div');
     el.id = 'authSuccessOverlay';
@@ -452,15 +457,23 @@ function showSuccessOverlay(name, code) {
           Your personal QR code is ready — it goes on every hoodie you order.<br>
           When someone scans it and buys, <strong style="color:#a78bfa">you earn.</strong>
         </p>
-        <div style="display:inline-flex;align-items:center;justify-content:center;
-                    background:#0a0a0a;border:1px solid rgba(255,255,255,0.08);
-                    border-radius:16px;padding:14px;margin-bottom:14px;">
-          <img src="${qrSrc}" width="150" height="150"
-               alt="Your QR Code" loading="eager"
-               style="display:block;border-radius:8px;image-rendering:crisp-edges;" />
+        <div style="display:inline-block;background:#fff;border-radius:16px;padding:12px;
+                    margin-bottom:14px;box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+          <div style="position:relative;width:${qrSize}px;height:${qrSize}px;border-radius:10px;overflow:hidden;">
+            <img src="${qrImgSrc}" width="${qrSize}" height="${qrSize}" loading="eager"
+                 style="display:block;image-rendering:crisp-edges;" alt="Your QR Code" />
+            <!-- THREAD logo overlay — white backing so it covers QR dots cleanly -->
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+                        width:${logoSize+8}px;height:${logoSize+8}px;background:#fff;
+                        border-radius:6px;display:flex;align-items:center;justify-content:center;">
+              <img src="images/Transparent-Logo.png"
+                   style="width:${logoSize}px;height:${logoSize}px;display:block;object-fit:contain;"
+                   alt="THREAD" />
+            </div>
+          </div>
         </div>
-        <p style="color:#555;font-size:11px;margin-bottom:20px;font-family:'Space Mono',monospace;
-                  letter-spacing:.05em;">
+        <p style="color:#888;font-size:11px;margin-bottom:20px;font-family:'Space Mono',monospace;
+                  letter-spacing:.08em;">
           CODE: ${code}
         </p>
         <div style="width:100%;background:#1a1a1a;border-radius:8px;height:3px;margin-bottom:10px;overflow:hidden">

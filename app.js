@@ -650,17 +650,28 @@ function renderCartDrawer() {
 
   if (footerEl) footerEl.style.display = 'block';
 
+  const CART_SIZES = ['S','M','L','XL','2XL','3XL'];
   itemsEl.innerHTML = cart.items.map((item, idx) => {
     const isHoodie = (item.type || 'hoodie') !== 'tee';
     const typeLabel = isHoodie ? 'Oversized Heavyweight' : 'Oversized Tee';
+    const currentSize = item.size || 'M';
+    const sizePills = CART_SIZES.map(s => {
+      const active = s === currentSize;
+      return `<button onclick="changeCartSize(${idx},'${s}')"
+        style="padding:3px 9px;margin:2px 2px 2px 0;font-size:11px;font-weight:600;
+               border-radius:6px;cursor:pointer;font-family:Space Grotesk,sans-serif;
+               border:1px solid ${active ? '#7c3aed' : 'rgba(255,255,255,0.12)'};
+               background:${active ? 'rgba(124,58,237,0.18)' : 'transparent'};
+               color:${active ? '#a78bfa' : '#666'}">${s}</button>`;
+    }).join('');
     return `
     <div class="cd-item">
       <div class="cd-item-img">${productThumb(item)}</div>
       <div class="cd-item-info">
         <div class="cd-item-name">${item.name}</div>
         <div class="cd-item-type">${typeLabel}</div>
-        <div class="cd-item-size">Size: ${item.size || 'M'}</div>
-        <div class="cd-item-price">$${item.price}</div>
+        <div style="margin-top:5px;line-height:1">${sizePills}</div>
+        <div class="cd-item-price" style="margin-top:4px">$${item.price}</div>
       </div>
       <div class="cd-item-controls">
         <button class="cd-qty-btn" onclick="updateCartQty(${idx}, -1)">−</button>
@@ -718,6 +729,22 @@ function updateCartQty(idx, delta) {
 function removeCartItem(idx) {
   const cart = getCart();
   cart.items.splice(idx, 1);
+  saveCart(cart); renderCartDrawer();
+}
+
+function changeCartSize(idx, newSize) {
+  const cart = getCart();
+  if (!cart.items[idx]) return;
+  const item = cart.items[idx];
+  if (item.size === newSize) return; // nothing to change
+  // If another line with same product + new size exists, merge quantities
+  const mergeIdx = cart.items.findIndex((it, i) => i !== idx && it.name === item.name && it.size === newSize);
+  if (mergeIdx >= 0) {
+    cart.items[mergeIdx].qty += item.qty;
+    cart.items.splice(idx, 1);
+  } else {
+    cart.items[idx].size = newSize;
+  }
   saveCart(cart); renderCartDrawer();
 }
 

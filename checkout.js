@@ -84,7 +84,7 @@ function recalcCheckout() {
 }
 
 /* ─── Change size from checkout page ────────────────────────────────────── */
-const CO_SIZES = ['XS','S','M','L','XL','XXL'];
+const CO_SIZES = ['S','M','L','XL','2XL','3XL'];
 
 function changeCheckoutSize(idx, size) {
   if (!checkoutData?.items?.[idx]) return;
