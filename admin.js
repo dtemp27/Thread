@@ -419,12 +419,13 @@ async function deleteSelectedOrders() {
    CUSTOMERS
 ───────────────────────────────────────────────────────────────────────── */
 function renderCustomers() {
-  const search = (document.getElementById('customerSearch')?.value || '').toLowerCase();
+  const search = (document.getElementById('customerSearch')?.value || '').toLowerCase().replace(/^@/, '');
   let filtered = allCustomers;
   if (search) {
     filtered = filtered.filter(c =>
-      (c.name  || '').toLowerCase().includes(search) ||
-      (c.email || '').toLowerCase().includes(search)
+      (c.name     || '').toLowerCase().includes(search) ||
+      (c.email    || '').toLowerCase().includes(search) ||
+      (c.username || '').toLowerCase().includes(search)
     );
   }
 
@@ -464,6 +465,58 @@ function renderCustomers() {
       </td>
     </tr>`;
   }).join('') : '<tr><td colspan="10" class="ad-empty">No customers</td></tr>';
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   SYNC USERNAMES
+   Calls a SECURITY DEFINER RPC that reads raw_user_meta_data from
+   auth.users and backfills username into profiles for any row that is
+   missing it.  Requires the following function to exist in Supabase:
+
+   CREATE OR REPLACE FUNCTION sync_usernames_from_metadata()
+   RETURNS json LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+   DECLARE updated_count integer;
+   BEGIN
+     UPDATE profiles p
+       SET username = (u.raw_user_meta_data->>'username')
+       FROM auth.users u
+       WHERE p.id = u.id
+         AND (p.username IS NULL OR p.username = '')
+         AND (u.raw_user_meta_data->>'username') IS NOT NULL
+         AND (u.raw_user_meta_data->>'username') != '';
+     GET DIAGNOSTICS updated_count = ROW_COUNT;
+     RETURN json_build_object('updated', updated_count);
+   END; $$;
+───────────────────────────────────────────────────────────────────────── */
+async function syncMissingUsernames() {
+  const btn = document.getElementById('syncUsernamesBtn');
+  if (btn) { btn.textContent = 'Syncing…'; btn.disabled = true; }
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) { alert('Supabase not connected'); return; }
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+
+    const { data, error } = await sb.rpc('sync_usernames_from_metadata');
+    if (error) {
+      // Guide the user if the function doesn't exist yet
+      alert(
+        'Sync failed: ' + error.message + '\n\n' +
+        'You need to create the sync_usernames_from_metadata() function in Supabase first.\n' +
+        'Go to Supabase → SQL Editor → New Query, then paste the SQL from the comment at the top of syncMissingUsernames in admin.js.'
+      );
+      return;
+    }
+
+    const count = typeof data === 'object' ? (data?.updated ?? 0) : (data ?? 0);
+    alert(`✓ Synced ${count} username${count !== 1 ? 's' : ''} from auth metadata into profiles.`);
+    // Reload customers so the table reflects the updated data
+    allCustomers = await DB.customers.getAll();
+    renderCustomers();
+  } catch(e) {
+    alert('Error: ' + e.message);
+  } finally {
+    if (btn) { btn.textContent = '🔄 Sync Usernames'; btn.disabled = false; }
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────

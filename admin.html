@@ -186,7 +186,13 @@
 
         <div class="ad-toolbar">
           <input type="text" class="ad-search" id="customerSearch"
-            placeholder="Search by name or email…" oninput="renderCustomers()">
+            placeholder="Search by name, email, or @username…" oninput="renderCustomers()">
+          <button class="ad-action-btn" id="syncUsernamesBtn"
+            style="background:#7c3aed;color:#fff;white-space:nowrap;flex-shrink:0"
+            onclick="syncMissingUsernames()"
+            title="Pull usernames from Supabase auth metadata for accounts missing them">
+            🔄 Sync Usernames
+          </button>
         </div>
 
         <div class="ad-card">
@@ -511,6 +517,6 @@
   <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
   <script src="db.js?v=20260519d"></script>
   <script src="tiers.js?v=20260519d"></script>
-  <script src="admin.js?v=20260520f"></script>
+  <script src="admin.js?v=20260525c"></script>
 </body>
 </html>
