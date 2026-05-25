@@ -763,56 +763,19 @@ function applyPromo() {
   const code = document.getElementById('promoInput')?.value.trim().toUpperCase();
   const cart = getCart();
 
-  // Flat-rate promos
-  const promos = { 'THREAD10': 10, 'WEAR20': 20, 'FIRST15': 15, 'SCAN25': 25 };
-
-  if (code === 'VIVINT') {
-    // 1 free hoodie + 1 free tee — both must be in cart
-    const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
-    const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
-    if (!hasTee || !hasHoodie) {
-      showStoreToast('Add a hoodie + tee to use VIVINT', 'error'); return;
-    }
-    const hoodie  = cart.items.find(i => (i.type || 'hoodie') !== 'tee');
-    const tee     = cart.items.find(i => (i.type || 'hoodie') === 'tee');
-    const discount = parseFloat((hoodie.price + tee.price).toFixed(2));
-    cart.promoCode = code;
-    cart.discount  = discount;
-    saveCart(cart); renderCartDrawer();
-    showStoreToast(`✓ VIVINT applied — hoodie + tee FREE!`);
-  } else if (code === 'BOGOEGG') {
+  if (code === 'BOGOEGG') {
     // Easter egg — buy a hoodie, get a tee 50% off
     const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
     const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
     if (!hasTee || !hasHoodie) {
       showStoreToast('Add a hoodie + tee to use BOGOEGG', 'error'); return;
     }
-    const teeItem = cart.items.find(i => (i.type || 'hoodie') === 'tee');
+    const teeItem  = cart.items.find(i => (i.type || 'hoodie') === 'tee');
     const discount = parseFloat((teeItem.price * 0.5).toFixed(2));
     cart.promoCode = code;
     cart.discount  = discount;
     saveCart(cart); renderCartDrawer();
     showStoreToast(`🥚 BOGOEGG applied — tee is 50% off!`);
-  } else if (code === 'BIGBIRD') {
-    const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
-    const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
-    let discount = 0;
-    let msg = '';
-    if (hasTee && hasHoodie) { discount = 60; msg = '$60 off your tee + hoodie'; }
-    else if (hasHoodie)      { discount = 32; msg = '$32 off your hoodie'; }
-    else if (hasTee)         { discount = 28; msg = '$28 off your tee'; }
-    else {
-      showStoreToast('Add items to your cart first', 'error'); return;
-    }
-    cart.promoCode = code;
-    cart.discount  = discount;
-    saveCart(cart); renderCartDrawer();
-    showStoreToast(`✓ BIGBIRD applied — ${msg}!`);
-  } else if (promos[code]) {
-    cart.promoCode = code;
-    cart.discount  = promos[code];
-    saveCart(cart); renderCartDrawer();
-    showStoreToast(`✓ Promo "${code}" applied — $${promos[code]} off!`);
   } else {
     showStoreToast('Invalid promo code', 'error');
   }
