@@ -84,6 +84,27 @@ let _pendingSignup = null;
           }
 
           if (session?.user) {
+            // Guaranteed fallback: if the upsert in completeSignUp was blocked by RLS
+            // (email confirmation enabled → no auth context at signup time), upsert the
+            // pending profile now using the freshly-confirmed authenticated session.
+            try {
+              const pending = JSON.parse(localStorage.getItem('thread_pending_profile') || 'null');
+              if (pending && pending.email === session.user.email) {
+                const pd = {
+                  id:            session.user.id,
+                  email:         pending.email,
+                  name:          pending.name,
+                  username:      pending.username      || null,
+                  referral_code: pending.referralCode,
+                  referred_by:   pending.referredBy    || null,
+                  date_of_birth: pending.dob           || null,
+                };
+                if (pending.parentEmail) { pd.parent_email = pending.parentEmail; pd.is_minor = true; }
+                const { error: pendErr } = await sb.from('profiles').upsert(pd, { onConflict: 'id' });
+                if (!pendErr) localStorage.removeItem('thread_pending_profile');
+              }
+            } catch(_) {}
+
             // Pull name/referral code from profiles table
             let name = session.user.user_metadata?.name || '';
             let username = session.user.user_metadata?.username || '';
@@ -275,11 +296,20 @@ async function completeSignUp({ name, username, dob, email, password, parentEmai
         date_of_birth: dob,
       };
       if (parentEmail) { profileData.parent_email = parentEmail; profileData.is_minor = true; }
-      await sb.from('profiles').upsert(profileData, { onConflict: 'id' });
-      localStorage.removeItem('thread_pending_profile');
 
-      // Establish a real Supabase session (works when email confirmation is disabled).
-      // Even if this fails, the thread_session fallback keeps the user logged in everywhere.
+      // When Supabase email confirmation is enabled, signUp() returns a user but
+      // no session — the client is unauthenticated and RLS will silently block the
+      // upsert. Only clear thread_pending_profile when the upsert actually succeeds;
+      // the email-verification callback below is the guaranteed fallback.
+      const { error: upsertErr } = await sb.from('profiles').upsert(profileData, { onConflict: 'id' });
+      if (!upsertErr) {
+        localStorage.removeItem('thread_pending_profile');
+      }
+      // If upsertErr, thread_pending_profile stays in localStorage so the
+      // verification callback (type=signup / code) can upsert it once the user
+      // has a real confirmed session.
+
+      // Try to sign in immediately (works when email confirmation is disabled).
       try {
         await sb.auth.signInWithPassword({ email, password });
       } catch(_) {}
