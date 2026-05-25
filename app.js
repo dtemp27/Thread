@@ -13,22 +13,38 @@
     const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
     const PAGE = 'home';
 
+    // Use let so _threadTrackRaw can close over these and read their final values
+    // even when called before the geo fetch resolves (they'll just be null then).
+    let ip = null, country = null, city = null;
+
+    // Expose raw tracker IMMEDIATELY — before the geo fetch — so add-to-cart
+    // events are never dropped if the user clicks fast on the first page load.
+    window._threadTrackRaw = async function(type, label) {
+      try { await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_page: PAGE, p_label: label }); } catch(_) {}
+    };
+
     // Fetch geo once per session and cache it
-    let geo = {};
     try {
       const cached = sessionStorage.getItem('thread_geo');
-      if (cached) {
-        geo = JSON.parse(cached);
+      const geo = cached ? JSON.parse(cached) : null;
+      if (geo) {
+        ip = geo.ip || null; country = geo.country_name || null; city = geo.city || null;
       } else {
         const r = await fetch('https://ipapi.co/json/');
-        if (r.ok) { geo = await r.json(); sessionStorage.setItem('thread_geo', JSON.stringify(geo)); }
+        if (r.ok) {
+          const g = await r.json();
+          sessionStorage.setItem('thread_geo', JSON.stringify(g));
+          ip = g.ip || null; country = g.country_name || null; city = g.city || null;
+        }
       }
     } catch(_) {}
-    const ip = geo.ip || null, country = geo.country_name || null, city = geo.city || null;
 
     // Skip all tracking for owner's own IPs
     const OWNER_IPS = ['65.130.60.246', '187.199.28.205', '187.199.69.171'];
-    if (OWNER_IPS.includes(ip)) return;
+    if (OWNER_IPS.includes(ip)) {
+      window._threadTrackRaw = null; // disable tracker for owner
+      return;
+    }
 
     // Helper: fire an event (throttled per label to avoid duplicates)
     async function track(type, label) {
@@ -39,11 +55,6 @@
         await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_page: PAGE, p_label: label });
       } catch(_) {}
     }
-
-    // Expose raw (non-deduped) tracker for cart events fired outside this IIFE
-    window._threadTrackRaw = async function(type, label) {
-      try { await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_page: PAGE, p_label: label }); } catch(_) {}
-    };
 
     // 1 — Page visit
     await track('visit', PAGE);
