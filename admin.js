@@ -450,8 +450,12 @@ function renderCustomers() {
     const qrBtn = code
       ? `<button class="ad-action-btn" style="background:#111;color:#fff;margin-right:4px" onclick="downloadQR('${escapeHtml(code)}','${escapeHtml(c.name || code)}','black')">⬛ Black</button><button class="ad-action-btn" style="background:#3a3a3a;color:#aaa;border:1px solid #555" onclick="downloadQR('${escapeHtml(code)}','${escapeHtml(c.name || code)}','white')">⬜ White</button>`
       : '<span style="color:#555">—</span>';
-    const cartBadge = _cartUserIds.has(c.id)
-      ? `<span style="background:#1a1a3a;border:1px solid #4c1d95;color:#c4b5fd;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:600">🛒 Yes</span>`
+    const hasCart   = _cartUserIds.has(c.id) || !!c.last_cart_at;
+    const cartTime  = c.last_cart_at
+      ? new Date(c.last_cart_at).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' })
+      : null;
+    const cartBadge = hasCart
+      ? `<span style="background:#1a1a3a;border:1px solid #4c1d95;color:#c4b5fd;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:600" title="${cartTime ? 'Last added: ' + cartTime : ''}">🛒 Yes</span>${cartTime ? `<br><span style="font-size:10px;color:#666">${cartTime}</span>` : ''}`
       : `<span style="color:#444;font-size:12px">—</span>`;
     return `<tr>
       <td><strong>${c.name || '—'}</strong></td>

@@ -735,6 +735,21 @@ function addToCart(name, price, size = 'M', type = 'hoodie') {
     ? `uid:${_cartSession.id}|${name} (${size})`
     : `${name} (${size})`;
   window._threadTrackRaw?.('add_to_cart', _cartLabel);
+
+  // Also stamp last_cart_at directly on the profile row so the admin
+  // Customers tab shows cart activity instantly without needing analytics sync.
+  if (_cartSession?.id) {
+    try {
+      const _cfg = window.THREAD_CONFIG;
+      if (_cfg?.supabaseUrl && window.supabase) {
+        const _sb = window.supabase.createClient(_cfg.supabaseUrl, _cfg.supabaseAnonKey);
+        _sb.from('profiles')
+          .update({ last_cart_at: new Date().toISOString() })
+          .eq('id', _cartSession.id)
+          .then(() => {});
+      }
+    } catch(_) {}
+  }
 }
 
 function updateCartQty(idx, delta) {
