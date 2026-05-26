@@ -229,10 +229,10 @@
     return prefix + suffix;
   }
 
-  /* ── Global: FAQ toggle ── */
-  window.gwToggleFaq = function () {
-    const trigger = document.getElementById('faqTrigger');
-    const body    = document.getElementById('faqBody');
+  /* ── Global: FAQ toggle (suffix = 'Top' or 'Bot') ── */
+  window.gwToggleFaq = function (suffix) {
+    const trigger = document.getElementById('faqTrigger' + suffix);
+    const body    = document.getElementById('faqBody'    + suffix);
     if (!trigger || !body) return;
     const isOpen = body.classList.toggle('open');
     trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');

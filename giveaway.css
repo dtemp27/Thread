@@ -515,6 +515,12 @@ body {
   margin: 0 auto;
 }
 
+/* inline version (inside hero, above prizes) */
+.gw-faq-inline {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
 .gw-faq-trigger {
   width: 100%;
   display: flex;
