@@ -111,6 +111,14 @@
     .ga-btn--purple:hover { background: #6d28d9; }
     .ga-btn--red    { background: #7f1d1d; border-color: #7f1d1d; color: #fca5a5; }
     .ga-btn--red:hover { background: #991b1b; }
+    .ga-btn--red-soft { background: rgba(127,29,29,0.35); border-color: rgba(239,68,68,0.25); color: #fca5a5; }
+    .ga-btn--red-soft:hover:not(:disabled) { background: #7f1d1d; border-color: #7f1d1d; }
+    .ga-btn--red-soft:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* checkboxes */
+    .ga-check-th { width: 36px; padding: 10px 8px !important; }
+    .ga-check-td { padding: 10px 8px !important; }
+    .ga-check { accent-color: #7c3aed; width: 15px; height: 15px; cursor: pointer; display: block; }
 
     /* ── Content ── */
     .ga-content { padding: 28px; max-width: 1100px; margin: 0 auto; width: 100%; }
@@ -296,7 +304,8 @@
       <div class="ga-actions">
         <button class="ga-btn ga-btn--purple" onclick="gaPickWinner()">🎲 Pick Winner</button>
         <button class="ga-btn" onclick="gaExportCSV()">⬇ Export CSV</button>
-        <button class="ga-btn ga-btn--red" onclick="gaClearAll()">🗑 Clear All Entries</button>
+        <button class="ga-btn ga-btn--red-soft" id="gaDeleteSelectedBtn" onclick="gaDeleteSelected()" disabled>🗑 Delete Selected</button>
+        <button class="ga-btn ga-btn--red" onclick="gaClearAll()">✕ Clear All</button>
       </div>
 
       <!-- Table -->
@@ -309,6 +318,7 @@
           <table class="ga-table">
             <thead>
               <tr>
+                <th class="ga-check-th"><input type="checkbox" class="ga-check" id="gaSelectAll" onchange="gaToggleSelectAll(this)" title="Select all" /></th>
                 <th>#</th>
                 <th>Name</th>
                 <th>Email</th>
@@ -319,7 +329,7 @@
               </tr>
             </thead>
             <tbody id="gaBody">
-              <tr><td colspan="7" class="ga-empty">Loading…</td></tr>
+              <tr><td colspan="8" class="ga-empty">Loading…</td></tr>
             </tbody>
           </table>
         </div>
