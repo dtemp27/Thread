@@ -307,6 +307,48 @@ body {
   align-self: center;
 }
 
+/* ─── BONUS ENTRIES CALLOUT ──────────────────────────────────────────────── */
+.gw-bonus {
+  margin-bottom: 28px;
+  background: rgba(124, 58, 237, 0.07);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  border-radius: 16px;
+  padding: 16px 22px;
+  animation: gw-fadeUp 0.7s 0.35s ease both;
+}
+
+.gw-bonus-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--purple-light);
+  margin-bottom: 12px;
+}
+
+.gw-bonus-items {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.gw-bonus-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.gw-bonus-tag {
+  background: var(--purple);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 100px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* ─── ENTRY COUNTER ──────────────────────────────────────────────────────── */
 .gw-count {
   display: inline-flex;
