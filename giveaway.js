@@ -264,7 +264,11 @@
       const user = authData.user;
 
       /* Store local session */
-      const { data: profile } = await sb.from('profiles').select('name, username, referral_code').eq('id', user.id).single().catch(() => ({ data: null }));
+      let profile = null;
+      try {
+        const { data: pd } = await sb.from('profiles').select('name, username, referral_code').eq('id', user.id).single();
+        profile = pd;
+      } catch (_) {}
       localStorage.setItem('thread_session', JSON.stringify({
         id: user.id, email,
         name:          profile?.name     || email,
