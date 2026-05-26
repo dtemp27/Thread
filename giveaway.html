@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="giveaway.css?v=4" />
+  <link rel="stylesheet" href="giveaway.css?v=5" />
 </head>
 <body>
 
@@ -126,38 +126,43 @@
         <span><strong id="entryCount">—</strong> people have entered</span>
       </div>
 
-      <!-- ── SIGNUP FORM ── -->
+      <!-- ── FORM CARD ── -->
       <div class="gw-form-wrap" id="formWrap">
         <div class="gw-card">
-          <p class="gw-card-label">Create your free account to enter</p>
-          <form id="gwForm" class="gw-form" onsubmit="return false">
 
-            <!-- Row 1: Name + Username -->
+          <!-- Tabs -->
+          <div class="gw-tabs">
+            <button class="gw-tab active" id="tabNew"      onclick="gwSwitchTab('new')">Create Account</button>
+            <button class="gw-tab"        id="tabExisting" onclick="gwSwitchTab('existing')">Already Have an Account</button>
+          </div>
+
+          <!-- shared error -->
+          <div class="gw-error" id="gwError"></div>
+
+          <!-- ── NEW ACCOUNT FORM ── -->
+          <form id="gwFormNew" class="gw-form" onsubmit="return false">
+
             <div class="gw-input-row">
               <div class="gw-field">
                 <label class="gw-label">Full Name</label>
-                <input type="text" id="gwName" placeholder="Jordan Williams"
-                  required autocomplete="name" />
+                <input type="text" id="gwName" placeholder="Jordan Williams" required autocomplete="name" />
               </div>
               <div class="gw-field">
                 <label class="gw-label">Username <span class="gw-public">🌐 Public</span></label>
                 <div class="gw-prefix-wrap">
                   <span class="gw-prefix">@</span>
-                  <input type="text" id="gwUsername" placeholder="jordanw"
-                    required autocomplete="username" maxlength="20" class="gw-has-prefix" />
+                  <input type="text" id="gwUsername" placeholder="jordanw" required autocomplete="username" maxlength="20" class="gw-has-prefix" />
                 </div>
                 <p class="gw-hint">Letters, numbers, underscores only.</p>
               </div>
             </div>
 
-            <!-- Row 2: Instagram + DOB -->
             <div class="gw-input-row">
               <div class="gw-field">
                 <label class="gw-label">Instagram <span class="gw-public">📸 Required</span></label>
                 <div class="gw-prefix-wrap">
                   <span class="gw-prefix">@</span>
-                  <input type="text" id="gwInstagram" placeholder="your_handle"
-                    required maxlength="30" class="gw-has-prefix" />
+                  <input type="text" id="gwInstagram" placeholder="your_handle" required maxlength="30" class="gw-has-prefix" />
                 </div>
                 <p class="gw-hint">How we'll reach the winner.</p>
               </div>
@@ -167,54 +172,78 @@
               </div>
             </div>
 
-            <!-- Row 3: Email (full width) -->
             <div class="gw-field">
               <label class="gw-label">Email</label>
-              <input type="email" id="gwEmail" placeholder="jordan@email.com"
-                required autocomplete="email" />
+              <input type="email" id="gwEmail" placeholder="jordan@email.com" required autocomplete="email" />
             </div>
 
-            <!-- Row 4: Password + Confirm -->
             <div class="gw-input-row">
               <div class="gw-field">
                 <label class="gw-label">Password</label>
                 <div class="gw-eye-wrap">
-                  <input type="password" id="gwPassword" placeholder="Min 7 chars + special char"
-                    required autocomplete="new-password" minlength="7" />
+                  <input type="password" id="gwPassword" placeholder="Min 7 chars + special char" required autocomplete="new-password" minlength="7" />
                   <button type="button" class="gw-eye" onclick="gwTogglePass('gwPassword',this)" tabindex="-1">👁</button>
                 </div>
-                <div class="gw-pw-reqs" id="gwPwReqs">
-                  <span id="gwPwLen" class="gw-req">✗ At least 7 characters</span>
+                <div class="gw-pw-reqs">
+                  <span id="gwPwLen"  class="gw-req">✗ At least 7 characters</span>
                   <span id="gwPwSpec" class="gw-req">✗ One special character (!@#$%^&*)</span>
                 </div>
               </div>
               <div class="gw-field">
                 <label class="gw-label">Confirm Password</label>
                 <div class="gw-eye-wrap">
-                  <input type="password" id="gwConfirm" placeholder="Repeat password"
-                    required autocomplete="new-password" />
+                  <input type="password" id="gwConfirm" placeholder="Repeat password" required autocomplete="new-password" />
                   <button type="button" class="gw-eye" onclick="gwTogglePass('gwConfirm',this)" tabindex="-1">👁</button>
                 </div>
               </div>
             </div>
 
-            <div class="gw-error" id="gwError"></div>
-
-            <button type="submit" class="gw-submit" id="gwBtn">
+            <button type="submit" class="gw-submit" id="gwBtnNew">
               <span class="btn-text">Sign Up &amp; Enter Giveaway →</span>
               <span class="btn-loader gw-hidden">Creating account…</span>
             </button>
 
             <div class="gw-terms-row">
               <input type="checkbox" id="gwAgree" />
-              <label for="gwAgree">
-                By signing up you agree to our
-                <a href="terms.html" target="_blank">Terms &amp; Conditions</a>.
-                No purchase necessary. One winner selected randomly.
-              </label>
+              <label for="gwAgree">By signing up you agree to our <a href="terms.html" target="_blank">Terms &amp; Conditions</a>. No purchase necessary. One winner selected randomly.</label>
             </div>
 
           </form>
+
+          <!-- ── EXISTING ACCOUNT FORM ── -->
+          <form id="gwFormExisting" class="gw-form gw-hidden" onsubmit="return false">
+
+            <div class="gw-field">
+              <label class="gw-label">Email</label>
+              <input type="email" id="gwEmailEx" placeholder="jordan@email.com" required autocomplete="email" />
+            </div>
+
+            <div class="gw-field">
+              <label class="gw-label">Password</label>
+              <div class="gw-eye-wrap">
+                <input type="password" id="gwPasswordEx" placeholder="Your password" required autocomplete="current-password" />
+                <button type="button" class="gw-eye" onclick="gwTogglePass('gwPasswordEx',this)" tabindex="-1">👁</button>
+              </div>
+            </div>
+
+            <div class="gw-field">
+              <label class="gw-label">Instagram <span class="gw-public">📸 Required</span></label>
+              <div class="gw-prefix-wrap">
+                <span class="gw-prefix">@</span>
+                <input type="text" id="gwInstagramEx" placeholder="your_handle" required maxlength="30" class="gw-has-prefix" />
+              </div>
+              <p class="gw-hint">How we'll reach the winner.</p>
+            </div>
+
+            <button type="submit" class="gw-submit" id="gwBtnEx">
+              <span class="btn-text">Sign In &amp; Enter Giveaway →</span>
+              <span class="btn-loader gw-hidden">Signing in…</span>
+            </button>
+
+            <p class="gw-terms" style="margin-top:12px">No purchase necessary. One winner selected randomly. Winner notified via Instagram.</p>
+
+          </form>
+
         </div>
       </div>
 
@@ -289,7 +318,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="config.js"></script>
-  <script src="giveaway.js?v=3"></script>
+  <script src="giveaway.js?v=4"></script>
 
 </body>
 </html>

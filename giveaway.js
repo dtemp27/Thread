@@ -1,12 +1,14 @@
 /* ─────────────────────────────────────────────────────────────────────────
-   THREAD Giveaway — giveaway.js v2
-   Creates a full THREAD account and enters the user in the giveaway.
-   Source tracked via ?src= URL param (e.g. ?src=facebook).
+   THREAD Giveaway — giveaway.js v4
+   • Creates a full THREAD account OR signs in existing user to enter
+   • Duplicate prevention: email unique, instagram unique, user_id unique,
+     IP soft-block, device fingerprint check
 ───────────────────────────────────────────────────────────────────────── */
 (async function () {
   'use strict';
 
   const OWNER_IPS = ['65.130.60.246', '187.199.28.205', '187.199.69.171'];
+  const source    = 'instagram';
 
   /* ── Supabase ── */
   const cfg = window.THREAD_CONFIG;
@@ -14,10 +16,22 @@
     ? window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey)
     : null;
 
-  /* ── Ad source — hardcoded to Instagram ── */
-  const source = 'instagram';
+  /* ── Device fingerprint (browser properties → stable hash) ── */
+  function makeFingerprint() {
+    const raw = [
+      navigator.userAgent,
+      navigator.language,
+      screen.width + 'x' + screen.height + 'x' + screen.colorDepth,
+      new Date().getTimezoneOffset(),
+      navigator.hardwareConcurrency || '',
+    ].join('|');
+    let h = 0;
+    for (let i = 0; i < raw.length; i++) h = Math.imul(31, h) + raw.charCodeAt(i) | 0;
+    return Math.abs(h).toString(36);
+  }
+  const fingerprint = makeFingerprint();
 
-  /* ── Geo ── */
+  /* ── Geo / IP ── */
   let geoCity = null, geoIp = null;
   try {
     const cached = sessionStorage.getItem('thread_geo');
@@ -38,7 +52,7 @@
   if (OWNER_IPS.includes(geoIp)) { geoIp = null; geoCity = null; }
 
   /* ── Live entry count ── */
-  const BASE_COUNT = 7582; // starting offset — real signups add on top
+  const BASE_COUNT = 7582;
   async function refreshCount() {
     if (!sb) return;
     try {
@@ -49,10 +63,21 @@
   }
   refreshCount();
 
-  /* ── Already signed up? ── */
+  /* ── Already entered? Check localStorage + fingerprint ── */
   if (localStorage.getItem('thread_giveaway_entered')) {
-    showSuccess(false);
+    showSuccess(false, 'already');
     return;
+  }
+
+  if (sb) {
+    try {
+      const { data: fpFound } = await sb.rpc('check_giveaway_fingerprint', { p_fp: fingerprint });
+      if (fpFound) {
+        localStorage.setItem('thread_giveaway_entered', '1');
+        showSuccess(false, 'already');
+        return;
+      }
+    } catch (_) {}
   }
 
   /* ── Prize selection ── */
@@ -60,54 +85,48 @@
 
   window.selectPrize = function (prize) {
     selectedPrize = prize;
-    document.getElementById('prizeTees')?.classList.toggle('selected', prize === 'tees');
+    document.getElementById('prizeTees')?.classList.toggle('selected',   prize === 'tees');
     document.getElementById('prizeHoodie')?.classList.toggle('selected', prize === 'hoodie');
-    // Clear prize error if present
-    if (errEl) errEl.textContent = '';
+    setError('');
   };
 
-  // Keyboard support
   document.getElementById('prizeTees')?.addEventListener('keydown',   e => { if (e.key === 'Enter' || e.key === ' ') selectPrize('tees'); });
   document.getElementById('prizeHoodie')?.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') selectPrize('hoodie'); });
 
+  /* ── Tab switching ── */
+  window.gwSwitchTab = function (tab) {
+    const isNew = tab === 'new';
+    document.getElementById('gwFormNew')?.classList.toggle('gw-hidden', !isNew);
+    document.getElementById('gwFormExisting')?.classList.toggle('gw-hidden', isNew);
+    document.getElementById('tabNew')?.classList.toggle('active', isNew);
+    document.getElementById('tabExisting')?.classList.toggle('active', !isNew);
+    setError('');
+  };
+
   /* ── Password live validation ── */
-  const pwInput = document.getElementById('gwPassword');
-  if (pwInput) {
-    pwInput.addEventListener('input', () => {
-      const v      = pwInput.value;
-      const lenOk  = v.length >= 7;
-      const specOk = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(v);
-      setReq('gwPwLen',  lenOk);
-      setReq('gwPwSpec', specOk);
+  document.getElementById('gwPassword')?.addEventListener('input', function () {
+    const v = this.value;
+    setReq('gwPwLen',  v.length >= 7);
+    setReq('gwPwSpec', /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(v));
+  });
+
+  /* ── Username / Instagram sanitisers ── */
+  document.getElementById('gwUsername')?.addEventListener('input', function () {
+    this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
+  });
+  function sanitiseIG(el) {
+    if (!el) return;
+    el.addEventListener('input', function () {
+      this.value = this.value.replace(/^@+/, '').replace(/[^a-zA-Z0-9_.]/g, '');
     });
   }
+  sanitiseIG(document.getElementById('gwInstagram'));
+  sanitiseIG(document.getElementById('gwInstagramEx'));
 
-  /* ── Username sanitiser ── */
-  const unInput = document.getElementById('gwUsername');
-  if (unInput) {
-    unInput.addEventListener('input', () => {
-      unInput.value = unInput.value.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
-    });
-  }
-
-  /* ── Instagram sanitiser (strip leading @, allow letters/numbers/_/.) ── */
-  const igInput = document.getElementById('gwInstagram');
-  if (igInput) {
-    igInput.addEventListener('input', () => {
-      igInput.value = igInput.value.replace(/^@+/, '').replace(/[^a-zA-Z0-9_.]/g, '');
-    });
-  }
-
-  /* ── Form submit ── */
-  const form    = document.getElementById('gwForm');
-  const errEl   = document.getElementById('gwError');
-  const btn     = document.getElementById('gwBtn');
-  const btnText = btn?.querySelector('.btn-text');
-  const btnLoad = btn?.querySelector('.btn-loader');
-
-  if (!form) return;
-
-  form.addEventListener('submit', async () => {
+  /* ═══════════════════════════════════════════════════════════════════════
+     NEW ACCOUNT SUBMIT
+  ═══════════════════════════════════════════════════════════════════════ */
+  document.getElementById('gwFormNew')?.addEventListener('submit', async () => {
     const name      = (document.getElementById('gwName')?.value      || '').trim();
     const username  = (document.getElementById('gwUsername')?.value   || '').trim().toLowerCase();
     const instagram = (document.getElementById('gwInstagram')?.value  || '').trim().replace(/^@+/, '');
@@ -117,67 +136,60 @@
     const confirm   = (document.getElementById('gwConfirm')?.value    || '');
     const agreed    = document.getElementById('gwAgree')?.checked;
 
-    errEl.textContent = '';
+    setError('');
 
-    /* ── Validation ── */
-    if (!selectedPrize) return setError('Please tap a prize to select what you want — 2 tees or 1 hoodie.');
-    if (!name) return setError('Please enter your full name.');
-    if (!username || username.length < 2) return setError('Username must be at least 2 characters.');
-    if (!/^[a-z0-9_]+$/.test(username)) return setError('Username can only contain letters, numbers, and underscores.');
-    if (!instagram || instagram.length < 1) return setError('Please enter your Instagram handle.');
-    if (!dob) return setError('Please enter your date of birth.');
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setError('Please enter a valid email address.');
-    if (password.length < 7) return setError('Password must be at least 7 characters.');
+    if (!selectedPrize)                                            return setError('Please tap a prize to select what you want.');
+    if (!name)                                                     return setError('Please enter your full name.');
+    if (!username || username.length < 2)                         return setError('Username must be at least 2 characters.');
+    if (!/^[a-z0-9_]+$/.test(username))                           return setError('Username: letters, numbers, underscores only.');
+    if (!instagram)                                               return setError('Please enter your Instagram handle.');
+    if (!dob)                                                     return setError('Please enter your date of birth.');
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))    return setError('Please enter a valid email address.');
+    if (password.length < 7)                                      return setError('Password must be at least 7 characters.');
     if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) return setError('Password needs at least one special character.');
-    if (password !== confirm) return setError('Passwords do not match.');
-    if (!agreed) return setError('Please agree to the Terms & Conditions to continue.');
+    if (password !== confirm)                                     return setError('Passwords do not match.');
+    if (!agreed)                                                  return setError('Please agree to the Terms & Conditions.');
 
-    setLoading(true);
+    setLoading('new', true);
 
     try {
       if (!sb) throw new Error('Service unavailable — please try again.');
 
-      /* ── Check username availability ── */
+      /* IP duplicate check (soft block) */
+      if (geoIp) {
+        const { data: ipTaken } = await sb.rpc('check_giveaway_ip', { p_ip: geoIp }).catch(() => ({ data: false }));
+        if (ipTaken) {
+          setLoading('new', false);
+          return setError('An entry has already been submitted from this location. If that wasn\'t you, contact us.');
+        }
+      }
+
+      /* Username availability */
       const { data: available } = await sb.rpc('check_username_available', { p_username: username });
       if (available === false) {
-        setLoading(false);
+        setLoading('new', false);
         return setError('That username is already taken — please choose another.');
       }
 
-      /* ── Generate referral code ── */
+      /* Create account */
       const referralCode = generateReferralCode(name);
       const referredBy   = (localStorage.getItem('thread_ref') || '').trim() || null;
 
-      /* ── Create Supabase auth account ── */
       const { data: authData, error: authErr } = await sb.auth.signUp({
         email, password,
-        options: {
-          data: { name, username },
-          emailRedirectTo: 'https://mythread.shop/auth.html',
-        }
+        options: { data: { name, username }, emailRedirectTo: 'https://mythread.shop/auth.html' }
       });
       if (authErr) throw new Error(authErr.message);
 
-      /* ── Store pending profile (fallback if email confirmation blocks upsert) ── */
-      const pendingProfile = { name, username, dob, email, referralCode, referredBy };
-      localStorage.setItem('thread_pending_profile', JSON.stringify(pendingProfile));
+      localStorage.setItem('thread_pending_profile', JSON.stringify({ name, username, dob, email, referralCode, referredBy }));
 
-      /* ── Upsert profile row ── */
       if (authData.user) {
-        const profileData = {
-          id:            authData.user.id,
-          email, name, username,
-          referral_code: referralCode,
-          referred_by:   referredBy,
-          date_of_birth: dob,
-        };
+        const profileData = { id: authData.user.id, email, name, username, referral_code: referralCode, referred_by: referredBy, date_of_birth: dob };
         const { error: upsertErr } = await sb.from('profiles').upsert(profileData, { onConflict: 'id' });
         if (!upsertErr) localStorage.removeItem('thread_pending_profile');
 
-        /* ── Try immediate sign-in (works when email confirmation disabled) ── */
         try { await sb.auth.signInWithPassword({ email, password }); } catch (_) {}
 
-        /* ── Store local session (dashboard / checkout fallback) ── */
         localStorage.setItem('thread_session', JSON.stringify({
           id: authData.user.id, email, name, username,
           referralCode, referral_code: referralCode,
@@ -186,45 +198,130 @@
           purchases: [],
         }));
 
-        /* ── Log giveaway entry ── */
         try {
           await sb.from('giveaway_entries').insert({
             name, email, source,
             user_id:      authData.user.id,
-            instagram:    instagram || null,
+            instagram,
             prize_choice: selectedPrize,
-            ip:           geoIp   || null,
-            city:         geoCity || null,
+            ip:           geoIp        || null,
+            city:         geoCity      || null,
+            fingerprint,
           });
-        } catch (_) {
-          // Duplicate or missing column — not fatal, account is created regardless
-        }
+        } catch (_) {}
       }
 
       localStorage.setItem('thread_giveaway_entered', '1');
-      showSuccess(true);
+      showSuccess(true, 'new');
 
     } catch (e) {
-      setLoading(false);
+      setLoading('new', false);
       const msg = e.message || '';
       if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already been registered')) {
-        setError('An account with that email already exists. Try signing in at mythread.shop/auth.html');
+        setError('An account with that email already exists. Use the "Already Have an Account" tab to sign in and enter.');
       } else {
         setError(msg || 'Something went wrong — please try again.');
       }
     }
   });
 
+  /* ═══════════════════════════════════════════════════════════════════════
+     EXISTING ACCOUNT SUBMIT
+  ═══════════════════════════════════════════════════════════════════════ */
+  document.getElementById('gwFormExisting')?.addEventListener('submit', async () => {
+    const email     = (document.getElementById('gwEmailEx')?.value     || '').trim().toLowerCase();
+    const password  = (document.getElementById('gwPasswordEx')?.value  || '');
+    const instagram = (document.getElementById('gwInstagramEx')?.value || '').trim().replace(/^@+/, '');
+
+    setError('');
+
+    if (!selectedPrize) return setError('Please tap a prize above to select what you want.');
+    if (!email)         return setError('Please enter your email.');
+    if (!password)      return setError('Please enter your password.');
+    if (!instagram)     return setError('Please enter your Instagram handle.');
+
+    setLoading('ex', true);
+
+    try {
+      if (!sb) throw new Error('Service unavailable — please try again.');
+
+      /* IP duplicate check */
+      if (geoIp) {
+        const { data: ipTaken } = await sb.rpc('check_giveaway_ip', { p_ip: geoIp }).catch(() => ({ data: false }));
+        if (ipTaken) {
+          setLoading('ex', false);
+          return setError('An entry has already been submitted from this location.');
+        }
+      }
+
+      /* Sign in */
+      const { data: authData, error: authErr } = await sb.auth.signInWithPassword({ email, password });
+      if (authErr) {
+        setLoading('ex', false);
+        return setError('Invalid email or password — please try again.');
+      }
+
+      const user = authData.user;
+
+      /* Store local session */
+      const { data: profile } = await sb.from('profiles').select('name, username, referral_code').eq('id', user.id).single().catch(() => ({ data: null }));
+      localStorage.setItem('thread_session', JSON.stringify({
+        id: user.id, email,
+        name:          profile?.name     || email,
+        username:      profile?.username || '',
+        referralCode:  profile?.referral_code || '',
+        referral_code: profile?.referral_code || '',
+        avatar: ((profile?.name || email || 'U').slice(0, 2)).toUpperCase(),
+        stats: { totalScans: 0, conversions: 0, pendingEarnings: 0, totalEarned: 0, scanHistory: [] },
+        purchases: [],
+      }));
+
+      /* Insert giveaway entry */
+      const { error: insertErr } = await sb.from('giveaway_entries').insert({
+        name:         profile?.name || email,
+        email,
+        source,
+        user_id:      user.id,
+        instagram,
+        prize_choice: selectedPrize,
+        ip:           geoIp   || null,
+        city:         geoCity || null,
+        fingerprint,
+      });
+
+      if (insertErr) {
+        setLoading('ex', false);
+        if (insertErr.code === '23505' || (insertErr.message || '').includes('unique') || (insertErr.message || '').includes('duplicate')) {
+          localStorage.setItem('thread_giveaway_entered', '1');
+          showSuccess(true, 'already');
+        } else {
+          setError('Could not enter — please try again. (' + insertErr.message + ')');
+        }
+        return;
+      }
+
+      localStorage.setItem('thread_giveaway_entered', '1');
+      showSuccess(true, 'existing');
+
+    } catch (e) {
+      setLoading('ex', false);
+      setError(e.message || 'Something went wrong — please try again.');
+    }
+  });
+
   /* ── Helpers ── */
-  function setLoading(on) {
+  function setLoading(form, on) {
+    const btnId = form === 'new' ? 'gwBtnNew' : 'gwBtnEx';
+    const btn   = document.getElementById(btnId);
     if (!btn) return;
     btn.disabled = on;
-    btnText?.classList.toggle('gw-hidden', on);
-    btnLoad?.classList.toggle('gw-hidden', !on);
+    btn.querySelector('.btn-text')?.classList.toggle('gw-hidden', on);
+    btn.querySelector('.btn-loader')?.classList.toggle('gw-hidden', !on);
   }
 
   function setError(msg) {
-    if (errEl) errEl.textContent = msg;
+    const el = document.getElementById('gwError');
+    if (el) el.textContent = msg;
   }
 
   function setReq(id, met) {
@@ -234,7 +331,7 @@
     el.textContent = (met ? '✓' : '✗') + el.textContent.slice(1);
   }
 
-  function showSuccess(animate) {
+  function showSuccess(animate, reason) {
     const wrap    = document.getElementById('formWrap');
     const success = document.getElementById('gwSuccess');
     const msg     = document.getElementById('gwSuccessMsg');
@@ -242,8 +339,14 @@
     if (wrap) wrap.classList.add('gw-hidden');
     success.classList.remove('gw-hidden');
     if (!animate) success.style.animation = 'none';
-    if (msg && !animate) {
-      msg.textContent = "You've already entered the THREAD giveaway. Good luck!";
+    if (msg) {
+      if (reason === 'already') {
+        msg.textContent = "You've already entered the THREAD giveaway. Good luck — winner announced soon!";
+      } else if (reason === 'existing') {
+        msg.textContent = "You're in! We'll contact the winner via Instagram. Good luck!";
+      } else {
+        msg.innerHTML = "Your THREAD account has been created and you're entered in the giveaway.<br>Check your email to verify your account. Good luck!";
+      }
     }
     setTimeout(refreshCount, 800);
   }
@@ -256,22 +359,21 @@
     return prefix + suffix;
   }
 
-  /* ── Global: FAQ toggle (suffix = 'Top' or 'Bot') ── */
+  /* ── Global helpers ── */
+  window.gwTogglePass = function (id, btn) {
+    const input = document.getElementById(id);
+    if (!input) return;
+    const isText    = input.type === 'text';
+    input.type      = isText ? 'password' : 'text';
+    btn.textContent = isText ? '👁' : '🙈';
+  };
+
   window.gwToggleFaq = function (suffix) {
     const trigger = document.getElementById('faqTrigger' + suffix);
     const body    = document.getElementById('faqBody'    + suffix);
     if (!trigger || !body) return;
     const isOpen = body.classList.toggle('open');
     trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-  };
-
-  /* ── Global: password show/hide ── */
-  window.gwTogglePass = function (id, btn) {
-    const input = document.getElementById(id);
-    if (!input) return;
-    const isText = input.type === 'text';
-    input.type   = isText ? 'password' : 'text';
-    btn.textContent = isText ? '👁' : '🙈';
   };
 
 })();
