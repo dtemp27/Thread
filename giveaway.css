@@ -260,58 +260,165 @@ body {
   flex-shrink: 0;
 }
 
-/* ─── FORM ───────────────────────────────────────────────────────────────── */
+/* ─── FORM CARD ──────────────────────────────────────────────────────────── */
 .gw-form-wrap {
   animation: gw-fadeUp 0.7s 0.45s ease both;
+}
+
+.gw-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 20px;
+  padding: 28px 28px 24px;
+  max-width: 680px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.gw-card-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 22px;
+  letter-spacing: 0.3px;
 }
 
 .gw-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  max-width: 580px;
-  margin: 0 auto 10px;
+  gap: 14px;
 }
 
 .gw-input-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 14px;
 }
 
-.gw-field { position: relative; }
+.gw-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
 
-.gw-form input {
+.gw-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #aaa;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gw-public {
+  font-size: 10px;
+  font-weight: 500;
+  color: #555;
+}
+
+.gw-hint {
+  font-size: 11px;
+  color: #444;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+/* all inputs share this base */
+.gw-form input[type="text"],
+.gw-form input[type="email"],
+.gw-form input[type="password"],
+.gw-form input[type="date"] {
   width: 100%;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  padding: 16px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 11px;
+  padding: 13px 15px;
   color: #fff;
-  font-size: 15px;
+  font-size: 14px;
   font-family: 'Space Grotesk', sans-serif;
   outline: none;
   transition: border-color var(--ease), background var(--ease);
+  -webkit-appearance: none;
 }
-.gw-form input::placeholder { color: #444; }
+.gw-form input::placeholder { color: #3a3a4a; }
+.gw-form input[type="date"] { color-scheme: dark; }
 .gw-form input:focus {
   border-color: var(--purple);
   background: rgba(124, 58, 237, 0.07);
 }
 
+/* @ prefix username field */
+.gw-prefix-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.gw-prefix {
+  position: absolute;
+  left: 14px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  pointer-events: none;
+  z-index: 1;
+}
+.gw-has-prefix { padding-left: 30px !important; }
+
+/* eye toggle for password */
+.gw-eye-wrap { position: relative; }
+.gw-eye {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  opacity: 0.4;
+  padding: 4px;
+  line-height: 1;
+  transition: opacity var(--ease);
+}
+.gw-eye:hover { opacity: 0.8; }
+
+/* password requirements */
+.gw-pw-reqs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.gw-req {
+  font-size: 11px;
+  color: #555;
+  background: rgba(255,255,255,0.04);
+  border-radius: 100px;
+  padding: 3px 9px;
+  transition: color var(--ease), background var(--ease);
+}
+.gw-req.met {
+  color: #4ade80;
+  background: rgba(74,222,128,0.08);
+}
+
+/* submit button */
 .gw-submit {
   width: 100%;
   background: var(--purple);
   color: #fff;
   border: none;
   border-radius: 12px;
-  padding: 18px 32px;
-  font-size: 16px;
+  padding: 17px 32px;
+  font-size: 15px;
   font-weight: 700;
   font-family: 'Space Grotesk', sans-serif;
   cursor: pointer;
   transition: background var(--ease), transform var(--ease), box-shadow var(--ease);
   letter-spacing: 0.2px;
+  margin-top: 4px;
 }
 .gw-submit:hover:not(:disabled) {
   background: #6d28d9;
@@ -321,20 +428,41 @@ body {
 .gw-submit:active:not(:disabled) { transform: translateY(0); }
 .gw-submit:disabled { opacity: 0.55; cursor: not-allowed; }
 
+/* error */
 .gw-error {
   color: #fca5a5;
   font-size: 13px;
-  min-height: 18px;
+  min-height: 16px;
   text-align: center;
-  margin-top: 6px;
 }
 
-.gw-terms {
+/* terms row */
+.gw-terms-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 4px;
+}
+.gw-terms-row input[type="checkbox"] {
+  width: 15px !important;
+  height: 15px !important;
+  flex-shrink: 0;
+  margin-top: 2px;
+  accent-color: var(--purple);
+  cursor: pointer;
+  padding: 0 !important;
+  border-radius: 4px !important;
+}
+.gw-terms-row label {
   font-size: 12px;
-  color: #3a3a4a;
-  text-align: center;
-  margin-top: 18px;
-  line-height: 1.6;
+  color: #444;
+  line-height: 1.55;
+  cursor: pointer;
+}
+.gw-terms-row label a {
+  color: var(--purple-light);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* ─── SUCCESS STATE ──────────────────────────────────────────────────────── */
@@ -437,11 +565,14 @@ body {
   .gw-input-row {
     grid-template-columns: 1fr;
   }
+  .gw-card {
+    padding: 20px 16px;
+  }
   .gw-headline {
     letter-spacing: -2px;
   }
   .gw-success {
-    padding: 32px 24px;
+    padding: 32px 20px;
   }
   .gw-hero {
     padding: 100px 16px 48px;
