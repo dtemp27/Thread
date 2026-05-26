@@ -229,6 +229,15 @@
     return prefix + suffix;
   }
 
+  /* ── Global: FAQ toggle ── */
+  window.gwToggleFaq = function () {
+    const trigger = document.getElementById('faqTrigger');
+    const body    = document.getElementById('faqBody');
+    if (!trigger || !body) return;
+    const isOpen = body.classList.toggle('open');
+    trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  };
+
   /* ── Global: password show/hide ── */
   window.gwTogglePass = function (id, btn) {
     const input = document.getElementById(id);
