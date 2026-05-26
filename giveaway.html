@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="giveaway.css?v=2" />
+  <link rel="stylesheet" href="giveaway.css?v=3" />
 </head>
 <body>
 
@@ -83,9 +83,11 @@
       </div>
 
       <!-- Prize Cards -->
+      <p class="gw-choose-label">Pick your prize — tap to select:</p>
       <div class="gw-prizes">
 
-        <div class="gw-prize">
+        <div class="gw-prize" id="prizeTees" onclick="selectPrize('tees')" role="button" tabindex="0">
+          <div class="gw-prize-check">✓</div>
           <div class="gw-prize-imgs">
             <img src="images/tee-jet-black-front.png"  alt="Black Tee"  class="gw-img-main" loading="eager" />
             <img src="images/tee-raw-stone-front.png"  alt="Stone Tee"  class="gw-img-over" loading="eager" />
@@ -101,7 +103,8 @@
 
         <div class="gw-or">OR</div>
 
-        <div class="gw-prize">
+        <div class="gw-prize" id="prizeHoodie" onclick="selectPrize('hoodie')" role="button" tabindex="0">
+          <div class="gw-prize-check">✓</div>
           <div class="gw-prize-imgs gw-prize-imgs--single">
             <img src="images/phantom-black-front-01.png" alt="Hoodie" class="gw-img-main" loading="eager" />
           </div>
@@ -146,20 +149,31 @@
               </div>
             </div>
 
-            <!-- Row 2: DOB + Email -->
+            <!-- Row 2: Instagram + DOB -->
             <div class="gw-input-row">
+              <div class="gw-field">
+                <label class="gw-label">Instagram <span class="gw-public">📸 Required</span></label>
+                <div class="gw-prefix-wrap">
+                  <span class="gw-prefix">@</span>
+                  <input type="text" id="gwInstagram" placeholder="your_handle"
+                    required maxlength="30" class="gw-has-prefix" />
+                </div>
+                <p class="gw-hint">How we'll reach the winner.</p>
+              </div>
               <div class="gw-field">
                 <label class="gw-label">Date of Birth</label>
                 <input type="date" id="gwDob" required autocomplete="bday" />
               </div>
-              <div class="gw-field">
-                <label class="gw-label">Email</label>
-                <input type="email" id="gwEmail" placeholder="jordan@email.com"
-                  required autocomplete="email" />
-              </div>
             </div>
 
-            <!-- Row 3: Password + Confirm -->
+            <!-- Row 3: Email (full width) -->
+            <div class="gw-field">
+              <label class="gw-label">Email</label>
+              <input type="email" id="gwEmail" placeholder="jordan@email.com"
+                required autocomplete="email" />
+            </div>
+
+            <!-- Row 4: Password + Confirm -->
             <div class="gw-input-row">
               <div class="gw-field">
                 <label class="gw-label">Password</label>
@@ -274,7 +288,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="config.js"></script>
-  <script src="giveaway.js?v=2"></script>
+  <script src="giveaway.js?v=3"></script>
 
 </body>
 </html>

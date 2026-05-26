@@ -1197,7 +1197,7 @@ function renderGiveaway(entries) {
   const body = document.getElementById('gwEntriesBody');
   if (!body) return;
   if (!entries.length) {
-    body.innerHTML = '<tr><td colspan="6" class="ad-empty">No entries yet — share the giveaway link!</td></tr>';
+    body.innerHTML = '<tr><td colspan="8" class="ad-empty">No entries yet — share the giveaway link!</td></tr>';
     return;
   }
   body.innerHTML = entries.map((e, i) => {
@@ -1207,10 +1207,18 @@ function renderGiveaway(entries) {
     const location = [e.city, e.country].filter(Boolean).join(', ') || '—';
     const src = escapeHtml(e.source || 'direct');
     const srcColor = src === 'direct' ? '#555' : '#a78bfa';
+    const ig = e.instagram ? `<a href="https://instagram.com/${escapeHtml(e.instagram)}" target="_blank" style="color:#e879f9;text-decoration:none">@${escapeHtml(e.instagram)}</a>` : '<span style="color:#444">—</span>';
+    const prize = e.prize_choice === 'tees'
+      ? '<span style="color:#fbbf24;font-size:12px">👕 2 Tees</span>'
+      : e.prize_choice === 'hoodie'
+        ? '<span style="color:#a78bfa;font-size:12px">🧥 Hoodie</span>'
+        : '<span style="color:#444;font-size:12px">—</span>';
     return `<tr>
       <td style="color:#555;font-size:12px">${entries.length - i}</td>
       <td><strong>${escapeHtml(e.name || '—')}</strong></td>
       <td style="font-size:13px;color:#ccc">${escapeHtml(e.email || '—')}</td>
+      <td style="font-size:13px">${ig}</td>
+      <td>${prize}</td>
       <td><span style="color:${srcColor};font-size:12px;background:rgba(124,58,237,0.1);padding:3px 9px;border-radius:100px">${src}</span></td>
       <td style="font-size:12px;color:#888">${escapeHtml(location)}</td>
       <td style="font-size:12px;color:#888;white-space:nowrap">${dt}</td>
@@ -1242,14 +1250,16 @@ async function pickGiveawayWinner() {
 
 function exportGiveawayCSV() {
   if (!_giveawayEntries.length) { alert('No entries to export.'); return; }
-  const cols = ['#', 'Name', 'Email', 'Source', 'City', 'Date'];
+  const cols = ['#', 'Name', 'Email', 'Instagram', 'Prize', 'Source', 'City', 'Date'];
   const rows = _giveawayEntries.map((e, i) => [
     _giveawayEntries.length - i,
-    e.name  || '',
-    e.email || '',
-    e.source || 'direct',
-    e.city   || '',
-    e.created_at ? new Date(e.created_at).toLocaleString() : ''
+    e.name         || '',
+    e.email        || '',
+    e.instagram    ? '@' + e.instagram : '',
+    e.prize_choice || '',
+    e.source       || 'direct',
+    e.city         || '',
+    e.created_at   ? new Date(e.created_at).toLocaleString() : ''
   ]);
   const csv = [cols, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
   const a   = document.createElement('a');

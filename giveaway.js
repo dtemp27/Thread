@@ -56,6 +56,21 @@
     return;
   }
 
+  /* ── Prize selection ── */
+  let selectedPrize = null;
+
+  window.selectPrize = function (prize) {
+    selectedPrize = prize;
+    document.getElementById('prizeTees')?.classList.toggle('selected', prize === 'tees');
+    document.getElementById('prizeHoodie')?.classList.toggle('selected', prize === 'hoodie');
+    // Clear prize error if present
+    if (errEl) errEl.textContent = '';
+  };
+
+  // Keyboard support
+  document.getElementById('prizeTees')?.addEventListener('keydown',   e => { if (e.key === 'Enter' || e.key === ' ') selectPrize('tees'); });
+  document.getElementById('prizeHoodie')?.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') selectPrize('hoodie'); });
+
   /* ── Password live validation ── */
   const pwInput = document.getElementById('gwPassword');
   if (pwInput) {
@@ -76,6 +91,14 @@
     });
   }
 
+  /* ── Instagram sanitiser (strip leading @, allow letters/numbers/_/.) ── */
+  const igInput = document.getElementById('gwInstagram');
+  if (igInput) {
+    igInput.addEventListener('input', () => {
+      igInput.value = igInput.value.replace(/^@+/, '').replace(/[^a-zA-Z0-9_.]/g, '');
+    });
+  }
+
   /* ── Form submit ── */
   const form    = document.getElementById('gwForm');
   const errEl   = document.getElementById('gwError');
@@ -86,20 +109,23 @@
   if (!form) return;
 
   form.addEventListener('submit', async () => {
-    const name     = (document.getElementById('gwName')?.value     || '').trim();
-    const username = (document.getElementById('gwUsername')?.value  || '').trim().toLowerCase();
-    const dob      = (document.getElementById('gwDob')?.value       || '').trim();
-    const email    = (document.getElementById('gwEmail')?.value     || '').trim().toLowerCase();
-    const password = (document.getElementById('gwPassword')?.value  || '');
-    const confirm  = (document.getElementById('gwConfirm')?.value   || '');
-    const agreed   = document.getElementById('gwAgree')?.checked;
+    const name      = (document.getElementById('gwName')?.value      || '').trim();
+    const username  = (document.getElementById('gwUsername')?.value   || '').trim().toLowerCase();
+    const instagram = (document.getElementById('gwInstagram')?.value  || '').trim().replace(/^@+/, '');
+    const dob       = (document.getElementById('gwDob')?.value        || '').trim();
+    const email     = (document.getElementById('gwEmail')?.value      || '').trim().toLowerCase();
+    const password  = (document.getElementById('gwPassword')?.value   || '');
+    const confirm   = (document.getElementById('gwConfirm')?.value    || '');
+    const agreed    = document.getElementById('gwAgree')?.checked;
 
     errEl.textContent = '';
 
     /* ── Validation ── */
+    if (!selectedPrize) return setError('Please tap a prize to select what you want — 2 tees or 1 hoodie.');
     if (!name) return setError('Please enter your full name.');
     if (!username || username.length < 2) return setError('Username must be at least 2 characters.');
     if (!/^[a-z0-9_]+$/.test(username)) return setError('Username can only contain letters, numbers, and underscores.');
+    if (!instagram || instagram.length < 1) return setError('Please enter your Instagram handle.');
     if (!dob) return setError('Please enter your date of birth.');
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setError('Please enter a valid email address.');
     if (password.length < 7) return setError('Password must be at least 7 characters.');
@@ -165,9 +191,11 @@
         try {
           await sb.from('giveaway_entries').insert({
             name, email, source,
-            user_id: authData.user.id,
-            ip:   geoIp   || null,
-            city: geoCity || null,
+            user_id:      authData.user.id,
+            instagram:    instagram || null,
+            prize_choice: selectedPrize,
+            ip:           geoIp   || null,
+            city:         geoCity || null,
           });
         } catch (_) {
           // Duplicate or missing column — not fatal, account is created regardless
