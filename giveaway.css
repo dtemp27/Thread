@@ -224,39 +224,25 @@ body {
   transform: scale(1);
 }
 
-/* image area */
+/* image area — front + back split 50/50 */
 .gw-prize-imgs {
-  position: relative;
+  display: flex;
   background: var(--bg2);
-  height: 240px;
+  height: 260px;
   overflow: hidden;
   border-radius: 18px 18px 0 0;
 }
-.gw-prize-imgs--single .gw-img-main {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top center;
-  display: block;
-}
 
-/* two-tee layout: main fills left 60%, second overlaps right */
-.gw-img-main {
-  width: 65%;
+.gw-img-half {
+  flex: 1;
+  width: 50%;
   height: 100%;
   object-fit: cover;
   object-position: top center;
   display: block;
 }
-.gw-img-over {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 52%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top center;
-  border-left: 2px solid rgba(255, 255, 255, 0.08);
+.gw-img-back {
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* label strip */
