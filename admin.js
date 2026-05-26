@@ -76,6 +76,8 @@ let allOrders    = [];
 let allCustomers = [];
 let allScans     = [];
 let currentOrderFilter = 'all';
+// Set of customer IDs who have at least one add_to_cart event (populated by loadAnalytics)
+let _cartUserIds = new Set();
 
 /* ─── Load everything ───────────────────────────────────────────────────── */
 async function loadAllData() {
@@ -448,6 +450,9 @@ function renderCustomers() {
     const qrBtn = code
       ? `<button class="ad-action-btn" style="background:#111;color:#fff;margin-right:4px" onclick="downloadQR('${escapeHtml(code)}','${escapeHtml(c.name || code)}','black')">⬛ Black</button><button class="ad-action-btn" style="background:#3a3a3a;color:#aaa;border:1px solid #555" onclick="downloadQR('${escapeHtml(code)}','${escapeHtml(c.name || code)}','white')">⬜ White</button>`
       : '<span style="color:#555">—</span>';
+    const cartBadge = _cartUserIds.has(c.id)
+      ? `<span style="background:#1a1a3a;border:1px solid #4c1d95;color:#c4b5fd;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:600">🛒 Yes</span>`
+      : `<span style="color:#444;font-size:12px">—</span>`;
     return `<tr>
       <td><strong>${c.name || '—'}</strong></td>
       <td>${c.email || '—'}</td>
@@ -456,6 +461,7 @@ function renderCustomers() {
       <td><code style="font-size:11px">${code || '—'}</code></td>
       <td>${customerOrders.length}</td>
       <td style="font-family:var(--mono)">$${spent.toFixed(2)}</td>
+      <td>${cartBadge}</td>
       <td>${c.payout_method ? `<span style="font-size:12px;color:#a78bfa;font-weight:600">${c.payout_method}</span><br><span style="font-size:11px;color:#888">${c.payout_handle || '—'}</span>` : '<span style="color:#444">—</span>'}</td>
       <td>${joined}</td>
       <td>${qrBtn}</td>
@@ -464,7 +470,7 @@ function renderCustomers() {
         <button class="ad-action-btn" style="background:#dc2626;color:#fff;font-size:11px;font-weight:700;display:block" onclick="confirmDeleteUser('${escapeHtml(c.id || '')}','${escapeHtml(c.email || '')}','${escapeHtml(c.name || '')}')">💀 Delete User</button>
       </td>
     </tr>`;
-  }).join('') : '<tr><td colspan="10" class="ad-empty">No customers</td></tr>';
+  }).join('') : '<tr><td colspan="11" class="ad-empty">No customers</td></tr>';
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -991,6 +997,15 @@ async function loadAnalytics() {
     document.getElementById('statCartRate').textContent       = cartRate + '%';
     document.getElementById('statNewSignups').textContent     = newSignups;
     document.getElementById('statConvRate').textContent       = convRate + '%';
+
+    // Build set of customer IDs who have added to cart (label format: uid:ID|item)
+    _cartUserIds = new Set(
+      carts
+        .map(e => (e.page_label || '').match(/^uid:([^|]+)\|/)?.[1])
+        .filter(Boolean)
+    );
+    // Re-render customers so the cart badge updates immediately
+    renderCustomers();
 
     // Top clicks breakdown
     const clickCounts = {};

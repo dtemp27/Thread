@@ -727,8 +727,14 @@ function addToCart(name, price, size = 'M', type = 'hoodie') {
   saveCart(cart);
   renderCartDrawer();
   openCart();
-  // Track add-to-cart as its own event type (non-deduped — each add counts)
-  window._threadTrackRaw?.('add_to_cart', `${name} (${size})`);
+  // Track add-to-cart as its own event type (non-deduped — each add counts).
+  // Prefix with uid:ID| when the user is logged in so the admin panel can
+  // link cart activity back to specific customer accounts.
+  const _cartSession = JSON.parse(localStorage.getItem('thread_session') || 'null');
+  const _cartLabel   = _cartSession?.id
+    ? `uid:${_cartSession.id}|${name} (${size})`
+    : `${name} (${size})`;
+  window._threadTrackRaw?.('add_to_cart', _cartLabel);
 }
 
 function updateCartQty(idx, delta) {
