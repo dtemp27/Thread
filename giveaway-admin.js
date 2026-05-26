@@ -115,7 +115,8 @@
     const sorted = [...entries].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     body.innerHTML = sorted.map((e, i) => {
-      const id       = esc(e.id || '');
+      const rawId    = e.id || '';
+      const id       = esc(rawId);
       const num      = sorted.length - i;
       const name     = esc(e.name  || '—');
       const email    = esc(e.email || '—');
@@ -125,10 +126,10 @@
       const prize    = prizeBadge(e.prize_choice);
       const location = esc([e.city, e.country].filter(Boolean).join(', ') || '—');
       const date     = e.created_at ? fmtDate(e.created_at) : '—';
-      const checked  = _selectedIds.has(e.id) ? 'checked' : '';
+      const checked  = _selectedIds.has(rawId) ? 'checked' : '';
 
       return `<tr data-id="${id}">
-        <td class="ga-check-td"><input type="checkbox" class="ga-check ga-row-check" data-id="${id}" ${checked} /></td>
+        <td class="ga-check-td"><input type="checkbox" class="ga-check" data-id="${id}" ${checked} onchange="gaRowCheck(this)" /></td>
         <td style="color:#555;font-size:12px">${num}</td>
         <td style="font-weight:600;color:#fff">${name}</td>
         <td>${email}</td>
@@ -138,27 +139,23 @@
         <td style="white-space:nowrap;color:#555;font-size:12px">${date}</td>
       </tr>`;
     }).join('');
-
-    /* Event delegation — one listener on the tbody */
-    body.addEventListener('change', onRowCheckChange);
   }
 
-  function onRowCheckChange(ev) {
-    const cb = ev.target.closest('.ga-row-check');
-    if (!cb) return;
+  /* ── Individual row checkbox ── */
+  window.gaRowCheck = function (cb) {
     const id = cb.dataset.id;
     if (!id) return;
     if (cb.checked) _selectedIds.add(id);
     else            _selectedIds.delete(id);
     updateDeleteBtn();
     syncSelectAllCheckbox();
-  }
+  };
 
   /* ── Select-all toggle ── */
   window.gaToggleSelectAll = function (masterCb) {
     const body = document.getElementById('gaBody');
     if (!body) return;
-    body.querySelectorAll('.ga-row-check').forEach(cb => {
+    body.querySelectorAll('.ga-check').forEach(cb => {
       cb.checked = masterCb.checked;
       const id = cb.dataset.id;
       if (!id) return;
