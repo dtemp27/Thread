@@ -39,12 +39,13 @@
   if (OWNER_IPS.includes(geoIp)) { geoIp = null; geoCity = null; }
 
   /* ── Live entry count ── */
+  const BASE_COUNT = 7582; // starting offset — real signups add on top
   async function refreshCount() {
     if (!sb) return;
     try {
       const { data } = await sb.rpc('get_giveaway_count');
       const el = document.getElementById('entryCount');
-      if (el && data != null) el.textContent = Number(data).toLocaleString();
+      if (el && data != null) el.textContent = (BASE_COUNT + Number(data)).toLocaleString();
     } catch (_) {}
   }
   refreshCount();
