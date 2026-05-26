@@ -233,10 +233,15 @@ if (document.readyState === 'loading') {
           sessionStorage.setItem(scanKey, '1'); // mark done so we don't retry
         } else {
           const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+          // Log to referral system (for user referral codes linked to profiles)
           const { data: rpcData, error } = await sb.rpc('log_referral_scan', { ref_code: ref, scan_city: null });
           console.log('[THREAD] scan log result - ref:', ref, 'data:', rpcData, 'error:', error);
-          if (!error) sessionStorage.setItem(scanKey, '1');
-          else console.error('[THREAD] scan log FAILED:', JSON.stringify(error));
+          if (error) console.error('[THREAD] scan log FAILED:', JSON.stringify(error));
+          // ALSO log to tracked QR system (for admin-added codes like "bogoegg")
+          // Safe no-op if the code isn't in tracked_qr_codes table
+          try { await sb.rpc('log_tracked_qr_scan', { p_code: ref }); } catch(_) {}
+          // Mark session as logged regardless (avoids double-counting on refresh)
+          sessionStorage.setItem(scanKey, '1');
         }
       }
     } catch(e) { console.warn('[ref] scan log failed:', e); }
