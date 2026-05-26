@@ -67,6 +67,11 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           Analytics
         </button>
+        <button class="ad-nav-item" data-section="giveaway" onclick="showSection('giveaway');closeSidebar()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 7 12 3 4 7"/><path d="M20 7v10l-8 4-8-4V7"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+          Giveaway
+          <span class="ad-badge" id="giveawayBadge" style="background:#7c3aed;display:none">0</span>
+        </button>
       </nav>
       <div class="ad-sidebar-foot">
         <div class="ad-mode-badge" id="adModeBadge">LOCAL MODE</div>
@@ -428,6 +433,53 @@
         </div>
       </section>
 
+      <!-- ═══ GIVEAWAY ════════════════════════════════════════════════════ -->
+      <section id="sec-giveaway" class="ad-section" style="display:none">
+
+        <div class="ad-stats-row">
+          <div class="ad-stat-card">
+            <div class="ad-stat-label">Total Entries</div>
+            <div class="ad-stat-value" id="gwStatTotal">—</div>
+          </div>
+          <div class="ad-stat-card">
+            <div class="ad-stat-label">Entries Today</div>
+            <div class="ad-stat-value" id="gwStatToday">—</div>
+          </div>
+          <div class="ad-stat-card">
+            <div class="ad-stat-label">Top Source</div>
+            <div class="ad-stat-value" id="gwStatSource" style="font-size:18px">—</div>
+          </div>
+          <div class="ad-stat-card">
+            <div class="ad-stat-label">Landing Page</div>
+            <div class="ad-stat-value" style="font-size:13px">
+              <a href="giveaway.html" target="_blank" style="color:#a78bfa;text-decoration:none;font-weight:600">giveaway.html ↗</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="ad-card">
+          <div class="ad-card-header">
+            <h3>🎁 Giveaway Entries</h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="ad-action-btn" style="background:#7c3aed;color:#fff;font-weight:700" onclick="pickGiveawayWinner()">🎲 Pick Winner</button>
+              <button class="ad-action-btn" onclick="exportGiveawayCSV()">⬇ Export CSV</button>
+              <button class="ad-action-btn" style="background:#7f1d1d;color:#fca5a5;font-size:11px" onclick="clearGiveawayEntries()">Clear All</button>
+            </div>
+          </div>
+          <div class="ad-table-wrap">
+            <table class="ad-table">
+              <thead><tr>
+                <th>#</th><th>Name</th><th>Email</th><th>Source</th><th>Location</th><th>Date</th>
+              </tr></thead>
+              <tbody id="gwEntriesBody">
+                <tr><td colspan="6" class="ad-empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
     </main>
 
     <!-- Mobile bottom navigation -->
@@ -529,6 +581,6 @@
   <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
   <script src="db.js?v=20260519d"></script>
   <script src="tiers.js?v=20260519d"></script>
-  <script src="admin.js?v=20260525k"></script>
+  <script src="admin.js?v=20260525l"></script>
 </body>
 </html>

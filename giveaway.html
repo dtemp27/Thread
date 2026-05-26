@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>THREAD — Free Giveaway 🎁</title>
+  <meta name="description" content="Enter to win free THREAD clothing. Your pick: 2 tees or 1 hoodie. No purchase necessary." />
+  <meta property="og:title" content="Win Free THREAD Clothing 🎁" />
+  <meta property="og:description" content="Enter for a chance to win 2 tees or 1 hoodie — you choose. Sign up below." />
+  <meta property="og:image" content="https://mythread.shop/images/phantom-black-model-front.png" />
+  <link rel="icon" href="favicon.ico?v=4" sizes="any" />
+  <link rel="icon" type="image/png" href="images/BrowserLogo.png?v=4" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="giveaway.css?v=1" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="gw-nav">
+    <a href="index.html" class="gw-logo">THREAD<span>.</span></a>
+    <a href="index.html" class="gw-nav-link">Shop the store →</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="gw-hero">
+    <!-- ambient glow blobs (CSS ::before / ::after) -->
+
+    <div class="gw-hero-content">
+
+      <!-- Badge -->
+      <div class="gw-badge">🎁 FREE GIVEAWAY</div>
+
+      <!-- Headline -->
+      <h1 class="gw-headline">Win Free<br><span class="gw-accent">THREAD.</span></h1>
+
+      <p class="gw-subhead">
+        Sign up once. One winner gets to<br>
+        <strong>choose their own prize.</strong>
+      </p>
+
+      <!-- Prize Cards -->
+      <div class="gw-prizes" id="prizesRow">
+
+        <div class="gw-prize">
+          <div class="gw-prize-imgs">
+            <img src="images/tee-jet-black-model.png" alt="Black Tee" class="gw-img-main" loading="eager" />
+            <img src="images/tee-raw-stone-model.png" alt="Stone Tee"  class="gw-img-over" loading="eager" />
+          </div>
+          <div class="gw-prize-label">
+            <span class="gw-prize-icon">👕👕</span>
+            <div>
+              <h3>2 Tees</h3>
+              <p>Any style · Any size</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="gw-or">OR</div>
+
+        <div class="gw-prize">
+          <div class="gw-prize-imgs gw-prize-imgs--single">
+            <img src="images/phantom-black-model-front.png" alt="Hoodie" class="gw-img-main" loading="eager" />
+          </div>
+          <div class="gw-prize-label">
+            <span class="gw-prize-icon">🧥</span>
+            <div>
+              <h3>1 Hoodie</h3>
+              <p>Any style · Any size</p>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /prizes -->
+
+      <!-- Entry counter -->
+      <div class="gw-count" id="countRow">
+        <span class="gw-count-dot"></span>
+        <span><strong id="entryCount">—</strong> people have entered</span>
+      </div>
+
+      <!-- Form -->
+      <div class="gw-form-wrap" id="formWrap">
+        <form id="gwForm" class="gw-form" onsubmit="return false">
+          <div class="gw-input-row">
+            <div class="gw-field">
+              <input type="text" id="gwName" placeholder="Full Name" required autocomplete="name" />
+            </div>
+            <div class="gw-field">
+              <input type="email" id="gwEmail" placeholder="Email Address" required autocomplete="email" />
+            </div>
+          </div>
+          <button type="submit" class="gw-submit" id="gwBtn">
+            <span class="btn-text">Enter the Giveaway →</span>
+            <span class="btn-loader gw-hidden">Entering…</span>
+          </button>
+        </form>
+        <div class="gw-error" id="gwError"></div>
+        <p class="gw-terms">
+          No purchase necessary &nbsp;·&nbsp; One winner selected at random &nbsp;·&nbsp; Winner notified by email
+        </p>
+      </div>
+
+      <!-- Success state -->
+      <div class="gw-success gw-hidden" id="gwSuccess">
+        <div class="gw-success-icon">🎉</div>
+        <h2>You're In!</h2>
+        <p>You've been entered into the THREAD giveaway.<br>We'll reach out to the winner directly. Good luck!</p>
+        <a href="index.html" class="gw-shop-link">Check out the store →</a>
+      </div>
+
+    </div><!-- /hero-content -->
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="gw-footer">
+    <a href="index.html" class="gw-footer-logo">THREAD<span>.</span></a>
+    <p>
+      &copy; 2025 THREAD &nbsp;·&nbsp;
+      <a href="terms.html">Terms</a> &nbsp;·&nbsp;
+      <a href="index.html">Shop</a>
+    </p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <script src="giveaway.js?v=1"></script>
+
+</body>
+</html>

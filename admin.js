@@ -59,7 +59,7 @@ function updateModeBadge() {
 /* ─── Navigation ────────────────────────────────────────────────────────── */
 let currentSection = 'overview';
 
-const SECTION_TITLES = { overview:'Overview', orders:'Orders', customers:'Customers', referrals:'Referrals', dropboxes:'Drop Boxes', analytics:'Analytics' };
+const SECTION_TITLES = { overview:'Overview', orders:'Orders', customers:'Customers', referrals:'Referrals', dropboxes:'Drop Boxes', analytics:'Analytics', giveaway:'Giveaway' };
 
 function showSection(name) {
   document.querySelectorAll('.ad-section').forEach(s => s.style.display = 'none');
@@ -102,6 +102,7 @@ async function loadAllData() {
   safe(loadDropBoxes,   'loadDropBoxes');
   safe(loadAnalytics,   'loadAnalytics');
   safe(loadTrackedQRs,  'loadTrackedQRs');
+  safe(loadGiveaway,    'loadGiveaway');
   const savedSection = sessionStorage.getItem('thread_admin_section') || 'overview';
   safe(() => showSection(savedSection), 'showSection');
 
@@ -1136,4 +1137,140 @@ async function loadAnalytics() {
     const body = document.getElementById('analyticsBody');
     if (body) body.innerHTML = `<tr><td colspan="5" class="ad-empty">Error: ${e.message}</td></tr>`;
   }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   GIVEAWAY
+───────────────────────────────────────────────────────────────────────── */
+let _giveawayEntries = [];
+
+async function loadGiveaway() {
+  const body = document.getElementById('gwEntriesBody');
+  if (!body) return;
+  const cfg = window.THREAD_CONFIG;
+  if (!cfg?.supabaseUrl || !window.supabase) {
+    body.innerHTML = '<tr><td colspan="6" class="ad-empty">Supabase not connected</td></tr>';
+    return;
+  }
+  const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+
+  try {
+    const { data, error } = await sb.rpc('get_giveaway_entries');
+    if (error) throw error;
+
+    _giveawayEntries = data || [];
+    renderGiveaway(_giveawayEntries);
+
+    /* update stat cards */
+    const totalEl   = document.getElementById('gwStatTotal');
+    const todayEl   = document.getElementById('gwStatToday');
+    const sourceEl  = document.getElementById('gwStatSource');
+    const badge     = document.getElementById('giveawayBadge');
+
+    if (totalEl) totalEl.textContent = _giveawayEntries.length.toLocaleString();
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayCount = _giveawayEntries.filter(e => new Date(e.created_at) >= today).length;
+    if (todayEl) todayEl.textContent = todayCount;
+
+    /* top source */
+    const sourceCounts = {};
+    _giveawayEntries.forEach(e => {
+      const s = e.source || 'direct';
+      sourceCounts[s] = (sourceCounts[s] || 0) + 1;
+    });
+    const topSource = Object.entries(sourceCounts).sort((a, b) => b[1] - a[1])[0];
+    if (sourceEl) sourceEl.textContent = topSource ? `${topSource[0]} (${topSource[1]})` : '—';
+
+    /* sidebar badge */
+    if (badge) {
+      badge.textContent = _giveawayEntries.length;
+      badge.style.display = _giveawayEntries.length ? 'inline-flex' : 'none';
+    }
+  } catch (e) {
+    body.innerHTML = `<tr><td colspan="6" class="ad-empty">Error: ${e.message}</td></tr>`;
+  }
+}
+
+function renderGiveaway(entries) {
+  const body = document.getElementById('gwEntriesBody');
+  if (!body) return;
+  if (!entries.length) {
+    body.innerHTML = '<tr><td colspan="6" class="ad-empty">No entries yet — share the giveaway link!</td></tr>';
+    return;
+  }
+  body.innerHTML = entries.map((e, i) => {
+    const dt = e.created_at
+      ? new Date(e.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+      : '—';
+    const location = [e.city, e.country].filter(Boolean).join(', ') || '—';
+    const src = escapeHtml(e.source || 'direct');
+    const srcColor = src === 'direct' ? '#555' : '#a78bfa';
+    return `<tr>
+      <td style="color:#555;font-size:12px">${entries.length - i}</td>
+      <td><strong>${escapeHtml(e.name || '—')}</strong></td>
+      <td style="font-size:13px;color:#ccc">${escapeHtml(e.email || '—')}</td>
+      <td><span style="color:${srcColor};font-size:12px;background:rgba(124,58,237,0.1);padding:3px 9px;border-radius:100px">${src}</span></td>
+      <td style="font-size:12px;color:#888">${escapeHtml(location)}</td>
+      <td style="font-size:12px;color:#888;white-space:nowrap">${dt}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function pickGiveawayWinner() {
+  if (!_giveawayEntries.length) {
+    alert('No entries yet — nothing to pick from!');
+    return;
+  }
+  /* quick animated pick */
+  const idx    = Math.floor(Math.random() * _giveawayEntries.length);
+  const winner = _giveawayEntries[idx];
+  const msg    = [
+    '🎉  WINNER SELECTED!',
+    '',
+    `Name:  ${winner.name}`,
+    `Email: ${winner.email}`,
+    winner.city ? `City:  ${winner.city}` : '',
+    '',
+    `Entry #${_giveawayEntries.length - idx} of ${_giveawayEntries.length}`,
+    '',
+    'Copy their email and send a DM — they get to choose 2 tees or 1 hoodie.'
+  ].filter(l => l !== undefined).join('\n');
+  alert(msg);
+}
+
+function exportGiveawayCSV() {
+  if (!_giveawayEntries.length) { alert('No entries to export.'); return; }
+  const cols = ['#', 'Name', 'Email', 'Source', 'City', 'Date'];
+  const rows = _giveawayEntries.map((e, i) => [
+    _giveawayEntries.length - i,
+    e.name  || '',
+    e.email || '',
+    e.source || 'direct',
+    e.city   || '',
+    e.created_at ? new Date(e.created_at).toLocaleString() : ''
+  ]);
+  const csv = [cols, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const a   = document.createElement('a');
+  a.href    = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = `THREAD-giveaway-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+async function clearGiveawayEntries() {
+  if (!_giveawayEntries.length) { alert('Nothing to clear.'); return; }
+  if (!confirm(`Delete ALL ${_giveawayEntries.length} giveaway entries? This cannot be undone.`)) return;
+  const cfg = window.THREAD_CONFIG;
+  if (!cfg?.supabaseUrl || !window.supabase) { alert('Supabase not connected'); return; }
+  const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+  const { error } = await sb.rpc('clear_giveaway_entries');
+  if (error) { alert('Failed: ' + error.message); return; }
+  _giveawayEntries = [];
+  renderGiveaway([]);
+  const totalEl = document.getElementById('gwStatTotal');
+  const todayEl = document.getElementById('gwStatToday');
+  if (totalEl) totalEl.textContent = '0';
+  if (todayEl) todayEl.textContent = '0';
+  alert('All giveaway entries cleared.');
 }
