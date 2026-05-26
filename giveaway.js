@@ -14,9 +14,8 @@
     ? window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey)
     : null;
 
-  /* ── Ad source ── */
-  const urlParams = new URLSearchParams(window.location.search);
-  const source    = (urlParams.get('src') || urlParams.get('source') || 'direct').slice(0, 50);
+  /* ── Ad source — hardcoded to Instagram ── */
+  const source = 'instagram';
 
   /* ── Geo ── */
   let geoCity = null, geoIp = null;
