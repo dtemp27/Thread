@@ -980,10 +980,17 @@ async function loadAnalytics() {
     const uniqueIPs = new Set(visits.map(e => e.ip_address).filter(Boolean));
     const cartRate  = visits.length ? Math.round((carts.length / visits.length) * 100) : 0;
 
+    // New signups in the last 24 hours (from allCustomers already loaded)
+    const since24h    = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const newSignups  = allCustomers.filter(c => c.created_at && c.created_at >= since24h).length;
+    const convRate    = uniqueIPs.size ? Math.round((newSignups / uniqueIPs.size) * 100) : 0;
+
     document.getElementById('statUniqueVisitors').textContent = uniqueIPs.size;
     document.getElementById('statTotalVisits').textContent    = visits.length;
     document.getElementById('statAddToCarts').textContent     = carts.length;
     document.getElementById('statCartRate').textContent       = cartRate + '%';
+    document.getElementById('statNewSignups').textContent     = newSignups;
+    document.getElementById('statConvRate').textContent       = convRate + '%';
 
     // Top clicks breakdown
     const clickCounts = {};
