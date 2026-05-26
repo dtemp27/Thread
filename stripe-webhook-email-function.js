@@ -110,6 +110,26 @@ async function handleCheckoutCompleted(session) {
     email_sent_at:      new Date().toISOString(),
   });
 
+  // Mark single-use recovery promo code as used (if one was applied)
+  if (promoCode && promoCode.startsWith('BACK20')) {
+    try {
+      const supabaseUrl = mustEnv('SUPABASE_URL');
+      const serviceKey  = mustEnv('SUPABASE_SERVICE_ROLE_KEY');
+      await fetch(`${supabaseUrl}/rest/v1/rpc/use_promo_code`, {
+        method: 'POST',
+        headers: {
+          apikey:         serviceKey,
+          Authorization:  `Bearer ${serviceKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ p_code: promoCode }),
+      });
+      console.log(`[stripe-webhook] Promo code ${promoCode} marked as used`);
+    } catch (e) {
+      console.warn('[stripe-webhook] Failed to mark promo code as used:', e.message);
+    }
+  }
+
   // Send confirmation email
   await sendOrderEmail({
     to:              customerEmail,

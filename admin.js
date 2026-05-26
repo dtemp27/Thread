@@ -59,7 +59,7 @@ function updateModeBadge() {
 /* ─── Navigation ────────────────────────────────────────────────────────── */
 let currentSection = 'overview';
 
-const SECTION_TITLES = { overview:'Overview', orders:'Orders', customers:'Customers', referrals:'Referrals', dropboxes:'Drop Boxes', analytics:'Analytics', giveaway:'Giveaway' };
+const SECTION_TITLES = { overview:'Overview', orders:'Orders', customers:'Customers', referrals:'Referrals', dropboxes:'Drop Boxes', analytics:'Analytics', giveaway:'Giveaway', emails:'Emails' };
 
 function showSection(name) {
   document.querySelectorAll('.ad-section').forEach(s => s.style.display = 'none');
@@ -103,6 +103,7 @@ async function loadAllData() {
   safe(loadAnalytics,   'loadAnalytics');
   safe(loadTrackedQRs,  'loadTrackedQRs');
   safe(loadGiveaway,    'loadGiveaway');
+  safe(loadEmailStats,  'loadEmailStats');
   const savedSection = sessionStorage.getItem('thread_admin_section') || 'overview';
   safe(() => showSection(savedSection), 'showSection');
 
@@ -1283,4 +1284,233 @@ async function clearGiveawayEntries() {
   if (totalEl) totalEl.textContent = '0';
   if (todayEl) todayEl.textContent = '0';
   alert('All giveaway entries cleared.');
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   RECOVERY EMAILS
+───────────────────────────────────────────────────────────────────────── */
+
+function _sbClient() {
+  const cfg = window.THREAD_CONFIG;
+  if (!cfg?.supabaseUrl || !window.supabase) return null;
+  return window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+}
+
+function _edgeFunctionUrl(name) {
+  const cfg = window.THREAD_CONFIG;
+  if (!cfg?.supabaseUrl) return null;
+  return `${cfg.supabaseUrl}/functions/v1/${name}`;
+}
+
+async function loadEmailStats() {
+  const eligibleEl = document.getElementById('emEligible');
+  const sentEl     = document.getElementById('emSent');
+  const usedEl     = document.getElementById('emUsed');
+
+  const sb = _sbClient();
+  if (!sb) return;
+
+  try {
+    /* Count codes sent (rows in user_promo_codes) */
+    const { count: sentCount, error: sentErr } = await sb
+      .from('user_promo_codes')
+      .select('id', { count: 'exact', head: true });
+    if (!sentErr && sentEl) sentEl.textContent = (sentCount ?? 0).toLocaleString();
+
+    /* Count codes used */
+    const { count: usedCount, error: usedErr } = await sb
+      .from('user_promo_codes')
+      .select('id', { count: 'exact', head: true })
+      .eq('used', true);
+    if (!usedErr && usedEl) usedEl.textContent = (usedCount ?? 0).toLocaleString();
+
+    /* Count eligible users (signed up, no paid order, no existing code) */
+    const { data: eligible, error: eligErr } = await sb.rpc('get_users_without_orders');
+    if (!eligErr && eligibleEl) eligibleEl.textContent = Array.isArray(eligible) ? eligible.length.toLocaleString() : '0';
+
+  } catch (e) {
+    console.warn('[loadEmailStats] error:', e.message);
+  }
+
+  /* Also populate the codes table if the section is visible */
+  if (document.getElementById('sec-emails')?.style.display !== 'none') {
+    await loadEmailCodes();
+  }
+}
+
+async function loadEmailCodes() {
+  const body = document.getElementById('emCodesBody');
+  if (!body) return;
+
+  const sb = _sbClient();
+  if (!sb) {
+    body.innerHTML = '<tr><td colspan="6" class="ad-empty">Supabase not connected</td></tr>';
+    return;
+  }
+
+  try {
+    const { data, error } = await sb
+      .from('user_promo_codes')
+      .select('email, code, discount_pct, used, used_at, created_at')
+      .order('created_at', { ascending: false })
+      .limit(200);
+
+    if (error) throw error;
+
+    if (!data || !data.length) {
+      body.innerHTML = '<tr><td colspan="6" class="ad-empty">No codes sent yet. Click "Send Recovery Emails" to get started.</td></tr>';
+      return;
+    }
+
+    body.innerHTML = data.map(row => {
+      const sent   = row.created_at ? new Date(row.created_at).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+      const usedAt = row.used_at    ? new Date(row.used_at).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+      const status = row.used
+        ? '<span style="background:#14532d;color:#4ade80;padding:2px 9px;border-radius:100px;font-size:11px;font-weight:700">✓ Used</span>'
+        : '<span style="background:#1a1a2e;color:#a78bfa;padding:2px 9px;border-radius:100px;font-size:11px;font-weight:700">Pending</span>';
+      return `<tr>
+        <td style="font-size:13px;color:#ccc">${escapeHtml(row.email || '—')}</td>
+        <td><code style="color:#a78bfa;font-size:13px;letter-spacing:1px">${escapeHtml(row.code || '—')}</code></td>
+        <td style="color:#a78bfa;font-weight:700">${row.discount_pct ?? 20}%</td>
+        <td>${status}</td>
+        <td style="font-size:12px;color:#888;white-space:nowrap">${sent}</td>
+        <td style="font-size:12px;color:#888;white-space:nowrap">${row.used ? usedAt : '—'}</td>
+      </tr>`;
+    }).join('');
+
+  } catch (e) {
+    body.innerHTML = `<tr><td colspan="6" class="ad-empty">Error: ${escapeHtml(e.message)}</td></tr>`;
+  }
+}
+
+async function emailDryRun() {
+  const statusEl  = document.getElementById('emStatus');
+  const previewBtn = document.getElementById('emPreviewBtn');
+  const url = _edgeFunctionUrl('send-recovery-emails');
+  if (!url) { if (statusEl) statusEl.textContent = 'Supabase not configured.'; return; }
+
+  if (previewBtn) { previewBtn.disabled = true; previewBtn.textContent = 'Checking…'; }
+  if (statusEl)   statusEl.textContent = '';
+
+  try {
+    const cfg = window.THREAD_CONFIG;
+    const res = await fetch(url, {
+      method:  'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${cfg.supabaseAnonKey}`,
+        'apikey': cfg.supabaseAnonKey,
+      },
+      body: JSON.stringify({ dryRun: true }),
+    });
+    const result = await res.json();
+
+    if (result.error) throw new Error(result.error);
+
+    const count = result.eligible ?? 0;
+    if (statusEl) {
+      if (count === 0) {
+        statusEl.style.color = '#888';
+        statusEl.textContent = 'No eligible users found — everyone has either purchased or already received a code.';
+      } else {
+        statusEl.style.color = '#a78bfa';
+        statusEl.textContent = `${count} eligible user${count === 1 ? '' : 's'} would receive an email: ${(result.users || []).join(', ')}`;
+      }
+    }
+
+    /* refresh stats */
+    await loadEmailStats();
+
+  } catch (e) {
+    if (statusEl) { statusEl.style.color = '#f87171'; statusEl.textContent = 'Error: ' + e.message; }
+  } finally {
+    if (previewBtn) { previewBtn.disabled = false; previewBtn.textContent = 'Preview Eligible Users'; }
+  }
+}
+
+async function sendRecoveryEmails() {
+  const statusEl = document.getElementById('emStatus');
+  const sendBtn  = document.getElementById('emSendBtn');
+  const url = _edgeFunctionUrl('send-recovery-emails');
+  if (!url) { if (statusEl) statusEl.textContent = 'Supabase not configured.'; return; }
+
+  /* First do a dry run to show count in confirm dialog */
+  if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = 'Checking…'; }
+  if (statusEl) { statusEl.style.color = '#a78bfa'; statusEl.textContent = 'Checking eligible users…'; }
+
+  let eligible = 0;
+  try {
+    const cfg = window.THREAD_CONFIG;
+    const preRes = await fetch(url, {
+      method:  'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${cfg.supabaseAnonKey}`,
+        'apikey': cfg.supabaseAnonKey,
+      },
+      body: JSON.stringify({ dryRun: true }),
+    });
+    const preData = await preRes.json();
+    if (preData.error) throw new Error(preData.error);
+    eligible = preData.eligible ?? 0;
+  } catch (e) {
+    if (statusEl) { statusEl.style.color = '#f87171'; statusEl.textContent = 'Error: ' + e.message; }
+    if (sendBtn)  { sendBtn.disabled = false; sendBtn.textContent = '✉ Send Recovery Emails'; }
+    return;
+  }
+
+  if (eligible === 0) {
+    if (statusEl) { statusEl.style.color = '#888'; statusEl.textContent = 'No eligible users to send to.'; }
+    if (sendBtn)  { sendBtn.disabled = false; sendBtn.textContent = '✉ Send Recovery Emails'; }
+    return;
+  }
+
+  const confirmed = confirm(
+    `Send recovery emails to ${eligible} user${eligible === 1 ? '' : 's'}?\n\n` +
+    `Each will receive a unique one-time 20% off code.\n\n` +
+    `This cannot be undone.`
+  );
+  if (!confirmed) {
+    if (sendBtn)  { sendBtn.disabled = false; sendBtn.textContent = '✉ Send Recovery Emails'; }
+    if (statusEl) statusEl.textContent = '';
+    return;
+  }
+
+  if (sendBtn)  { sendBtn.textContent = `Sending to ${eligible}…`; }
+  if (statusEl) { statusEl.style.color = '#a78bfa'; statusEl.textContent = `Sending emails… (this may take a moment)`; }
+
+  try {
+    const cfg = window.THREAD_CONFIG;
+    const res = await fetch(url, {
+      method:  'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${cfg.supabaseAnonKey}`,
+        'apikey': cfg.supabaseAnonKey,
+      },
+      body: JSON.stringify({ dryRun: false }),
+    });
+    const result = await res.json();
+    if (result.error) throw new Error(result.error);
+
+    const sent   = result.sent   ?? 0;
+    const errors = result.errors ?? [];
+
+    if (statusEl) {
+      statusEl.style.color = sent > 0 ? '#4ade80' : '#f87171';
+      let msg = `✓ Sent ${sent} email${sent === 1 ? '' : 's'} successfully.`;
+      if (errors.length) msg += ` ${errors.length} failed — see console for details.`;
+      statusEl.textContent = msg;
+      if (errors.length) console.warn('[sendRecoveryEmails] errors:', errors);
+    }
+
+    /* Refresh stats + codes table */
+    await loadEmailStats();
+    await loadEmailCodes();
+
+  } catch (e) {
+    if (statusEl) { statusEl.style.color = '#f87171'; statusEl.textContent = 'Error: ' + e.message; }
+  } finally {
+    if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = '✉ Send Recovery Emails'; }
+  }
 }

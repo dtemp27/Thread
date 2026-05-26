@@ -72,6 +72,11 @@
           Giveaway
           <span class="ad-badge" id="giveawayBadge" style="background:#7c3aed;display:none">0</span>
         </button>
+        <button class="ad-nav-item" data-section="emails" onclick="showSection('emails');closeSidebar()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Emails
+          <span class="ad-badge" id="emailsBadge" style="background:#7c3aed;display:none">0</span>
+        </button>
       </nav>
       <div class="ad-sidebar-foot">
         <div class="ad-mode-badge" id="adModeBadge">LOCAL MODE</div>
@@ -473,6 +478,60 @@
               </tr></thead>
               <tbody id="gwEntriesBody">
                 <tr><td colspan="8" class="ad-empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ═══ EMAILS ═════════════════════════════════════════════════════════ -->
+      <section id="sec-emails" class="ad-section" style="display:none">
+        <div class="ad-section-header"><h2>Recovery Emails</h2></div>
+
+        <!-- Stats -->
+        <div class="ad-stats-row" style="margin-bottom:20px">
+          <div class="ad-stat-card"><div class="ad-stat-label">Eligible Users</div><div class="ad-stat-num" id="emEligible">—</div></div>
+          <div class="ad-stat-card"><div class="ad-stat-label">Codes Sent</div><div class="ad-stat-num" id="emSent">—</div></div>
+          <div class="ad-stat-card"><div class="ad-stat-label">Codes Used</div><div class="ad-stat-num" id="emUsed">—</div></div>
+          <div class="ad-stat-card"><div class="ad-stat-label">Discount</div><div class="ad-stat-num" style="color:#a78bfa">20%</div></div>
+        </div>
+
+        <!-- Description + actions -->
+        <div style="background:#0e0e1a;border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:22px 24px;margin-bottom:20px;">
+          <p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#fff;">Send 20% Off Recovery Emails</p>
+          <p style="margin:0 0 18px;font-size:13px;color:#666;line-height:1.6;">
+            Sends a personalized email with a unique, one-time-use 20% off code to every user who
+            created an account but never completed a purchase. Each code is stored in the database
+            and invalidated automatically after use.
+          </p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="ad-btn ad-btn--primary" id="emPreviewBtn" onclick="emailDryRun()">Preview Eligible Users</button>
+            <button class="ad-btn ad-btn--danger"  id="emSendBtn"    onclick="sendRecoveryEmails()">✉ Send Recovery Emails</button>
+          </div>
+          <div id="emStatus" style="margin-top:14px;font-size:13px;color:#a78bfa;min-height:18px"></div>
+        </div>
+
+        <!-- Sent codes table -->
+        <div class="ad-table-card">
+          <div class="ad-table-header">
+            <h3>Sent Codes</h3>
+            <button class="ad-link-btn" onclick="loadEmailCodes()">↺ Refresh</button>
+          </div>
+          <div class="ad-table-wrap">
+            <table class="ad-table">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Code</th>
+                  <th>Discount</th>
+                  <th>Status</th>
+                  <th>Sent</th>
+                  <th>Used</th>
+                </tr>
+              </thead>
+              <tbody id="emCodesBody">
+                <tr><td colspan="6" class="ad-empty">Load the Emails section to see codes.</td></tr>
               </tbody>
             </table>
           </div>

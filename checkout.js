@@ -1,5 +1,11 @@
 'use strict';
 
+/* ─── Supabase (for promo code validation) ───────────────────────────────── */
+const _cfg = window.THREAD_CONFIG;
+const _sb  = (_cfg?.supabaseUrl && _cfg.supabaseUrl !== 'YOUR_SUPABASE_URL' && window.supabase)
+  ? window.supabase.createClient(_cfg.supabaseUrl, _cfg.supabaseAnonKey)
+  : null;
+
 /* ─── Load checkout data ──────────────────────────────────────────────────── */
 let checkoutData = JSON.parse(localStorage.getItem('thread_checkout') || 'null');
 const refCode      = localStorage.getItem('thread_ref') || null;
@@ -109,7 +115,7 @@ function removeCheckoutItem(idx) {
 }
 
 /* ─── Promo code on checkout page ───────────────────────────────────────── */
-function applyCheckoutPromo() {
+async function applyCheckoutPromo() {
   const input  = document.getElementById('coPromoInput');
   const msgEl  = document.getElementById('coPromoMsg');
   const code   = (input?.value || '').trim().toUpperCase();
@@ -161,8 +167,31 @@ function applyCheckoutPromo() {
     discount = promos[code];
     label = `$${discount} off`;
   } else {
-    setMsg('Invalid promo code.', 'error');
-    return;
+    /* ── Check database for personal single-use codes (20% off) ── */
+    if (_sb) {
+      const btn = document.getElementById('coPromoBtn') || document.querySelector('.co-promo-btn');
+      if (btn) { btn.disabled = true; btn.textContent = 'Checking…'; }
+      try {
+        const { data: pct, error } = await _sb.rpc('validate_user_promo_code', { p_code: code });
+        if (!error && pct != null) {
+          const subtotal = checkoutData.items.reduce((s, i) => s + i.price * (i.qty || 1), 0);
+          discount = parseFloat((subtotal * (pct / 100)).toFixed(2));
+          label    = `${pct}% off your entire order`;
+        } else {
+          if (btn) { btn.disabled = false; btn.textContent = 'Apply'; }
+          setMsg('Invalid promo code.', 'error');
+          return;
+        }
+      } catch (_) {
+        if (btn) { btn.disabled = false; btn.textContent = 'Apply'; }
+        setMsg('Invalid promo code.', 'error');
+        return;
+      }
+      if (btn) { btn.disabled = false; btn.textContent = 'Apply'; }
+    } else {
+      setMsg('Invalid promo code.', 'error');
+      return;
+    }
   }
 
   checkoutData.discount  = discount;
