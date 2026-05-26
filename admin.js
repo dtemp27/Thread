@@ -431,6 +431,37 @@ function renderCustomers() {
     );
   }
 
+  // Show any cart events that couldn't be linked to an account (no uid: prefix)
+  const unlinkedCarts = _analyticsCache.filter(e => {
+    if (e.event_type !== 'add_to_cart') return false;
+    const label = e.page_label || '';
+    // Linked events start with uid: — show the rest
+    return !label.startsWith('uid:');
+  });
+  const unlinkedBox = document.getElementById('unlinkedCartBox');
+  if (unlinkedBox) {
+    if (unlinkedCarts.length) {
+      unlinkedBox.style.display = 'block';
+      unlinkedBox.innerHTML = `
+        <div style="font-size:12px;font-weight:700;color:#fcd34d;margin-bottom:8px">
+          ⚠️ ${unlinkedCarts.length} cart add${unlinkedCarts.length > 1 ? 's' : ''} couldn't be linked to an account (logged out or pre-update):
+        </div>
+        ${unlinkedCarts.map(e => {
+          const t = new Date(e.created_at).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+          const loc = [e.city, e.country].filter(Boolean).join(', ') || '—';
+          const item = (e.page_label || '—').replace(/^uid:[^|]+\|/, '');
+          return `<div style="display:flex;gap:16px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:12px">
+            <span style="color:#888;white-space:nowrap">${t}</span>
+            <code style="color:#a78bfa;font-size:11px">${escapeHtml(e.ip_address || '—')}</code>
+            <span style="color:#ccc">${escapeHtml(loc)}</span>
+            <span style="color:#e2e8f0;font-weight:600">${escapeHtml(item)}</span>
+          </div>`;
+        }).join('')}`;
+    } else {
+      unlinkedBox.style.display = 'none';
+    }
+  }
+
   const tbody = document.getElementById('customersBody');
   tbody.innerHTML = filtered.length ? filtered.map(c => {
     const customerOrders = allOrders.filter(o => o.user_id === c.id || o.customer_email === c.email);
