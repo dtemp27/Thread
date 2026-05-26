@@ -380,4 +380,15 @@
     trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
   };
 
+  /* ── Prize image flip (tap on mobile, hover handled by CSS on desktop) ── */
+  window.gwFlipPrize = function (e, imgWrap) {
+    e.stopPropagation(); // don't bubble to selectPrize
+    const prize = imgWrap.closest('.gw-prize');
+    if (!prize) return;
+    prize.classList.toggle('flipped');
+    // Also select this prize when tapping its image
+    const prizeKey = prize.id === 'prizeTees' ? 'tees' : 'hoodie';
+    selectPrize(prizeKey);
+  };
+
 })();

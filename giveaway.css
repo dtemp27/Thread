@@ -224,26 +224,60 @@ body {
   transform: scale(1);
 }
 
-/* image area — front + back split 50/50 */
+/* image area — single image with front/back flip */
 .gw-prize-imgs {
-  display: flex;
+  position: relative;
   background: var(--bg2);
-  height: 260px;
+  height: 360px;
   overflow: hidden;
   border-radius: 18px 18px 0 0;
+  cursor: pointer;
 }
 
-.gw-img-half {
-  flex: 1;
-  width: 50%;
+.gw-prize-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
   height: 100%;
   object-fit: contain;
   object-position: center;
-  padding: 10px;
-  display: block;
+  transition: opacity 0.45s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.gw-img-back {
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
+.gw-prize-front { opacity: 1; z-index: 1; }
+.gw-prize-back  { opacity: 0; z-index: 2; }
+
+/* Desktop hover — show back on hover (non-touch only) */
+@media (hover: hover) and (pointer: fine) {
+  .gw-prize-imgs:hover .gw-prize-front { opacity: 0; transform: scale(1.02); }
+  .gw-prize-imgs:hover .gw-prize-back  { opacity: 1; transform: scale(1.02); }
+  .gw-prize-imgs:hover .gw-flip-hint   { color: rgba(255,255,255,0.55); }
+}
+
+/* Mobile tap: .flipped class on parent .gw-prize */
+.gw-prize.flipped .gw-prize-front { opacity: 0; transform: scale(1.02); }
+.gw-prize.flipped .gw-prize-back  { opacity: 1; transform: scale(1.02); }
+
+/* Flip hint */
+.gw-flip-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.22);
+  text-transform: uppercase;
+  z-index: 5;
+  white-space: nowrap;
+  transition: color 0.25s ease;
+  pointer-events: none;
+}
+/* On desktop show "hover" hint instead */
+@media (hover: hover) and (pointer: fine) {
+  .gw-flip-hint::before { content: 'Hover to see back'; }
+  .gw-flip-hint { font-size: 0; }
+  .gw-flip-hint::before { font-size: 9px; }
 }
 
 /* label strip */
