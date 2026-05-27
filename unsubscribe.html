@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unsubscribe — THREAD</title>
+  <link rel="icon" href="favicon.ico" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0a0a12;
+      color: #fff;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #13131f;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 48px 40px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+    }
+    .logo {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      color: #fff;
+      margin-bottom: 32px;
+    }
+    .logo span { color: #7c3aed; }
+    .icon { font-size: 48px; margin-bottom: 20px; }
+    h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 14px;
+      color: #888;
+      line-height: 1.65;
+      margin-bottom: 28px;
+    }
+    .email-chip {
+      display: inline-block;
+      background: rgba(124,58,237,0.1);
+      border: 1px solid rgba(124,58,237,0.25);
+      color: #a78bfa;
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 28px;
+    }
+    .btn {
+      display: inline-block;
+      background: #7c3aed;
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 14px 36px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn--ghost {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #888;
+      font-size: 13px;
+      padding: 10px 24px;
+      margin-top: 12px;
+    }
+    .status {
+      margin-top: 20px;
+      font-size: 13px;
+      min-height: 18px;
+    }
+    .status--success { color: #4ade80; }
+    .status--error   { color: #f87171; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">THREAD<span>.</span></div>
+
+    <div id="stateLoading">
+      <div class="icon">⏳</div>
+      <h1>One second…</h1>
+      <p>We're loading your unsubscribe request.</p>
+    </div>
+
+    <div id="stateConfirm" style="display:none">
+      <div class="icon">✉️</div>
+      <h1>Unsubscribe from emails?</h1>
+      <p>You'll stop receiving promotional emails from THREAD. You won't be emailed again.</p>
+      <div class="email-chip" id="emailChip"></div><br>
+      <button class="btn" id="confirmBtn" onclick="doUnsubscribe()">Yes, unsubscribe me</button>
+      <br>
+      <a href="https://mythread.shop" class="btn btn--ghost">Never mind, keep me subscribed</a>
+      <div class="status" id="statusMsg"></div>
+    </div>
+
+    <div id="stateDone" style="display:none">
+      <div class="icon">✅</div>
+      <h1>You're unsubscribed.</h1>
+      <p>We've removed <strong id="doneEmail" style="color:#fff"></strong> from our email list. You won't hear from us again.</p>
+      <a href="https://mythread.shop" class="btn" style="margin-top:8px">Back to THREAD</a>
+    </div>
+
+    <div id="stateError" style="display:none">
+      <div class="icon">❌</div>
+      <h1>Something went wrong.</h1>
+      <p>We couldn't process your request. Please email us directly at <a href="mailto:contact@mythread.shop" style="color:#a78bfa">contact@mythread.shop</a> and we'll remove you manually.</p>
+      <a href="https://mythread.shop" class="btn btn--ghost" style="margin-top:8px">Go home</a>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <script>
+    let _email = '';
+
+    function show(id) {
+      ['stateLoading','stateConfirm','stateDone','stateError'].forEach(s => {
+        document.getElementById(s).style.display = s === id ? 'block' : 'none';
+      });
+    }
+
+    (function init() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const encoded = params.get('e');
+        if (!encoded) { show('stateError'); return; }
+        _email = atob(encoded);
+        if (!_email || !_email.includes('@')) { show('stateError'); return; }
+        document.getElementById('emailChip').textContent = _email;
+        show('stateConfirm');
+      } catch (e) {
+        show('stateError');
+      }
+    })();
+
+    async function doUnsubscribe() {
+      const btn    = document.getElementById('confirmBtn');
+      const status = document.getElementById('statusMsg');
+      btn.disabled = true;
+      btn.textContent = 'Processing…';
+      status.textContent = '';
+
+      try {
+        const cfg = window.THREAD_CONFIG;
+        if (!cfg?.supabaseUrl || !window.supabase) throw new Error('Config missing');
+        const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+        const { error } = await sb.rpc('unsubscribe_email', { p_email: _email });
+        if (error) throw error;
+        document.getElementById('doneEmail').textContent = _email;
+        show('stateDone');
+      } catch (e) {
+        btn.disabled = false;
+        btn.textContent = 'Yes, unsubscribe me';
+        status.className = 'status status--error';
+        status.textContent = 'Something went wrong — please try again.';
+      }
+    }
+  </script>
+</body>
+</html>

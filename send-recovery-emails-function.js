@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
             from:    'THREAD <contact@mythread.shop>',
             to:      [user.email],
             subject: 'You left something behind 👕 — here\'s 20% off',
-            html:    buildEmailHtml(user.name || user.email.split('@')[0], code),
+            html:    buildEmailHtml(user.name || user.email.split('@')[0], code, user.email),
           }),
         });
 
@@ -127,8 +127,9 @@ function generateCode() {
 }
 
 /* ─── Email HTML template ───────────────────────────────────────────────── */
-function buildEmailHtml(name, code) {
-  const firstName = name.split(' ')[0] || 'there';
+function buildEmailHtml(name, code, email) {
+  const firstName     = name.split(' ')[0] || 'there';
+  const encodedEmail  = btoa(email || '');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -240,6 +241,8 @@ function buildEmailHtml(name, code) {
                 <a href="https://mythread.shop" style="color:#555;text-decoration:none;">mythread.shop</a>
                 &nbsp;·&nbsp;
                 <a href="https://mythread.shop/terms.html" style="color:#555;text-decoration:none;">Terms</a>
+                &nbsp;·&nbsp;
+                <a href="https://mythread.shop/unsubscribe.html?e=${encodedEmail}" style="color:#555;text-decoration:none;">Unsubscribe</a>
               </p>
               <p style="margin:0;font-size:11px;color:#2a2a3a;">
                 You're receiving this because you created a THREAD account.
