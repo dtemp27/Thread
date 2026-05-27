@@ -536,6 +536,35 @@
     } else if (promos[code]) {
       discount = promos[code];
       msg = `$${discount} off`;
+    } else if (code.startsWith('BACK20')) {
+      /* Recovery email code — validate against Supabase */
+      const cfg = window.THREAD_CONFIG;
+      if (!cfg?.supabaseUrl || !window.supabase) {
+        showCatalogToast('Invalid promo code', true); return;
+      }
+      const applyBtn = document.querySelector('[onclick*="applyPromo"]');
+      if (applyBtn) { applyBtn.disabled = true; applyBtn.textContent = 'Checking…'; }
+      (async () => {
+        try {
+          const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+          const { data: pct, error } = await sb.rpc('validate_user_promo_code', { p_code: code });
+          if (error || pct == null) {
+            showCatalogToast('Invalid or already used promo code', true); return;
+          }
+          const subtotal = cart.items.reduce((s, i) => s + i.price * (i.qty || 1), 0);
+          const disc = parseFloat((subtotal * (pct / 100)).toFixed(2));
+          cart.promoCode = code;
+          cart.discount  = disc;
+          saveCart(cart); renderCartDrawer();
+          if (input) input.value = '';
+          showCatalogToast(`${pct}% off applied! 🎉`);
+        } catch (e) {
+          showCatalogToast('Could not validate code — try again', true);
+        } finally {
+          if (applyBtn) { applyBtn.disabled = false; applyBtn.textContent = 'Apply'; }
+        }
+      })();
+      return;
     } else {
       showCatalogToast('Invalid promo code', true); return;
     }

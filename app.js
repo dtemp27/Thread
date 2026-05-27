@@ -785,8 +785,10 @@ function changeCartSize(idx, newSize) {
   saveCart(cart); renderCartDrawer();
 }
 
-function applyPromo() {
-  const code = document.getElementById('promoInput')?.value.trim().toUpperCase();
+async function applyPromo() {
+  const input = document.getElementById('promoInput');
+  const code  = input?.value.trim().toUpperCase();
+  if (!code) return;
   const cart = getCart();
 
   if (code === 'BOGOEGG') {
@@ -802,9 +804,39 @@ function applyPromo() {
     cart.discount  = discount;
     saveCart(cart); renderCartDrawer();
     showStoreToast(`🥚 BOGOEGG applied — tee is 50% off!`);
-  } else {
-    showStoreToast('Invalid promo code', 'error');
+    return;
   }
+
+  /* ── BACK20 recovery codes — validate against Supabase ── */
+  if (code.startsWith('BACK20')) {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) {
+      showStoreToast('Invalid promo code', 'error'); return;
+    }
+    const applyBtn = document.getElementById('promoApplyBtn') || document.querySelector('[onclick*="applyPromo"]');
+    if (applyBtn) { applyBtn.disabled = true; applyBtn.textContent = 'Checking…'; }
+    try {
+      const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+      const { data: pct, error } = await sb.rpc('validate_user_promo_code', { p_code: code });
+      if (error || pct == null) {
+        showStoreToast('Invalid or already used promo code', 'error');
+        return;
+      }
+      const subtotal = cart.items.reduce((s, i) => s + i.price * (i.qty || 1), 0);
+      const discount = parseFloat((subtotal * (pct / 100)).toFixed(2));
+      cart.promoCode = code;
+      cart.discount  = discount;
+      saveCart(cart); renderCartDrawer();
+      showStoreToast(`${pct}% off applied! 🎉`);
+    } catch (e) {
+      showStoreToast('Could not validate code — try again', 'error');
+    } finally {
+      if (applyBtn) { applyBtn.disabled = false; applyBtn.textContent = 'Apply'; }
+    }
+    return;
+  }
+
+  showStoreToast('Invalid promo code', 'error');
 }
 
 // iOS Safari ignores overflow:hidden on body — pin it with position:fixed instead,
