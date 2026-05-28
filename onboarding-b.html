@@ -57,14 +57,22 @@
     .step-arrow { color: var(--purple-light); font-size: 16px; font-weight: 900; align-self: center; flex-shrink: 0; padding: 0 2px; }
 
     /* Earnings calculator (slide 2) */
-    .earn-calc { width: 100%; max-width: 420px; background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2); border-radius: 18px; padding: 20px 24px; margin-bottom: 24px; }
-    .earn-calc-label { font-size: 13px; color: #888; margin-bottom: 14px; }
+    .earn-calc { width: 100%; max-width: 440px; background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2); border-radius: 18px; padding: 20px 22px; margin-bottom: 24px; }
+    .earn-calc-title { font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 3px; }
+    .earn-calc-desc  { font-size: 12px; color: #888; margin-bottom: 14px; }
     .earn-slider { width: 100%; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; background: rgba(124,58,237,0.4); outline: none; cursor: pointer; margin-bottom: 8px; }
     .earn-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--purple); cursor: pointer; transition: transform 0.15s; box-shadow: 0 0 0 4px rgba(124,58,237,0.25); }
     .earn-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
-    .earn-slider-labels { display: flex; justify-content: space-between; font-size: 11px; color: #444; margin-bottom: 16px; }
-    .earn-result-amt { font-size: 52px; font-weight: 900; color: var(--purple-light); line-height: 1; margin-bottom: 6px; transition: color 0.2s; }
-    .earn-result-sub { font-size: 12px; color: #555; line-height: 1.5; }
+    .earn-slider-labels { display: flex; justify-content: space-between; font-size: 11px; color: #444; margin-bottom: 14px; }
+    .earn-stats { display: flex; border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
+    .earn-stat { flex: 1; padding: 10px 6px; text-align: center; border-right: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.2); }
+    .earn-stat:last-child { border-right: none; }
+    .earn-stat-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .earn-stat-value { font-size: 17px; font-weight: 900; color: #fff; font-family: 'Courier New', monospace; }
+    .earn-divider { height: 1px; background: rgba(255,255,255,0.06); margin-bottom: 12px; }
+    .earn-result-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 1.5px; text-align: center; margin-bottom: 6px; }
+    .earn-result-amt { font-size: 48px; font-weight: 900; color: var(--purple-light); line-height: 1; margin-bottom: 4px; transition: all 0.2s; text-align: center; }
+    .earn-result-sub { font-size: 11px; color: #555; line-height: 1.5; text-align: center; }
 
     /* ── PICKER SCREEN ── */
     #screenPicker { padding: 68px 20px 80px; justify-content: flex-start; }
@@ -204,11 +212,28 @@
     <div class="slide-eyebrow">See your potential</div>
     <h1 class="slide-headline">How much could<br><span>you earn?</span></h1>
     <div class="earn-calc">
-      <div class="earn-calc-label">How many people do you think would scan your QR per week?</div>
+      <div class="earn-calc-title">Calculate Your Earnings</div>
+      <div class="earn-calc-desc">How many people could scan your QR code per week?</div>
       <input type="range" id="onbScanSlider" min="1" max="50" value="10" class="earn-slider" oninput="updateOnbCalc()" />
       <div class="earn-slider-labels"><span>1</span><span>10</span><span>25</span><span>50</span></div>
+      <div class="earn-stats">
+        <div class="earn-stat">
+          <div class="earn-stat-label">Scans/week</div>
+          <div class="earn-stat-value" id="onbScanDisplay">10</div>
+        </div>
+        <div class="earn-stat">
+          <div class="earn-stat-label">Conversion</div>
+          <div class="earn-stat-value">~18%</div>
+        </div>
+        <div class="earn-stat">
+          <div class="earn-stat-label">Commission</div>
+          <div class="earn-stat-value" id="onbTierPct">20%</div>
+        </div>
+      </div>
+      <div class="earn-divider"></div>
+      <div class="earn-result-label">Monthly Earnings</div>
       <div class="earn-result-amt" id="onbCalcAmt">$144</div>
-      <div class="earn-result-sub" id="onbCalcSub">per month · ~3.6 purchases · 20% commission</div>
+      <div class="earn-result-sub" id="onbCalcSub">~3.6 purchases/month</div>
     </div>
     <p class="slide-body" style="margin-bottom:20px;">Every scan through your QR = commission in your pocket.<br><strong>No selling. Just wear it.</strong></p>
     <button class="btn-next" onclick="goToPicker()">I'm in — pick my piece →</button>
@@ -735,9 +760,10 @@ function updateOnbCalc() {
   else if (monthlyConv <= 25) { pct = 0.25; tierLabel = '25%'; }
   else                        { pct = 0.30; tierLabel = '30%'; }
   const rounded = Math.round(monthlyConv * 80 * pct / 5) * 5;
+  document.getElementById('onbScanDisplay').textContent = scans;
+  document.getElementById('onbTierPct').textContent = tierLabel;
   document.getElementById('onbCalcAmt').textContent = '$' + rounded.toLocaleString();
-  document.getElementById('onbCalcSub').textContent =
-    `per month · ~${monthlyConv.toFixed(1)} purchases · ${tierLabel} commission`;
+  document.getElementById('onbCalcSub').textContent = `~${monthlyConv.toFixed(1)} purchases/month`;
 }
 updateOnbCalc();
 
