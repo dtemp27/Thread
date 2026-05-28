@@ -27,8 +27,12 @@
     /* ── SLIDE SCREEN ── */
     #screenSlides { justify-content: center; }
     .slide { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 28px; text-align: center; opacity: 0; transform: translateX(60px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
-    .slide.active  { opacity: 1; transform: translateX(0); pointer-events: auto; }
-    .slide.exit    { opacity: 0; transform: translateX(-60px); pointer-events: none; }
+    .slide.active     { opacity: 1; transform: translateX(0); pointer-events: auto; }
+    .slide.exit       { opacity: 0; transform: translateX(-60px); pointer-events: none; }
+    .slide.exit-right { opacity: 0; transform: translateX(60px); pointer-events: none; }
+    #slideBack { position: absolute; top: 20px; left: 20px; background: none; border: none; color: #555; font-size: 13px; font-weight: 700; cursor: pointer; display: none; align-items: center; gap: 6px; z-index: 10; padding: 0; }
+    #slideBack:hover { color: #888; }
+    #slideBack.visible { display: inline-flex; }
     .slide-icon    { font-size: 60px; margin-bottom: 24px; line-height: 1; }
     .slide-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--purple-light); margin-bottom: 14px; }
     .slide-headline { font-size: clamp(26px, 6vw, 46px); font-weight: 900; line-height: 1.1; letter-spacing: -1px; color: #fff; margin-bottom: 18px; max-width: 540px; }
@@ -151,6 +155,7 @@
      SCREEN 1: SLIDES
 ══════════════════════════════════════════════ -->
 <div class="screen active" id="screenSlides">
+  <button id="slideBack" onclick="prevSlide()">← Back</button>
 
   <div class="slide active" data-slide="0">
     <div class="slide-icon">👋</div>
@@ -476,7 +481,20 @@ function nextSlide() {
   currentSlide++;
   if (currentSlide < TOTAL_SLIDES) slides[currentSlide].classList.add('active');
   setProgress((currentSlide / (TOTAL_SLIDES + 2)) * 100);
+  document.getElementById('slideBack').classList.toggle('visible', currentSlide > 0);
   setTimeout(() => slides.forEach(s => s.classList.remove('exit')), 500);
+}
+
+function prevSlide() {
+  if (currentSlide === 0) return;
+  const slides = document.querySelectorAll('.slide');
+  slides[currentSlide].classList.remove('active');
+  slides[currentSlide].classList.add('exit-right');
+  currentSlide--;
+  slides[currentSlide].classList.add('active');
+  setProgress((currentSlide / (TOTAL_SLIDES + 2)) * 100);
+  document.getElementById('slideBack').classList.toggle('visible', currentSlide > 0);
+  setTimeout(() => slides.forEach(s => s.classList.remove('exit-right')), 500);
 }
 
 function goToPicker() {
