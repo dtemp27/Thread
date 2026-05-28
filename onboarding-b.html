@@ -29,21 +29,28 @@
     .slide { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 28px; text-align: center; opacity: 0; transform: translateX(60px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
     .slide.active  { opacity: 1; transform: translateX(0); pointer-events: auto; }
     .slide.exit    { opacity: 0; transform: translateX(-60px); pointer-events: none; }
-    .slide-icon    { font-size: 60px; margin-bottom: 24px; line-height: 1; }
-    .slide-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--purple-light); margin-bottom: 14px; }
-    .slide-headline { font-size: clamp(26px, 6vw, 46px); font-weight: 900; line-height: 1.1; letter-spacing: -1px; color: #fff; margin-bottom: 18px; max-width: 540px; }
+    .slide-icon    { font-size: 60px; margin-bottom: 20px; line-height: 1; }
+    .slide-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--purple-light); margin-bottom: 12px; }
+    .slide-headline { font-size: clamp(26px, 6vw, 46px); font-weight: 900; line-height: 1.1; letter-spacing: -1px; color: #fff; margin-bottom: 16px; max-width: 540px; }
     .slide-headline span { color: var(--purple-light); }
-    .slide-body { font-size: clamp(15px, 2.5vw, 17px); color: #888; line-height: 1.7; max-width: 460px; margin-bottom: 36px; }
+    .slide-body { font-size: clamp(15px, 2.5vw, 17px); color: #888; line-height: 1.7; max-width: 460px; margin-bottom: 28px; }
     .slide-body strong { color: #fff; }
 
-    .flow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 36px; }
-    .flow-step { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 12px 18px; font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; }
-    .flow-step span { display: block; font-size: 20px; margin-bottom: 4px; }
-    .flow-arrow { color: var(--purple-light); font-size: 20px; font-weight: 900; }
+    /* 3-step inline row */
+    .steps-row { display: flex; align-items: stretch; gap: 0; width: 100%; max-width: 520px; margin-bottom: 28px; }
+    .step-block { flex: 1; background: var(--bg2); border: 1px solid var(--border); border-radius: 0; padding: 16px 12px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .step-block:first-child { border-radius: 16px 0 0 16px; border-right: none; }
+    .step-block:last-child  { border-radius: 0 16px 16px 0; border-left: none; }
+    .step-block:not(:first-child):not(:last-child) { border-left: none; border-right: none; }
+    .step-icon  { font-size: 24px; }
+    .step-label { font-size: 12px; font-weight: 700; color: #fff; line-height: 1.3; }
+    .step-sub   { font-size: 11px; color: #555; line-height: 1.3; }
+    .step-arrow { color: var(--purple-light); font-size: 16px; font-weight: 900; align-self: center; flex-shrink: 0; padding: 0 2px; }
 
-    .earn-callout { background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.3); border-radius: 20px; padding: 24px 32px; margin-bottom: 36px; max-width: 360px; width: 100%; }
-    .earn-callout .big { font-size: 48px; font-weight: 900; color: var(--purple-light); line-height: 1; }
-    .earn-callout .label { font-size: 13px; color: #888; margin-top: 6px; }
+    .earn-badge { display: inline-flex; align-items: center; gap: 10px; background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.3); border-radius: 100px; padding: 10px 20px; margin-bottom: 28px; }
+    .earn-badge .amt { font-size: 22px; font-weight: 900; color: var(--purple-light); }
+    .earn-badge .txt { font-size: 13px; color: #888; text-align: left; line-height: 1.4; }
+    .earn-badge .txt strong { color: #fff; }
 
     /* ── PICKER SCREEN ── */
     #screenPicker { padding: 40px 20px 80px; justify-content: flex-start; }
@@ -137,10 +144,6 @@
 
     .already-have { text-align: center; font-size: 13px; color: #555; margin-top: 14px; }
     .already-have a { color: var(--purple-light); cursor: pointer; text-decoration: none; }
-
-    /* ── SUCCESS SCREEN ── */
-    #screenDone { justify-content: center; padding: 40px 28px; text-align: center; }
-    .done-icon { font-size: 64px; margin-bottom: 24px; }
   </style>
 </head>
 <body>
@@ -148,58 +151,48 @@
 <div id="progressBar"></div>
 
 <!-- ══════════════════════════════════════════════
-     SCREEN 1: SLIDES
+     SCREEN 1: SLIDES (condensed — 2 slides)
 ══════════════════════════════════════════════ -->
 <div class="screen active" id="screenSlides">
 
+  <!-- Slide 1: The concept -->
   <div class="slide active" data-slide="0">
-    <div class="slide-icon">👋</div>
-    <div class="slide-eyebrow">Welcome to THREAD</div>
-    <h1 class="slide-headline">You just made a<br><span>smart move.</span></h1>
-    <p class="slide-body">THREAD isn't just a clothing brand.<br>It's clothing that <strong>pays you back.</strong><br>Here's how it works in 3 steps.</p>
-    <button class="btn-next" onclick="nextSlide()">Let's go →</button>
-  </div>
-
-  <div class="slide" data-slide="1">
     <div class="slide-icon">👕</div>
-    <div class="slide-eyebrow">Step 1</div>
-    <h1 class="slide-headline">Your piece.<br><span>Your QR code.</span></h1>
-    <p class="slide-body">Every THREAD hoodie and tee ships with <strong>your own unique QR code</strong> printed right on it.</p>
-    <button class="btn-next" onclick="nextSlide()">Got it →</button>
-  </div>
-
-  <div class="slide" data-slide="2">
-    <div class="slide-icon">📲</div>
-    <div class="slide-eyebrow">Step 2</div>
-    <h1 class="slide-headline">Someone scans<br><span>your QR.</span></h1>
-    <div class="flow">
-      <div class="flow-step"><span>👀</span>They see your fit</div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step"><span>📲</span>They scan your QR</div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step"><span>🌐</span>They hit the website</div>
+    <div class="slide-eyebrow">Welcome to THREAD</div>
+    <h1 class="slide-headline">Clothing that<br><span>pays you back.</span></h1>
+    <div class="steps-row">
+      <div class="step-block">
+        <div class="step-icon">👕</div>
+        <div class="step-label">Wear it</div>
+        <div class="step-sub">Your unique QR is on the piece</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step-block">
+        <div class="step-icon">📲</div>
+        <div class="step-label">They scan</div>
+        <div class="step-sub">Someone hits your QR code</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step-block">
+        <div class="step-icon">💸</div>
+        <div class="step-label">You earn</div>
+        <div class="step-sub">They buy, you get a cut</div>
+      </div>
     </div>
-    <p class="slide-body">You don't have to sell anything.<br>Just <strong>wear it</strong> and let the code do the work.</p>
-    <button class="btn-next" onclick="nextSlide()">Keep going →</button>
+    <p class="slide-body">No selling. No posting. Just <strong>wear it</strong> and let your piece do the work.</p>
+    <button class="btn-next" onclick="nextSlide()">Got it — show me the pieces →</button>
   </div>
 
-  <div class="slide" data-slide="3">
-    <div class="slide-icon">💸</div>
-    <div class="slide-eyebrow">Step 3</div>
-    <h1 class="slide-headline">They buy.<br><span>You earn.</span></h1>
-    <div class="earn-callout">
-      <div class="big">$$</div>
-      <div class="label">Every purchase through your QR code = commission in your pocket</div>
-    </div>
-    <p class="slide-body">Every time someone scans your code and buys,<br>you get a cut. <strong>Automatically. Every time.</strong></p>
-    <button class="btn-next" onclick="nextSlide()">I'm in →</button>
-  </div>
-
-  <div class="slide" data-slide="4">
+  <!-- Slide 2: Pick your piece -->
+  <div class="slide" data-slide="1">
     <div class="slide-icon">🎯</div>
-    <div class="slide-eyebrow">One last step</div>
+    <div class="slide-eyebrow">One step to start</div>
     <h1 class="slide-headline">Pick your piece.<br><span>Activate your code.</span></h1>
-    <p class="slide-body">Your QR code gets printed on your piece when you order.<br><strong>That's what starts your earning.</strong> Pick yours below.</p>
+    <div class="earn-badge">
+      <div class="amt">$$</div>
+      <div class="txt"><strong>Every scan earns you commission.</strong><br>Your QR code prints on your piece at order time.</div>
+    </div>
+    <p class="slide-body">Choose a tee, a hoodie, or grab both.<br>Your earning starts the moment you put it on.</p>
     <button class="btn-next" onclick="goToPicker()">Choose my piece →</button>
   </div>
 
@@ -348,23 +341,23 @@
    COLOR DATA
 ══════════════════════════════════════════════ */
 const TEE_COLORS = [
-  { name: 'Jet Black',  color: '#111111', front: 'images/tee-jet-black-front.png',   back: 'images/tee-jet-black-back.png'   },
-  { name: 'Clean White', color: '#e8e8e8', front: 'images/tee-clean-white-front.png', back: 'images/tee-clean-white-back.png' },
-  { name: 'Deep Navy',  color: '#1a2744', front: 'images/tee-deep-navy-2.png',        back: 'images/tee-deep-navy-back-2.png'  },
-  { name: 'Raw Stone',  color: '#b5a898', front: 'images/tee-raw-stone-front.png',   back: 'images/tee-raw-stone-back.png'   },
-  { name: 'Slate Grey', color: '#6b7280', front: 'images/tee-slate-grey-2.png',      back: 'images/tee-slate-grey-back-2.png' },
+  { name: 'Jet Black',   color: '#111111', front: 'images/tee-jet-black-front.png',    back: 'images/tee-jet-black-back.png'    },
+  { name: 'Clean White', color: '#e8e8e8', front: 'images/tee-clean-white-front.png',  back: 'images/tee-clean-white-back.png'  },
+  { name: 'Deep Navy',   color: '#1a2744', front: 'images/tee-deep-navy-2.png',         back: 'images/tee-deep-navy-back-2.png'  },
+  { name: 'Raw Stone',   color: '#b5a898', front: 'images/tee-raw-stone-front.png',    back: 'images/tee-raw-stone-back.png'    },
+  { name: 'Slate Grey',  color: '#6b7280', front: 'images/tee-slate-grey-2.png',        back: 'images/tee-slate-grey-back-2.png' },
 ];
 
 const HOODIE_COLORS = [
-  { name: 'Phantom Black', color: '#1a1a1a', front: 'images/phantom-black-front.png',    back: 'images/phantom-black-back.png'    },
-  { name: 'Bone',          color: '#e0d5c0', front: 'images/bone-front.png',             back: 'images/bone-back.png'             },
-  { name: 'Midnight Navy', color: '#1a2744', front: 'images/midnight-navy-front.png',    back: 'images/midnight-navy-back.png'    },
-  { name: 'Ash Stone',     color: '#9e9e9e', front: 'images/ash-stone-front.png',        back: 'images/ash-stone-back.png'        },
-  { name: 'Silver Mist',   color: '#c0c4cc', front: 'images/silver-mist-front.png',      back: 'images/silver-mist-back.png'      },
-  { name: 'Tawny Dusk',    color: '#b87c5a', front: 'images/tawny-dusk-front.png',      back: 'images/tawny-dusk-back.png'      },
-  { name: 'Ivory Pure',    color: '#f5f5f5', front: 'images/ivory-pure-front.png',       back: 'images/ivory-pure-back.png'       },
-  { name: 'Forest Shadow', color: '#2d4a2d', front: 'images/forest-shadow-front.png',    back: 'images/forest-shadow-back.png'    },
-  { name: 'Ember Crimson', color: '#8b1a1a', front: 'images/ember-crimson-front.png',    back: 'images/ember-crimson-back.png'    },
+  { name: 'Phantom Black', color: '#1a1a1a', front: 'images/phantom-black-front.png',  back: 'images/phantom-black-back.png'  },
+  { name: 'Bone',          color: '#e0d5c0', front: 'images/bone-front.png',           back: 'images/bone-back.png'           },
+  { name: 'Midnight Navy', color: '#1a2744', front: 'images/midnight-navy-front.png',  back: 'images/midnight-navy-back.png'  },
+  { name: 'Ash Stone',     color: '#9e9e9e', front: 'images/ash-stone-front.png',      back: 'images/ash-stone-back.png'      },
+  { name: 'Silver Mist',   color: '#c0c4cc', front: 'images/silver-mist-front.png',    back: 'images/silver-mist-back.png'    },
+  { name: 'Tawny Dusk',    color: '#b87c5a', front: 'images/tawny-dusk-front.png',     back: 'images/tawny-dusk-back.png'     },
+  { name: 'Ivory Pure',    color: '#f5f5f5', front: 'images/ivory-pure-front.png',     back: 'images/ivory-pure-back.png'     },
+  { name: 'Forest Shadow', color: '#2d4a2d', front: 'images/forest-shadow-front.png',  back: 'images/forest-shadow-back.png'  },
+  { name: 'Ember Crimson', color: '#8b1a1a', front: 'images/ember-crimson-front.png',  back: 'images/ember-crimson-back.png'  },
 ];
 
 /* State */
@@ -400,16 +393,13 @@ function setColor(type, idx) {
   document.getElementById(type + 'Back').src  = c.back;
   document.getElementById(type + 'ColorName').textContent = c.name + (type === 'tee' ? ' Tee' : ' Hoodie');
 
-  // Update swatch highlights
   const swatches = document.getElementById(type === 'tee' ? 'teeSwatches' : 'hoodieSwatches').querySelectorAll('.swatch');
   swatches.forEach((s, i) => s.classList.toggle('active', i === idx));
 
-  // Auto-select card when color chosen
   if (!_sel[type].on) toggleCard(type);
 }
 
 function handleImgTap(e, type) {
-  // On touch: tap image to flip card; also toggle selection
   const isMobile = window.matchMedia('(hover: none)').matches;
   if (isMobile) {
     document.getElementById('card' + capitalize(type)).classList.toggle('flipped');
@@ -453,6 +443,15 @@ function updateCTA() {
   }
 }
 
+function deselect(type) {
+  _sel[type].on   = false;
+  _sel[type].size = null;
+  const card = document.getElementById('card' + capitalize(type));
+  card.classList.remove('selected');
+  card.querySelectorAll('.card-size-btn').forEach(b => b.classList.remove('selected'));
+  updateCTA();
+}
+
 /* Card click — clicking the card itself (not img/swatch/deselect) toggles selection */
 document.getElementById('cardTee').addEventListener('click', function(e) {
   if (e.target.closest('.picker-imgs') || e.target.closest('.color-swatches') || e.target.closest('.card-size-btns') || e.target.closest('.picker-deselect')) return;
@@ -466,7 +465,7 @@ document.getElementById('cardHoodie').addEventListener('click', function(e) {
 /* ══════════════════════════════════════════════
    SLIDE NAVIGATION
 ══════════════════════════════════════════════ */
-const TOTAL_SLIDES = 5;
+const TOTAL_SLIDES = 2;
 let currentSlide = 0;
 
 function nextSlide() {
@@ -481,7 +480,7 @@ function nextSlide() {
 
 function goToPicker() {
   switchScreen('screenSlides', 'screenPicker');
-  setProgress(((TOTAL_SLIDES) / (TOTAL_SLIDES + 2)) * 100);
+  setProgress((TOTAL_SLIDES / (TOTAL_SLIDES + 2)) * 100);
 }
 
 function goToSignup() {
@@ -533,14 +532,8 @@ function buildOrderMini() {
 }
 
 /* ══════════════════════════════════════════════
-   SIGN UP
+   SAVE CART
 ══════════════════════════════════════════════ */
-function generateReferralCode(name) {
-  const base = (name || 'USER').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4).padEnd(4, 'X');
-  const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return base + rand;
-}
-
 function saveCartItems() {
   const items = [];
   if (_sel.tee.on && _sel.tee.size) {
@@ -552,14 +545,12 @@ function saveCartItems() {
     items.push({ name: c.name + ' Hoodie', price: 79, size: _sel.hoodie.size, type: 'hoodie', qty: 1 });
   }
 
-  // Write thread_cart (used by cart drawer on catalog/index)
   let cart;
   try { cart = JSON.parse(localStorage.getItem('thread_cart') || '{"items":[],"promoCode":null,"discount":0}'); }
   catch { cart = { items: [], promoCode: null, discount: 0 }; }
   cart.items = items;
   localStorage.setItem('thread_cart', JSON.stringify(cart));
 
-  // Write thread_checkout (what checkout.js reads — 2+ items = free shipping, 1 item = $10)
   const totalItems = items.reduce((s, i) => s + (i.qty || 1), 0);
   const subtotal   = items.reduce((s, i) => s + i.price * (i.qty || 1), 0);
   const shipping   = totalItems >= 2 ? 0 : (totalItems === 1 ? 10 : 0);
@@ -574,13 +565,13 @@ function saveCartItems() {
   }));
 }
 
-function deselect(type) {
-  _sel[type].on   = false;
-  _sel[type].size = null;
-  const card = document.getElementById('card' + capitalize(type));
-  card.classList.remove('selected');
-  card.querySelectorAll('.card-size-btn').forEach(b => b.classList.remove('selected'));
-  updateCTA();
+/* ══════════════════════════════════════════════
+   SIGN UP / SIGN IN
+══════════════════════════════════════════════ */
+function generateReferralCode(name) {
+  const base = (name || 'USER').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4).padEnd(4, 'X');
+  const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return base + rand;
 }
 
 async function doSignup() {
@@ -593,10 +584,10 @@ async function doSignup() {
 
   errEl.textContent = '';
 
-  if (!name || name.length < 2)    { errEl.textContent = 'Enter your name.'; return; }
-  if (!username || username.length < 3) { errEl.textContent = 'Username must be at least 3 characters.'; return; }
-  if (!email || !email.includes('@')) { errEl.textContent = 'Enter a valid email.'; return; }
-  if (password.length < 8)          { errEl.textContent = 'Password must be at least 8 characters.'; return; }
+  if (!name || name.length < 2)         { errEl.textContent = 'Enter your name.'; return; }
+  if (!username || username.length < 3)  { errEl.textContent = 'Username must be at least 3 characters.'; return; }
+  if (!email || !email.includes('@'))    { errEl.textContent = 'Enter a valid email.'; return; }
+  if (password.length < 8)              { errEl.textContent = 'Password must be at least 8 characters.'; return; }
 
   btn.disabled = true; btn.textContent = 'Creating your account…';
 
@@ -605,7 +596,6 @@ async function doSignup() {
     if (!cfg?.supabaseUrl || !window.supabase) throw new Error('Service unavailable. Please try again.');
     const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
 
-    // Check username
     const { data: available } = await sb.rpc('check_username_available', { p_username: username });
     if (available === false) {
       errEl.textContent = 'That username is taken. Try another.';
@@ -616,7 +606,6 @@ async function doSignup() {
     const referralCode = generateReferralCode(name);
     const referredBy   = (localStorage.getItem('thread_ref') || '').trim() || null;
 
-    // Sign up — redirect after email confirmation goes straight to checkout
     const { data, error } = await sb.auth.signUp({
       email, password,
       options: {
@@ -626,7 +615,6 @@ async function doSignup() {
     });
     if (error) throw new Error(error.message);
 
-    // Store profile data
     const pendingProfile = { name, username, dob: null, email, referralCode, referredBy, parentEmail: null };
     localStorage.setItem('thread_pending_profile', JSON.stringify(pendingProfile));
 
@@ -635,10 +623,8 @@ async function doSignup() {
       const { error: upsertErr } = await sb.from('profiles').upsert(profileData, { onConflict: 'id' });
       if (!upsertErr) localStorage.removeItem('thread_pending_profile');
 
-      // Try immediate sign-in (works when email confirmation is disabled)
       try { await sb.auth.signInWithPassword({ email, password }); } catch(_) {}
 
-      // Store local session so checkout has auth context
       localStorage.setItem('thread_session', JSON.stringify({
         id: data.user.id, email, name, username,
         referralCode, referral_code: referralCode,
@@ -648,7 +634,6 @@ async function doSignup() {
       }));
     }
 
-    // Save cart items then go to checkout
     saveCartItems();
     window.location.href = 'checkout.html';
 
