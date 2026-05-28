@@ -363,7 +363,7 @@
     </div>
     <div class="form-field">
       <label>Password</label>
-      <input type="password" id="sfPassword" placeholder="8+ characters" autocomplete="new-password" />
+      <input type="password" id="sfPassword" placeholder="Min 7 chars + special character" autocomplete="new-password" />
     </div>
 
     <div class="form-error" id="sfError"></div>
@@ -697,7 +697,8 @@ async function doSignup() {
   if (!name || name.length < 2)         { errEl.textContent = 'Enter your name.'; return; }
   if (!username || username.length < 3)  { errEl.textContent = 'Username must be at least 3 characters.'; return; }
   if (!email || !email.includes('@'))    { errEl.textContent = 'Enter a valid email.'; return; }
-  if (password.length < 8)              { errEl.textContent = 'Password must be at least 8 characters.'; return; }
+  if (password.length < 7)              { errEl.textContent = 'Password must be at least 7 characters.'; return; }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) { errEl.textContent = 'Password must include at least one special character (e.g. !@#$%).'; return; }
 
   window._onbTrack?.('funnel', 'signup_submitted');
   btn.disabled = true; btn.textContent = 'Creating your account…';
