@@ -446,12 +446,12 @@
         const cfg = window.THREAD_CONFIG;
         if (!cfg?.supabaseUrl || !window.supabase) return;
         const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
-        let ip = null, country = null, city = null;
+        let ip = null, country = null, city = null, region = null;
         try {
           const geo = await fetch('https://ipapi.co/json/');
-          if (geo.ok) { const d = await geo.json(); ip = d.ip; country = d.country_name; city = d.city; }
+          if (geo.ok) { const d = await geo.json(); ip = d.ip; country = d.country_name; city = d.city; region = d.region || null; }
         } catch(_) {}
-        await sb.rpc('log_page_event', { p_event_type: 'add_to_cart', p_ip: ip, p_country: country, p_city: city, p_page: name });
+        await sb.rpc('log_page_event', { p_event_type: 'add_to_cart', p_ip: ip, p_country: country, p_city: city, p_region: region, p_page: name });
       } catch(_) {}
     })();
 

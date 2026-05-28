@@ -675,12 +675,12 @@
         const OWNER_IPS = ['65.130.60.246', '187.199.28.205', '187.199.69.171'];
 
         // let so _threadTrackRaw can close over them and pick up values after geo resolves
-        let ip = null, country = null, city = null;
+        let ip = null, country = null, city = null, region = null;
 
         // Expose raw tracker immediately — before the geo fetch — so any cart event
         // fired quickly is never dropped (same fix as app.js on the home page).
         window._threadTrackRaw = async function(type, label) {
-          try { await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_page: PAGE, p_label: label }); } catch(_) {}
+          try { await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_region: region, p_page: PAGE, p_label: label }); } catch(_) {}
         };
 
         // Fetch geo (reuse session cache from index.html/app.js if already set)
@@ -688,13 +688,13 @@
           const cached = sessionStorage.getItem('thread_geo');
           const geo = cached ? JSON.parse(cached) : null;
           if (geo) {
-            ip = geo.ip || null; country = geo.country_name || null; city = geo.city || null;
+            ip = geo.ip || null; country = geo.country_name || null; city = geo.city || null; region = geo.region || null;
           } else {
             const r = await fetch('https://ipapi.co/json/');
             if (r.ok) {
               const g = await r.json();
               sessionStorage.setItem('thread_geo', JSON.stringify(g));
-              ip = g.ip || null; country = g.country_name || null; city = g.city || null;
+              ip = g.ip || null; country = g.country_name || null; city = g.city || null; region = g.region || null;
             }
           }
         } catch(_) {}
@@ -709,7 +709,7 @@
           const key = `thread_tracked_${type}_${label}_earn`;
           if (sessionStorage.getItem(key)) return;
           sessionStorage.setItem(key, '1');
-          try { await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_page: PAGE, p_label: label }); } catch(_) {}
+          try { await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_region: region, p_page: PAGE, p_label: label }); } catch(_) {}
         }
 
         // Page visit

@@ -15,12 +15,12 @@
 
     // Use let so _threadTrackRaw can close over these and read their final values
     // even when called before the geo fetch resolves (they'll just be null then).
-    let ip = null, country = null, city = null;
+    let ip = null, country = null, city = null, region = null;
 
     // Expose raw tracker IMMEDIATELY — before the geo fetch — so add-to-cart
     // events are never dropped if the user clicks fast on the first page load.
     window._threadTrackRaw = async function(type, label) {
-      try { await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_page: PAGE, p_label: label }); } catch(_) {}
+      try { await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_region: region, p_page: PAGE, p_label: label }); } catch(_) {}
     };
 
     // Fetch geo once per session and cache it
@@ -28,13 +28,13 @@
       const cached = sessionStorage.getItem('thread_geo');
       const geo = cached ? JSON.parse(cached) : null;
       if (geo) {
-        ip = geo.ip || null; country = geo.country_name || null; city = geo.city || null;
+        ip = geo.ip || null; country = geo.country_name || null; city = geo.city || null; region = geo.region || null;
       } else {
         const r = await fetch('https://ipapi.co/json/');
         if (r.ok) {
           const g = await r.json();
           sessionStorage.setItem('thread_geo', JSON.stringify(g));
-          ip = g.ip || null; country = g.country_name || null; city = g.city || null;
+          ip = g.ip || null; country = g.country_name || null; city = g.city || null; region = g.region || null;
         }
       }
     } catch(_) {}
@@ -52,7 +52,7 @@
       if (sessionStorage.getItem(key)) return;
       sessionStorage.setItem(key, '1');
       try {
-        await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_page: PAGE, p_label: label });
+        await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_region: region, p_page: PAGE, p_label: label });
       } catch(_) {}
     }
 

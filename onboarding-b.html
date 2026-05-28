@@ -389,14 +389,14 @@
     if (!cfg?.supabaseUrl || !window.supabase) return;
     const sb   = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
     const PAGE = 'onboarding-b';
-    let ip = null, country = null, city = null;
+    let ip = null, country = null, city = null, region = null;
 
     // Expose immediately so fast-click events aren't dropped before geo resolves
     window._onbTrack = async function (type, label) {
       const key = 'onbt_' + type + '_' + label;
       if (sessionStorage.getItem(key)) return;        // deduplicate per session
       sessionStorage.setItem(key, '1');
-      try { await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_page: PAGE, p_label: label }); } catch (_) {}
+      try { await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_region: region, p_page: PAGE, p_label: label }); } catch (_) {}
     };
 
     // Geo — share the same sessionStorage cache as other pages
@@ -404,10 +404,10 @@
       const cached = sessionStorage.getItem('thread_geo');
       const geo    = cached ? JSON.parse(cached) : null;
       if (geo) {
-        ip = geo.ip || null; country = geo.country_name || null; city = geo.city || null;
+        ip = geo.ip || null; country = geo.country_name || null; city = geo.city || null; region = geo.region || null;
       } else {
         const r = await fetch('https://ipapi.co/json/');
-        if (r.ok) { const g = await r.json(); sessionStorage.setItem('thread_geo', JSON.stringify(g)); ip = g.ip || null; country = g.country_name || null; city = g.city || null; }
+        if (r.ok) { const g = await r.json(); sessionStorage.setItem('thread_geo', JSON.stringify(g)); ip = g.ip || null; country = g.country_name || null; city = g.city || null; region = g.region || null; }
       }
     } catch (_) {}
 

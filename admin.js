@@ -450,7 +450,7 @@ function renderCustomers() {
         </div>
         ${unlinkedCarts.map(e => {
           const t = new Date(e.created_at).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
-          const loc = [e.city, e.country].filter(Boolean).join(', ') || '—';
+          const loc = [e.city, e.region].filter(Boolean).join(', ') || [e.city, e.country].filter(Boolean).join(', ') || '—';
           const item = (e.page_label || '—').replace(/^uid:[^|]+\|/, '');
           return `<div style="display:flex;gap:16px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:12px">
             <span style="color:#888;white-space:nowrap">${t}</span>
@@ -1116,7 +1116,7 @@ async function loadAnalytics() {
 
     body.innerHTML = data.map(e => {
       const badge    = EVENT_BADGES[e.event_type] || `<span style="background:#1a1a1a;color:#888;padding:2px 7px;border-radius:10px;font-size:11px">${e.event_type}</span>`;
-      const location = [e.city, e.country].filter(Boolean).join(', ') || '—';
+      const location = [e.city, e.region].filter(Boolean).join(', ') || [e.city, e.country].filter(Boolean).join(', ') || '—';
       const time     = new Date(e.created_at).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
       const label    = e.page_label || '';
       const ip       = e.ip_address || '';
