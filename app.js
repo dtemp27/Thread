@@ -836,6 +836,34 @@ async function applyPromo() {
     return;
   }
 
+  /* ── General promo codes (THREAD20, etc.) — validate against Supabase ── */
+  const _gpCfg = window.THREAD_CONFIG;
+  if (_gpCfg?.supabaseUrl && window.supabase) {
+    const applyBtn = document.getElementById('promoApplyBtn') || document.querySelector('[onclick*="applyPromo"]');
+    if (applyBtn) { applyBtn.disabled = true; applyBtn.textContent = 'Checking…'; }
+    try {
+      const sb = window.supabase.createClient(_gpCfg.supabaseUrl, _gpCfg.supabaseAnonKey);
+      let userEmail = null;
+      try { const { data } = await sb.auth.getUser(); userEmail = data?.user?.email || null; } catch(_) {}
+      if (!userEmail) { try { userEmail = JSON.parse(localStorage.getItem('thread_session') || 'null')?.email || null; } catch(_) {} }
+      const { data: pct, error } = await sb.rpc('validate_general_promo', { p_code: code, p_email: userEmail });
+      if (!error && pct != null) {
+        const subtotal = cart.items.reduce((s, i) => s + i.price * (i.qty || 1), 0);
+        const discount = parseFloat((subtotal * (pct / 100)).toFixed(2));
+        cart.promoCode = code;
+        cart.discount  = discount;
+        saveCart(cart); renderCartDrawer();
+        showStoreToast(`${pct}% off applied! 🎉`);
+        return;
+      }
+    } catch (e) {
+      showStoreToast('Could not validate code — try again', 'error');
+      return;
+    } finally {
+      if (applyBtn) { applyBtn.disabled = false; applyBtn.textContent = 'Apply'; }
+    }
+  }
+
   showStoreToast('Invalid promo code', 'error');
 }
 

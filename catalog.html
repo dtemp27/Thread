@@ -496,7 +496,7 @@
   }, { passive:true });
 
   /* ── PROMO CODE ── */
-  function applyPromo() {
+  async function applyPromo() {
     const input = document.getElementById('promoInput');
     const code  = (input?.value || '').trim().toUpperCase();
     if (!code) return;
@@ -566,7 +566,25 @@
       })();
       return;
     } else {
-      showCatalogToast('Invalid promo code', true); return;
+      /* ── General promo codes (THREAD20, etc.) — validate against Supabase ── */
+      const cfg = window.THREAD_CONFIG;
+      if (!cfg?.supabaseUrl || !window.supabase) { showCatalogToast('Invalid promo code', true); return; }
+      const applyBtn = document.querySelector('[onclick*="applyPromo"]');
+      if (applyBtn) { applyBtn.disabled = true; applyBtn.textContent = 'Checking…'; }
+      try {
+        const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+        let userEmail = null;
+        try { const { data } = await sb.auth.getUser(); userEmail = data?.user?.email || null; } catch(_) {}
+        if (!userEmail) { try { userEmail = JSON.parse(localStorage.getItem('thread_session') || 'null')?.email || null; } catch(_) {} }
+        const { data: pct, error } = await sb.rpc('validate_general_promo', { p_code: code, p_email: userEmail });
+        if (error || pct == null) { showCatalogToast('Invalid promo code', true); return; }
+        discount = parseFloat((cart.items.reduce((s,i) => s + i.price*(i.qty||1), 0) * (pct/100)).toFixed(2));
+        msg = `${pct}% off`;
+      } catch(e) {
+        showCatalogToast('Could not validate code — try again', true); return;
+      } finally {
+        if (applyBtn) { applyBtn.disabled = false; applyBtn.textContent = 'Apply'; }
+      }
     }
 
     cart.promoCode = code;

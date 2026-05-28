@@ -167,20 +167,33 @@ async function applyCheckoutPromo() {
     discount = promos[code];
     label = `$${discount} off`;
   } else {
-    /* ── Check database for personal single-use codes (20% off) ── */
+    /* ── Check database: general promos (THREAD20, etc.) then personal codes (BACK20-*) ── */
     if (_sb) {
       const btn = document.getElementById('coPromoBtn') || document.querySelector('.co-promo-btn');
       if (btn) { btn.disabled = true; btn.textContent = 'Checking…'; }
       try {
-        const { data: pct, error } = await _sb.rpc('validate_user_promo_code', { p_code: code });
-        if (!error && pct != null) {
+        // 1) Try general promo codes first (one-use-per-account, e.g. THREAD20)
+        let userEmail = null;
+        try { const { data } = await _sb.auth.getUser(); userEmail = data?.user?.email || null; } catch(_) {}
+        if (!userEmail) { try { userEmail = JSON.parse(localStorage.getItem('thread_session') || 'null')?.email || null; } catch(_) {} }
+        const { data: gpPct, error: gpErr } = await _sb.rpc('validate_general_promo', { p_code: code, p_email: userEmail });
+        if (!gpErr && gpPct != null) {
           const subtotal = checkoutData.items.reduce((s, i) => s + i.price * (i.qty || 1), 0);
-          discount = parseFloat((subtotal * (pct / 100)).toFixed(2));
-          label    = `${pct}% off your entire order`;
+          discount = parseFloat((subtotal * (gpPct / 100)).toFixed(2));
+          label    = `${gpPct}% off your entire order`;
+          checkoutData.promoType = 'general'; // flag so finalizeOrder calls use_general_promo
         } else {
-          if (btn) { btn.disabled = false; btn.textContent = 'Apply'; }
-          setMsg('Invalid promo code.', 'error');
-          return;
+          // 2) Fall back to personal single-use codes (BACK20-*)
+          const { data: pct, error } = await _sb.rpc('validate_user_promo_code', { p_code: code });
+          if (!error && pct != null) {
+            const subtotal = checkoutData.items.reduce((s, i) => s + i.price * (i.qty || 1), 0);
+            discount = parseFloat((subtotal * (pct / 100)).toFixed(2));
+            label    = `${pct}% off your entire order`;
+          } else {
+            if (btn) { btn.disabled = false; btn.textContent = 'Apply'; }
+            setMsg('Invalid promo code.', 'error');
+            return;
+          }
         }
       } catch (_) {
         if (btn) { btn.disabled = false; btn.textContent = 'Apply'; }
@@ -211,8 +224,9 @@ async function applyCheckoutPromo() {
 }
 
 function removeCheckoutPromo() {
-  checkoutData.discount  = 0;
-  checkoutData.promoCode = null;
+  checkoutData.discount   = 0;
+  checkoutData.promoCode  = null;
+  checkoutData.promoType  = null;
   recalcCheckout();
   renderSummary();
   // Clear message + input so it looks like nothing was ever entered
@@ -473,6 +487,18 @@ async function finalizeOrder(orderId, customerEmail = '') {
     });
   } catch(e) {
     console.warn('Order save error:', e);
+  }
+
+  // Mark general promo code as used (enforces one-use-per-account for THREAD20, etc.)
+  if (checkoutData.promoCode && checkoutData.promoType === 'general' && customerEmail && _sb) {
+    try {
+      const _promoSession = JSON.parse(localStorage.getItem('thread_session') || 'null');
+      await _sb.rpc('use_general_promo', {
+        p_code:    checkoutData.promoCode,
+        p_email:   customerEmail,
+        p_user_id: _promoSession?.id || null
+      });
+    } catch(e) { console.warn('use_general_promo error:', e); }
   }
 
   // Submit to POD service (uses podFunctionUrl from config; falls back to stub
