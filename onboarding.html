@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to THREAD</title>
+  <link rel="icon" href="favicon.ico" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple: #7c3aed;
+      --purple-light: #a78bfa;
+      --bg: #0a0a12;
+      --bg2: #13131f;
+      --border: rgba(255,255,255,0.08);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: #fff;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── Progress bar ── */
+    #progressBar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 3px;
+      background: var(--purple);
+      transition: width 0.4s ease;
+      z-index: 100;
+    }
+
+    /* ── Slide container ── */
+    #slideWrap {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 28px;
+      text-align: center;
+      opacity: 0;
+      transform: translateX(60px);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+      pointer-events: none;
+    }
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+    .slide.exit {
+      opacity: 0;
+      transform: translateX(-60px);
+      pointer-events: none;
+    }
+
+    .slide-icon {
+      font-size: 64px;
+      margin-bottom: 28px;
+      line-height: 1;
+    }
+    .slide-eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--purple-light);
+      margin-bottom: 16px;
+    }
+    .slide-headline {
+      font-size: clamp(28px, 6vw, 48px);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -1px;
+      color: #fff;
+      margin-bottom: 20px;
+      max-width: 560px;
+    }
+    .slide-headline span { color: var(--purple-light); }
+    .slide-body {
+      font-size: clamp(15px, 3vw, 18px);
+      color: #888;
+      line-height: 1.7;
+      max-width: 480px;
+      margin-bottom: 40px;
+    }
+    .slide-body strong { color: #fff; }
+
+    /* Flow diagram for slide 3 */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+    .flow-step {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .flow-step span { display: block; font-size: 22px; margin-bottom: 4px; }
+    .flow-arrow { color: var(--purple-light); font-size: 22px; font-weight: 900; }
+
+    /* Stat callout for slide 4 */
+    .earn-callout {
+      background: rgba(124,58,237,0.1);
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: 20px;
+      padding: 28px 36px;
+      margin-bottom: 40px;
+      max-width: 380px;
+      width: 100%;
+    }
+    .earn-callout .big { font-size: 52px; font-weight: 900; color: var(--purple-light); line-height: 1; }
+    .earn-callout .label { font-size: 13px; color: #888; margin-top: 6px; }
+
+    /* Next button */
+    .btn-next {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--purple);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 16px 40px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: 0.2px;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn-next:hover { opacity: 0.88; transform: scale(1.02); }
+    .btn-next:active { transform: scale(0.98); }
+
+    /* Tap hint */
+    .tap-hint {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      color: #333;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+
+    /* ── Product picker ── */
+    #pickerWrap {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      overflow-y: auto;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px 60px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    #pickerWrap.visible {
+      display: flex;
+      opacity: 1;
+    }
+
+    .picker-logo {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      color: #fff;
+      margin-bottom: 32px;
+    }
+    .picker-logo span { color: var(--purple); }
+
+    .picker-headline {
+      font-size: clamp(22px, 5vw, 34px);
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      text-align: center;
+      margin-bottom: 8px;
+      max-width: 500px;
+    }
+    .picker-sub {
+      font-size: 15px;
+      color: #888;
+      text-align: center;
+      margin-bottom: 36px;
+      max-width: 420px;
+      line-height: 1.6;
+    }
+
+    /* Product cards */
+    .picker-cards {
+      display: flex;
+      gap: 20px;
+      width: 100%;
+      max-width: 680px;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 600px) {
+      .picker-cards { flex-direction: column; }
+    }
+
+    .picker-card {
+      flex: 1;
+      background: var(--bg2);
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.25s, transform 0.2s;
+      position: relative;
+    }
+    .picker-card:hover { transform: translateY(-3px); }
+    .picker-card.selected {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 4px rgba(124,58,237,0.15);
+    }
+
+    .picker-check {
+      position: absolute;
+      top: 14px; right: 14px;
+      width: 28px; height: 28px;
+      background: var(--purple);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 900;
+      opacity: 0;
+      transform: scale(0.5);
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 2;
+    }
+    .picker-card.selected .picker-check {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Image flip */
+    .picker-imgs {
+      position: relative;
+      height: 300px;
+      overflow: hidden;
+      background: #0d0d1a;
+    }
+    .picker-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      transition: opacity 0.4s ease, transform 0.45s cubic-bezier(0.4,0,0.2,1);
+    }
+    .picker-front { opacity: 1; z-index: 1; }
+    .picker-back  { opacity: 0; z-index: 2; }
+    @media (hover: hover) and (pointer: fine) {
+      .picker-imgs:hover .picker-front { opacity: 0; transform: scale(1.02); }
+      .picker-imgs:hover .picker-back  { opacity: 1; transform: scale(1.02); }
+    }
+    .picker-card.flipped .picker-front { opacity: 0; transform: scale(1.02); }
+    .picker-card.flipped .picker-back  { opacity: 1; transform: scale(1.02); }
+
+    .flip-hint {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase;
+      pointer-events: none;
+      z-index: 3;
+    }
+    @media (hover: hover) and (pointer: fine) { .flip-hint { display: none; } }
+
+    .picker-info {
+      padding: 18px 20px 20px;
+    }
+    .picker-name {
+      font-size: 17px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .picker-price {
+      font-size: 15px;
+      color: var(--purple-light);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .picker-desc {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    /* OR divider */
+    .picker-or {
+      font-size: 13px;
+      font-weight: 700;
+      color: #333;
+      letter-spacing: 2px;
+      padding: 0 8px;
+      align-self: center;
+    }
+    @media (max-width: 600px) {
+      .picker-or { padding: 4px 0; text-align: center; }
+    }
+
+    /* Size selector */
+    #sizeWrap {
+      width: 100%;
+      max-width: 680px;
+      margin-bottom: 24px;
+      display: none;
+    }
+    #sizeWrap.visible { display: block; }
+    .size-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #888;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .size-btns {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .size-btn {
+      padding: 10px 20px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: #888;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .size-btn:hover { border-color: var(--purple); color: #fff; }
+    .size-btn.selected { border-color: var(--purple); color: #fff; background: rgba(124,58,237,0.12); }
+
+    /* CTA */
+    #pickerCTA {
+      width: 100%;
+      max-width: 680px;
+    }
+    .btn-add {
+      width: 100%;
+      padding: 18px;
+      background: var(--purple);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      font-size: 17px;
+      font-weight: 900;
+      cursor: pointer;
+      letter-spacing: 0.2px;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn-add:hover { opacity: 0.88; transform: scale(1.01); }
+    .btn-add:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .picker-note {
+      text-align: center;
+      font-size: 12px;
+      color: #444;
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+<div id="progressBar" style="width:0%"></div>
+
+<!-- ── SLIDES ── -->
+<div id="slideWrap">
+
+  <!-- Slide 1: Welcome -->
+  <div class="slide active" data-slide="0">
+    <div class="slide-icon">👋</div>
+    <div class="slide-eyebrow">Welcome to THREAD</div>
+    <h1 class="slide-headline">You just made a<br><span>smart move.</span></h1>
+    <p class="slide-body">
+      THREAD isn't just a clothing brand.<br>
+      It's clothing that <strong>pays you back.</strong><br>
+      Here's how it works in 3 steps.
+    </p>
+    <button class="btn-next" onclick="nextSlide()">Let's go →</button>
+  </div>
+
+  <!-- Slide 2: The QR code -->
+  <div class="slide" data-slide="1">
+    <div class="slide-icon">👕</div>
+    <div class="slide-eyebrow">Step 1</div>
+    <h1 class="slide-headline">Your piece.<br><span>Your QR code.</span></h1>
+    <p class="slide-body">
+      Every THREAD hoodie and tee ships with a <strong>unique QR code</strong> printed right on it.<br>
+      It's yours. Nobody else has the same one.
+    </p>
+    <button class="btn-next" onclick="nextSlide()">Got it →</button>
+  </div>
+
+  <!-- Slide 3: The scan -->
+  <div class="slide" data-slide="2">
+    <div class="slide-icon">📲</div>
+    <div class="slide-eyebrow">Step 2</div>
+    <h1 class="slide-headline">Someone scans it.<br><span>You win.</span></h1>
+    <div class="flow">
+      <div class="flow-step"><span>👀</span>They see your fit</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span>📲</span>They scan the QR</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span>🛍</span>They land in the store</div>
+    </div>
+    <p class="slide-body">
+      You don't have to sell anything.<br>Just <strong>wear it</strong> and let the code do the work.
+    </p>
+    <button class="btn-next" onclick="nextSlide()">Keep going →</button>
+  </div>
+
+  <!-- Slide 4: The earn -->
+  <div class="slide" data-slide="3">
+    <div class="slide-icon">💸</div>
+    <div class="slide-eyebrow">Step 3</div>
+    <h1 class="slide-headline">They buy.<br><span>You earn.</span></h1>
+    <div class="earn-callout">
+      <div class="big">$$</div>
+      <div class="label">Every purchase through your QR code = commission in your pocket</div>
+    </div>
+    <p class="slide-body">
+      Every single time someone scans your code and buys,<br>
+      you get a cut. <strong>Automatically. Every time.</strong>
+    </p>
+    <button class="btn-next" onclick="nextSlide()">I'm in →</button>
+  </div>
+
+  <!-- Slide 5: Pick your piece -->
+  <div class="slide" data-slide="4">
+    <div class="slide-icon">🎯</div>
+    <div class="slide-eyebrow">One last step</div>
+    <h1 class="slide-headline">Pick your piece.<br><span>Activate your code.</span></h1>
+    <p class="slide-body">
+      Your QR code gets printed on your piece when you order.<br>
+      <strong>That's what starts your earning.</strong> Pick yours below.
+    </p>
+    <button class="btn-next" onclick="showPicker()">Choose my piece →</button>
+  </div>
+
+</div>
+
+<div class="tap-hint" id="tapHint">tap to continue</div>
+
+<!-- ── PRODUCT PICKER ── -->
+<div id="pickerWrap">
+
+  <div class="picker-logo">THREAD<span>.</span></div>
+
+  <h2 class="picker-headline">What's your pick?</h2>
+  <p class="picker-sub">
+    Tap to flip and see front &amp; back.<br>
+    Your QR code gets printed on whichever you choose.
+  </p>
+
+  <div class="picker-cards">
+
+    <!-- Tee -->
+    <div class="picker-card" id="cardTee" onclick="selectItem('tee', event)">
+      <div class="picker-check">✓</div>
+      <div class="picker-imgs">
+        <img src="images/tee-jet-black-front.png" class="picker-img picker-front" alt="Jet Black Tee front" loading="eager" />
+        <img src="images/tee-jet-black-back.png"  class="picker-img picker-back"  alt="Jet Black Tee back"  loading="eager" />
+        <div class="flip-hint">Tap to flip</div>
+      </div>
+      <div class="picker-info">
+        <div class="picker-name">Jet Black Tee</div>
+        <div class="picker-price">$55</div>
+        <div class="picker-desc">Premium heavyweight tee. Your QR code printed on the back.</div>
+      </div>
+    </div>
+
+    <div class="picker-or">OR</div>
+
+    <!-- Hoodie -->
+    <div class="picker-card" id="cardHoodie" onclick="selectItem('hoodie', event)">
+      <div class="picker-check">✓</div>
+      <div class="picker-imgs">
+        <img src="images/tawny-dusk-front.png" class="picker-img picker-front" alt="Tawny Dusk Hoodie front" loading="eager" />
+        <img src="images/tawny-dusk-back.png"  class="picker-img picker-back"  alt="Tawny Dusk Hoodie back"  loading="eager" />
+        <div class="flip-hint">Tap to flip</div>
+      </div>
+      <div class="picker-info">
+        <div class="picker-name">Tawny Dusk Hoodie</div>
+        <div class="picker-price">$79</div>
+        <div class="picker-desc">Premium heavyweight hoodie. Your QR code printed on the back.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Size selector -->
+  <div id="sizeWrap">
+    <div class="size-label">Select your size</div>
+    <div class="size-btns" id="sizeBtns">
+      <button class="size-btn" onclick="selectSize('XS')">XS</button>
+      <button class="size-btn" onclick="selectSize('S')">S</button>
+      <button class="size-btn" onclick="selectSize('M')">M</button>
+      <button class="size-btn" onclick="selectSize('L')">L</button>
+      <button class="size-btn" onclick="selectSize('XL')">XL</button>
+      <button class="size-btn" onclick="selectSize('XXL')">XXL</button>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div id="pickerCTA">
+    <button class="btn-add" id="addBtn" disabled onclick="addAndGo()">
+      Select a piece to continue
+    </button>
+    <p class="picker-note">
+      Free shipping on orders $75+ · Ships in 5–7 days<br>
+      Your unique QR code is printed at order time.
+    </p>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+
+  /* ── Slides ── */
+  const TOTAL_SLIDES = 5;
+  let currentSlide = 0;
+
+  function nextSlide() {
+    const slides = document.querySelectorAll('.slide');
+    slides[currentSlide].classList.remove('active');
+    slides[currentSlide].classList.add('exit');
+    currentSlide++;
+    if (currentSlide < TOTAL_SLIDES) {
+      slides[currentSlide].classList.add('active');
+    }
+    updateProgress();
+    setTimeout(() => slides.forEach(s => s.classList.remove('exit')), 500);
+  }
+
+  function updateProgress() {
+    const pct = (currentSlide / TOTAL_SLIDES) * 100;
+    document.getElementById('progressBar').style.width = pct + '%';
+  }
+
+  function showPicker() {
+    document.getElementById('slideWrap').style.opacity = '0';
+    document.getElementById('slideWrap').style.pointerEvents = 'none';
+    document.getElementById('tapHint').style.display = 'none';
+    document.getElementById('progressBar').style.width = '100%';
+
+    const picker = document.getElementById('pickerWrap');
+    picker.style.display = 'flex';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => picker.classList.add('visible'));
+    });
+  }
+
+  /* ── Product picker ── */
+  let _selectedType = null;
+  let _selectedSize = null;
+
+  function selectItem(type, e) {
+    // If tap hit the image area, toggle flip instead of selecting
+    const imgs = e.target.closest('.picker-imgs');
+    if (imgs) {
+      const card = imgs.closest('.picker-card');
+      card.classList.toggle('flipped');
+      return;
+    }
+
+    _selectedType = type;
+    _selectedSize = null;
+
+    document.querySelectorAll('.picker-card').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
+
+    document.getElementById(type === 'tee' ? 'cardTee' : 'cardHoodie').classList.add('selected');
+    document.getElementById('sizeWrap').classList.add('visible');
+
+    updateAddBtn();
+  }
+
+  function selectSize(size) {
+    _selectedSize = size;
+    document.querySelectorAll('.size-btn').forEach(b => {
+      b.classList.toggle('selected', b.textContent === size);
+    });
+    updateAddBtn();
+  }
+
+  function updateAddBtn() {
+    const btn = document.getElementById('addBtn');
+    if (!_selectedType && !_selectedSize) {
+      btn.disabled = true;
+      btn.textContent = 'Select a piece to continue';
+    } else if (_selectedType && !_selectedSize) {
+      btn.disabled = true;
+      btn.textContent = 'Now pick your size';
+    } else {
+      btn.disabled = false;
+      const name = _selectedType === 'tee' ? 'Jet Black Tee' : 'Tawny Dusk Hoodie';
+      const price = _selectedType === 'tee' ? 55 : 79;
+      btn.textContent = `Add ${name} (${_selectedSize}) — $${price} →`;
+    }
+  }
+
+  function addAndGo() {
+    if (!_selectedType || !_selectedSize) return;
+
+    const name  = _selectedType === 'tee' ? 'Jet Black Tee' : 'Tawny Dusk Hoodie';
+    const price = _selectedType === 'tee' ? 55 : 79;
+    const type  = _selectedType;
+
+    /* Add to cart using same localStorage schema as app.js */
+    const CART_KEY = 'thread_cart';
+    let cart;
+    try { cart = JSON.parse(localStorage.getItem(CART_KEY) || '{"items":[],"promoCode":null,"discount":0}'); }
+    catch { cart = { items: [], promoCode: null, discount: 0 }; }
+
+    const existing = cart.items.find(i => i.name === name && i.size === _selectedSize);
+    if (existing) {
+      existing.qty = (existing.qty || 1) + 1;
+    } else {
+      cart.items.push({ name, price, size: _selectedSize, type, qty: 1 });
+    }
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+
+    /* Go straight to checkout */
+    window.location.href = 'checkout.html';
+  }
+
+</script>
+</body>
+</html>
