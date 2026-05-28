@@ -381,6 +381,52 @@
 <script>
 
 /* ══════════════════════════════════════════════
+   ANALYTICS — onboarding-b funnel
+══════════════════════════════════════════════ */
+(async function () {
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) return;
+    const sb   = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const PAGE = 'onboarding-b';
+    let ip = null, country = null, city = null;
+
+    // Expose immediately so fast-click events aren't dropped before geo resolves
+    window._onbTrack = async function (type, label) {
+      const key = 'onbt_' + type + '_' + label;
+      if (sessionStorage.getItem(key)) return;        // deduplicate per session
+      sessionStorage.setItem(key, '1');
+      try { await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_page: PAGE, p_label: label }); } catch (_) {}
+    };
+
+    // Geo — share the same sessionStorage cache as other pages
+    try {
+      const cached = sessionStorage.getItem('thread_geo');
+      const geo    = cached ? JSON.parse(cached) : null;
+      if (geo) {
+        ip = geo.ip || null; country = geo.country_name || null; city = geo.city || null;
+      } else {
+        const r = await fetch('https://ipapi.co/json/');
+        if (r.ok) { const g = await r.json(); sessionStorage.setItem('thread_geo', JSON.stringify(g)); ip = g.ip || null; country = g.country_name || null; city = g.city || null; }
+      }
+    } catch (_) {}
+
+    // Skip all tracking for owner IPs
+    const OWNER_IPS = ['65.130.60.246', '187.199.28.205', '187.199.69.171'];
+    if (OWNER_IPS.includes(ip)) { window._onbTrack = null; return; }
+
+    // Page visit
+    window._onbTrack('visit', PAGE);
+
+    // Time-on-page milestones
+    [[15000,'15s+'],[30000,'30s+'],[60000,'1m+'],[180000,'3m+'],[300000,'5m+']].forEach(([d, l]) => {
+      setTimeout(() => window._onbTrack?.('time_on_page', l), d);
+    });
+
+  } catch (_) {}
+})();
+
+/* ══════════════════════════════════════════════
    COLOR DATA
 ══════════════════════════════════════════════ */
 const TEE_COLORS = [
@@ -452,6 +498,7 @@ function handleImgTap(e, type) {
 
 function toggleCard(type) {
   _sel[type].on = !_sel[type].on;
+  if (_sel[type].on) window._onbTrack?.('select', type + '_selected');
   const card = document.getElementById('card' + capitalize(type));
   card.classList.toggle('selected', _sel[type].on);
   if (!_sel[type].on) { _sel[type].size = null; card.querySelectorAll('.card-size-btn').forEach(b => b.classList.remove('selected')); }
@@ -463,6 +510,7 @@ function pickSize(type, size, btn) {
   btn.closest('.card-size-btns').querySelectorAll('.card-size-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
   updateCTA();
+  window._onbTrack?.('select', type + '_size_' + size);
 }
 
 function updateCTA() {
@@ -520,6 +568,7 @@ function nextSlide() {
   setProgress((currentSlide / (TOTAL_SLIDES + 2)) * 100);
   document.getElementById('slideBack').classList.toggle('visible', currentSlide > 0);
   setTimeout(() => slides.forEach(s => s.classList.remove('exit')), 500);
+  window._onbTrack?.('slide_view', 'slide_' + currentSlide); // slide_1, slide_2, …
 }
 
 function prevSlide() {
@@ -537,12 +586,17 @@ function prevSlide() {
 function goToPicker() {
   switchScreen('screenSlides', 'screenPicker');
   setProgress((TOTAL_SLIDES / (TOTAL_SLIDES + 2)) * 100);
+  window._onbTrack?.('funnel', 'picker_reached');
 }
 
 function goToSignup() {
   buildOrderMini();
   switchScreen('screenPicker', 'screenSignup');
   setProgress(((TOTAL_SLIDES + 1) / (TOTAL_SLIDES + 2)) * 100);
+  window._onbTrack?.('funnel', 'signup_reached');
+  // Log which product(s) they selected
+  if (_sel.tee.on)    window._onbTrack?.('select', 'tee_to_checkout');
+  if (_sel.hoodie.on) window._onbTrack?.('select', 'hoodie_to_checkout');
 }
 
 function goBack(targetId) {
@@ -645,6 +699,7 @@ async function doSignup() {
   if (!email || !email.includes('@'))    { errEl.textContent = 'Enter a valid email.'; return; }
   if (password.length < 8)              { errEl.textContent = 'Password must be at least 8 characters.'; return; }
 
+  window._onbTrack?.('funnel', 'signup_submitted');
   btn.disabled = true; btn.textContent = 'Creating your account…';
 
   try {
@@ -691,6 +746,7 @@ async function doSignup() {
     }
 
     saveCartItems();
+    window._onbTrack?.('funnel', 'account_created');
     window.location.href = 'checkout.html';
 
   } catch(e) {
@@ -707,6 +763,7 @@ async function doSignin() {
 
   if (!email || !password) { errEl.textContent = 'Enter your email and password to sign in.'; return; }
 
+  window._onbTrack?.('funnel', 'signin_submitted');
   btn.disabled = true; btn.textContent = 'Signing in…';
   errEl.textContent = '';
 
@@ -753,6 +810,7 @@ function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 function updateOnbCalc() {
   const slider = document.getElementById('onbScanSlider');
   if (!slider) return;
+  window._onbTrack?.('calc_interact', 'onb_slider'); // fires once per session
   const scans = parseInt(slider.value, 10);
   const monthlyConv = scans * 0.18 * 4.33;
   let pct, tierLabel;
