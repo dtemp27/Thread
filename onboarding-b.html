@@ -136,6 +136,27 @@
     .btn-next:disabled, .btn-add:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
     .picker-note { text-align: center; font-size: 12px; color: #444; margin-top: 10px; line-height: 1.6; }
 
+    /* ── HERO SCREEN ── */
+    #screenHero { padding: 0; justify-content: flex-end; overflow: hidden; }
+    .hero-bg { position: absolute; inset: 0; background-image: url('ADS/instagram-ad-test.png'); background-size: auto 85%; background-position: center 18%; background-repeat: no-repeat; filter: brightness(0.55); transition: transform 8s ease-out; transform: scale(1.04); }
+    .hero-bg.loaded { transform: scale(1); }
+    .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(10,10,18,0.5) 0%, rgba(10,10,18,0.08) 35%, rgba(10,10,18,0.82) 72%, rgba(10,10,18,1) 100%); pointer-events: none; }
+    .hero-content { position: relative; z-index: 2; padding: 0 28px 60px; max-width: 560px; width: 100%; }
+    .hero-copy { font-size: 11px; letter-spacing: 0.14em; color: #aaa; line-height: 2.1; margin-bottom: 16px; font-weight: 600; }
+    .hero-copy p:last-child { color: var(--purple-light); }
+    .hero-hl { font-size: clamp(46px, 12vw, 76px); font-weight: 900; line-height: 1.0; letter-spacing: -2px; margin-bottom: 10px; }
+    .hero-hl span { color: var(--purple-light); }
+    .hero-sub { font-size: 15px; color: #777; margin-bottom: 32px; line-height: 1.65; }
+    .hero-sub strong { color: #22c55e; font-weight: 700; }
+    /* Floating notification cards */
+    .hero-notif { position: absolute; z-index: 10; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); background: rgba(14,14,22,0.92); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 24px rgba(0,0,0,0.55); display: flex; align-items: center; }
+    .hero-notif-top { top: 72px; left: 20px; border-radius: 50px; padding: 8px 16px 8px 10px; gap: 8px; animation: heroFloatIn 0.55s cubic-bezier(0.34,1.56,0.64,1) 0.7s both; }
+    .hero-notif-right { top: 38%; right: 16px; border-radius: 14px; padding: 10px 14px; gap: 10px; max-width: 172px; animation: heroFloatIn 0.55s cubic-bezier(0.34,1.56,0.64,1) 1.4s both; }
+    @keyframes heroFloatIn { from { opacity: 0; transform: scale(0.86); } to { opacity: 1; transform: scale(1); } }
+    .hero-pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--purple-light); flex-shrink: 0; animation: heroPulse 2s infinite; }
+    @keyframes heroPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+    .hero-earn-icon { width: 32px; height: 32px; border-radius: 50%; background: #22c55e; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: #fff; flex-shrink: 0; }
+
     /* ── SIGNUP SCREEN ── */
     #screenSignup { padding: 68px 20px 80px; justify-content: flex-start; }
     .signup-wrap { width: 100%; max-width: 440px; }
@@ -173,41 +194,48 @@
 <div id="siteHeader"><span class="site-logo">THREAD<span>.</span></span></div>
 
 <!-- ══════════════════════════════════════════════
-     SCREEN 1: SLIDES (condensed — 2 slides)
+     SCREEN 0: HERO
 ══════════════════════════════════════════════ -->
-<div class="screen active" id="screenSlides">
-  <button id="slideBack" onclick="prevSlide()">← Back</button>
+<div class="screen active" id="screenHero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-overlay"></div>
 
-  <!-- Slide 1: The concept -->
-  <div class="slide active" data-slide="0">
-    <div class="slide-icon">👕</div>
-    <div class="slide-eyebrow">Welcome to THREAD</div>
-    <h1 class="slide-headline">Clothing that<br><span>pays you back.</span></h1>
-    <div class="steps-row">
-      <div class="step-block">
-        <div class="step-icon">👕</div>
-        <div class="step-label">Wear it</div>
-        <div class="step-sub">Your unique QR is on the piece</div>
-      </div>
-      <div class="step-arrow">→</div>
-      <div class="step-block">
-        <div class="step-icon">📲</div>
-        <div class="step-label">They scan</div>
-        <div class="step-sub">Someone hits your QR code</div>
-      </div>
-      <div class="step-arrow">→</div>
-      <div class="step-block">
-        <div class="step-icon">💸</div>
-        <div class="step-label">You earn</div>
-        <div class="step-sub">They buy, you get a cut</div>
-      </div>
-    </div>
-    <p class="slide-body">No selling. No posting. Just <strong>wear it</strong> and let your piece do the work.</p>
-    <button class="btn-next" onclick="nextSlide()">Got it — show me the pieces →</button>
+  <!-- Floating: live scan -->
+  <div class="hero-notif hero-notif-top">
+    <div class="hero-pulse"></div>
+    <span style="font-size:12px;font-weight:600;color:#f0f0f0;white-space:nowrap">New scan · just now 🔥</span>
   </div>
 
-  <!-- Slide 2: Earnings calculator -->
-  <div class="slide" data-slide="1">
+  <!-- Floating: commission paid -->
+  <div class="hero-notif hero-notif-right">
+    <div class="hero-earn-icon">$</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Commission</div>
+      <div style="font-size:12px;color:#ddd;font-weight:700">Jake · <span style="color:#22c55e">+$25</span></div>
+    </div>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-copy">
+      <p>YOUR CODE.</p>
+      <p>THEIR SCAN.</p>
+      <p>YOUR INCOME.</p>
+    </div>
+    <h1 class="hero-hl">Wear It.<br><span>Get Paid.</span></h1>
+    <p class="hero-sub">Your piece ships with a QR on the back. Someone scans it, buys — <strong>you earn 20%+.</strong> No selling.</p>
+    <button class="btn-next" onclick="goToCalc()" style="max-width:300px">Start Earning →</button>
+  </div>
+</div><!-- #screenHero -->
+
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 1: EARNINGS CALCULATOR
+══════════════════════════════════════════════ -->
+<div class="screen" id="screenSlides">
+  <button id="slideBack" class="visible" onclick="goBack('screenHero')">← Back</button>
+
+  <!-- Calculator slide (only slide) -->
+  <div class="slide active" data-slide="0">
     <div class="slide-icon">💸</div>
     <div class="slide-eyebrow">See your potential</div>
     <h1 class="slide-headline">How much could<br><span>you earn?</span></h1>
@@ -247,6 +275,7 @@
 ══════════════════════════════════════════════ -->
 <div class="screen" id="screenPicker">
 
+  <div class="signup-back" onclick="goBack('screenSlides')" style="align-self:flex-start">← Back</div>
 
   <h2 class="picker-headline">What's your pick?</h2>
   <p class="picker-sub">Tap a color to switch. Hover or tap the image to flip.<br>You can pick both — stack 'em.</p>
@@ -554,45 +583,25 @@ document.getElementById('cardHoodie').addEventListener('click', function(e) {
 });
 
 /* ══════════════════════════════════════════════
-   SLIDE NAVIGATION
+   SCREEN NAVIGATION
+   Flow: Hero (0%) → Calculator (25%) → Picker (50%) → Signup (75%) → Checkout (100%)
 ══════════════════════════════════════════════ */
-const TOTAL_SLIDES = 2;
-let currentSlide = 0;
-
-function nextSlide() {
-  const slides = document.querySelectorAll('.slide');
-  slides[currentSlide].classList.remove('active');
-  slides[currentSlide].classList.add('exit');
-  currentSlide++;
-  if (currentSlide < TOTAL_SLIDES) slides[currentSlide].classList.add('active');
-  setProgress((currentSlide / (TOTAL_SLIDES + 2)) * 100);
-  document.getElementById('slideBack').classList.toggle('visible', currentSlide > 0);
-  setTimeout(() => slides.forEach(s => s.classList.remove('exit')), 500);
-  window._onbTrack?.('slide_view', 'slide_' + currentSlide); // slide_1, slide_2, …
-}
-
-function prevSlide() {
-  if (currentSlide === 0) return;
-  const slides = document.querySelectorAll('.slide');
-  slides[currentSlide].classList.remove('active');
-  slides[currentSlide].classList.add('exit-right');
-  currentSlide--;
-  slides[currentSlide].classList.add('active');
-  setProgress((currentSlide / (TOTAL_SLIDES + 2)) * 100);
-  document.getElementById('slideBack').classList.toggle('visible', currentSlide > 0);
-  setTimeout(() => slides.forEach(s => s.classList.remove('exit-right')), 500);
+function goToCalc() {
+  window._onbTrack?.('funnel', 'hero_cta');
+  switchScreen('screenHero', 'screenSlides');
+  setProgress(25);
 }
 
 function goToPicker() {
   switchScreen('screenSlides', 'screenPicker');
-  setProgress((TOTAL_SLIDES / (TOTAL_SLIDES + 2)) * 100);
+  setProgress(50);
   window._onbTrack?.('funnel', 'picker_reached');
 }
 
 function goToSignup() {
   buildOrderMini();
   switchScreen('screenPicker', 'screenSignup');
-  setProgress(((TOTAL_SLIDES + 1) / (TOTAL_SLIDES + 2)) * 100);
+  setProgress(75);
   window._onbTrack?.('funnel', 'signup_reached');
   // Log which product(s) they selected
   if (_sel.tee.on)    window._onbTrack?.('select', 'tee_to_checkout');
@@ -825,6 +834,16 @@ function updateOnbCalc() {
   document.getElementById('onbCalcSub').textContent = `~${monthlyConv.toFixed(1)} purchases/month`;
 }
 updateOnbCalc();
+
+/* Hero background lazy-load — triggers Ken Burns zoom-out once image is ready */
+(function () {
+  const img = new Image();
+  img.onload = function () {
+    const bg = document.getElementById('heroBg');
+    if (bg) bg.classList.add('loaded');
+  };
+  img.src = 'ADS/instagram-ad-test.png';
+})();
 
 /* Init */
 buildSwatches();
