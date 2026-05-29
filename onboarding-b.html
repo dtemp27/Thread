@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Welcome to THREAD</title>
   <link rel="icon" href="favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -136,26 +139,75 @@
     .btn-next:disabled, .btn-add:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
     .picker-note { text-align: center; font-size: 12px; color: #444; margin-top: 10px; line-height: 1.6; }
 
-    /* ── HERO SCREEN ── */
-    #screenHero { padding: 0; justify-content: flex-end; overflow: hidden; }
-    .hero-bg { position: absolute; inset: 0; background-image: url('ADS/instagram-ad-test.png'); background-size: auto 85%; background-position: center 18%; background-repeat: no-repeat; filter: brightness(0.55); transition: transform 8s ease-out; transform: scale(1.04); }
-    .hero-bg.loaded { transform: scale(1); }
-    .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(10,10,18,0.5) 0%, rgba(10,10,18,0.08) 35%, rgba(10,10,18,0.82) 72%, rgba(10,10,18,1) 100%); pointer-events: none; }
-    .hero-content { position: relative; z-index: 2; padding: 0 28px 60px; max-width: 560px; width: 100%; }
-    .hero-copy { font-size: 11px; letter-spacing: 0.14em; color: #aaa; line-height: 2.1; margin-bottom: 16px; font-weight: 600; }
-    .hero-copy p:last-child { color: var(--purple-light); }
-    .hero-hl { font-size: clamp(46px, 12vw, 76px); font-weight: 900; line-height: 1.0; letter-spacing: -2px; margin-bottom: 10px; }
-    .hero-hl span { color: var(--purple-light); }
-    .hero-sub { font-size: 15px; color: #777; margin-bottom: 32px; line-height: 1.65; }
-    .hero-sub strong { color: #22c55e; font-weight: 700; }
+    /* ── HERO SCREEN (full earn.html landing page) ── */
+    #screenHero { padding: 0; display: block; overflow-y: auto; }
+
+    .lp-hero { position: relative; min-height: 100svh; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; }
+    .lp-hero-bg { position: absolute; inset: 0; background-image: url('ADS/instagram-ad-test.png'); background-size: auto 80%; background-position: center 20%; background-repeat: no-repeat; filter: brightness(0.6); transform: scale(1.03); transition: transform 8s ease-out; }
+    .lp-hero-bg.loaded { transform: scale(1); }
+    .lp-hero-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(8,8,8,0.6) 0%, rgba(8,8,8,0.1) 35%, rgba(8,8,8,0.15) 55%, rgba(8,8,8,0.92) 85%, rgba(8,8,8,1) 100%); }
+    .lp-hero-vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 40%, rgba(108,99,255,0.12) 0%, transparent 65%); pointer-events: none; }
+    .lp-hero-content { position: relative; z-index: 2; padding: 0 24px 52px; max-width: 600px; }
+    .lp-ad-copy { margin-bottom: 20px; }
+    .lp-ad-copy p { font-family: 'Space Grotesk', sans-serif; font-size: clamp(11px, 2.8vw, 13px); letter-spacing: 0.12em; line-height: 1.9; color: #ccc; }
+    .lp-ad-copy p:last-child { color: #a78bfa; font-weight: 700; }
+    .lp-headline { font-size: clamp(42px, 11vw, 72px); font-weight: 700; line-height: 1.0; letter-spacing: -1px; margin-bottom: 6px; }
+    .lp-headline .accent { color: #a78bfa; }
+    .lp-tagline { font-size: clamp(13px, 3.5vw, 16px); color: #aaa; margin-bottom: 28px; font-weight: 400; letter-spacing: 0.02em; line-height: 1.6; }
+    .lp-tagline strong { color: #22c55e; font-weight: 700; }
+    .lp-cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .lp-btn-main { background: #6C63FF; color: #fff; border: none; border-radius: 50px; padding: 16px 32px; font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer; display: inline-block; transition: background 0.2s, transform 0.2s, box-shadow 0.2s; letter-spacing: 0.02em; }
+    .lp-btn-main:hover { background: #a78bfa; transform: translateY(-2px); box-shadow: 0 10px 40px rgba(108,99,255,0.45); }
+    .lp-btn-main--lg { font-size: 17px; padding: 18px 40px; }
+    .lp-btn-ghost { background: transparent; color: #f0f0f0; border: 1px solid rgba(255,255,255,0.2); border-radius: 50px; padding: 15px 28px; font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; display: inline-block; transition: border-color 0.2s, background 0.2s; }
+    .lp-btn-ghost:hover { border-color: #a78bfa; background: rgba(108,99,255,0.08); }
+
     /* Floating notification cards */
-    .hero-notif { position: absolute; z-index: 10; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); background: rgba(14,14,22,0.92); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 24px rgba(0,0,0,0.55); display: flex; align-items: center; }
-    .hero-notif-top { top: 72px; left: 20px; border-radius: 50px; padding: 8px 16px 8px 10px; gap: 8px; animation: heroFloatIn 0.55s cubic-bezier(0.34,1.56,0.64,1) 0.7s both; }
-    .hero-notif-right { top: 38%; right: 16px; border-radius: 14px; padding: 10px 14px; gap: 10px; max-width: 172px; animation: heroFloatIn 0.55s cubic-bezier(0.34,1.56,0.64,1) 1.4s both; }
-    @keyframes heroFloatIn { from { opacity: 0; transform: scale(0.86); } to { opacity: 1; transform: scale(1); } }
-    .hero-pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--purple-light); flex-shrink: 0; animation: heroPulse 2s infinite; }
-    @keyframes heroPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
-    .hero-earn-icon { width: 32px; height: 32px; border-radius: 50%; background: #22c55e; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: #fff; flex-shrink: 0; }
+    @keyframes floatFromTop  { from { opacity:0; transform:translateY(-16px) scale(.92); } to { opacity:1; transform:translateY(0) scale(1); } }
+    @keyframes floatFromRight { from { opacity:0; transform:translateX(16px) scale(.92); } to { opacity:1; transform:translateX(0) scale(1); } }
+    @keyframes lpPulse { 0%,100%{ opacity:1; box-shadow:0 0 0 0 rgba(167,139,250,.4); } 50%{ opacity:.8; box-shadow:0 0 0 6px rgba(167,139,250,0); } }
+    .lp-notif { position: absolute; z-index: 10; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(16,16,16,0.92); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 24px rgba(0,0,0,0.55); display: flex; align-items: center; }
+    .lp-notif-topleft { top: 72px; left: 16px; border-radius: 50px; padding: 8px 14px 8px 10px; gap: 8px; animation: floatFromTop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.8s both; }
+    .lp-notif-topleft .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: #a78bfa; animation: lpPulse 2s infinite; flex-shrink: 0; }
+    .lp-notif-topleft span { font-size: 12px; font-weight: 600; color: #f0f0f0; white-space: nowrap; }
+    .lp-notif-botright { top: 42%; right: 16px; border-radius: 14px; padding: 10px 14px; gap: 10px; animation: floatFromRight 0.5s cubic-bezier(0.34,1.56,0.64,1) 2s both; max-width: 175px; }
+    .lp-earn-icon { width: 32px; height: 32px; border-radius: 50%; background: #22c55e; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .lp-earn-label { font-size: 9px; color: #777; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
+    .lp-earn-name  { font-size: 11px; color: #ddd; font-weight: 600; line-height: 1.35; }
+
+    /* How It Works */
+    .lp-how { background: #0a0a0a; padding: 72px 24px 64px; text-align: center; }
+    .lp-how-label { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #a78bfa; font-weight: 600; margin-bottom: 12px; }
+    .lp-how-title { font-size: clamp(26px, 6vw, 40px); font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
+    .lp-how-sub { font-size: 15px; color: #aaa; margin-bottom: 48px; max-width: 420px; margin-left: auto; margin-right: auto; }
+    .lp-steps { display: flex; flex-direction: column; gap: 0; max-width: 480px; margin: 0 auto 48px; text-align: left; }
+    .lp-step { display: flex; gap: 20px; align-items: flex-start; padding: 24px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .lp-step:last-child { border-bottom: none; }
+    .lp-step-num { width: 40px; height: 40px; border-radius: 50%; background: rgba(108,99,255,0.15); border: 1px solid rgba(108,99,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #a78bfa; flex-shrink: 0; margin-top: 2px; }
+    .lp-step-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+    .lp-step-desc  { font-size: 14px; color: #aaa; line-height: 1.6; }
+
+    /* Proof strip */
+    .lp-proof { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; padding: 0 24px 16px; }
+    .lp-proof-stat { text-align: center; }
+    .lp-proof-num { font-size: 32px; font-weight: 700; color: #f0f0f0; letter-spacing: -1px; }
+    .lp-proof-num span { color: #a78bfa; }
+    .lp-proof-label { font-size: 12px; color: #aaa; margin-top: 2px; letter-spacing: 0.04em; }
+
+    /* Bottom CTA */
+    .lp-bottom-cta { background: linear-gradient(to bottom, #0a0a0a, #0d0b18); padding: 64px 24px 80px; text-align: center; }
+    .lp-bottom-cta h2 { font-size: clamp(28px, 7vw, 48px); font-weight: 700; letter-spacing: -0.5px; margin-bottom: 12px; }
+    .lp-bottom-cta > p { font-size: 15px; color: #aaa; margin-bottom: 32px; max-width: 380px; margin-left: auto; margin-right: auto; }
+    .lp-fine { margin-top: 16px; font-size: 12px; color: #555; }
+    .lp-fine a { color: #666; text-decoration: underline; }
+
+    /* Footer */
+    .lp-footer { padding: 24px; text-align: center; border-top: 1px solid rgba(255,255,255,0.06); font-size: 12px; color: #444; }
+    .lp-footer a { color: #555; margin: 0 8px; text-decoration: none; }
+
+    /* Responsive */
+    @media (min-width: 600px) { .lp-hero-content { padding: 0 48px 72px; } .lp-notif-topleft { left: 24px; } .lp-notif-botright { right: 24px; top: 40%; } }
+    @media (min-width: 900px) { .lp-hero-bg { background-position: center 15%; } .lp-hero-content { padding: 0 80px 100px; max-width: 680px; } .lp-notif-topleft { left: 48px; top: 145px; } .lp-notif-botright { right: 48px; top: 38%; } .lp-steps { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; max-width: 800px; } .lp-step { flex-direction: column; padding: 28px 24px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; border-bottom: 1px solid rgba(255,255,255,0.07); } .lp-proof { gap: 64px; } }
 
     /* ── SIGNUP SCREEN ── */
     #screenSignup { padding: 68px 20px 80px; justify-content: flex-start; }
@@ -194,37 +246,107 @@
 <div id="siteHeader"><span class="site-logo">THREAD<span>.</span></span></div>
 
 <!-- ══════════════════════════════════════════════
-     SCREEN 0: HERO
+     SCREEN 0: HERO (full earn.html landing page)
 ══════════════════════════════════════════════ -->
 <div class="screen active" id="screenHero">
-  <div class="hero-bg" id="heroBg"></div>
-  <div class="hero-overlay"></div>
 
-  <!-- Floating: live scan -->
-  <div class="hero-notif hero-notif-top">
-    <div class="hero-pulse"></div>
-    <span style="font-size:12px;font-weight:600;color:#f0f0f0;white-space:nowrap">New scan · just now 🔥</span>
-  </div>
+  <!-- ── HERO SECTION ── -->
+  <section class="lp-hero">
+    <div class="lp-hero-bg" id="lpHeroBg"></div>
+    <div class="lp-hero-overlay"></div>
+    <div class="lp-hero-vignette"></div>
 
-  <!-- Floating: commission paid -->
-  <div class="hero-notif hero-notif-right">
-    <div class="hero-earn-icon">$</div>
-    <div style="flex:1;min-width:0">
-      <div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Commission</div>
-      <div style="font-size:12px;color:#ddd;font-weight:700">Jake · <span style="color:#22c55e">+$25</span></div>
+    <!-- TOP LEFT: new scan pop-in -->
+    <div class="lp-notif lp-notif-topleft">
+      <div class="pulse-dot"></div>
+      <span>New scan · just now 🔥</span>
     </div>
-  </div>
 
-  <div class="hero-content">
-    <div class="hero-copy">
-      <p>YOUR CODE.</p>
-      <p>THEIR SCAN.</p>
-      <p>YOUR INCOME.</p>
+    <!-- MID RIGHT: commission paid -->
+    <div class="lp-notif lp-notif-botright">
+      <div class="lp-earn-icon">$</div>
+      <div>
+        <div class="lp-earn-label">Commission Paid</div>
+        <div class="lp-earn-name">Jake · <span style="color:#22c55e">+$25</span></div>
+      </div>
     </div>
-    <h1 class="hero-hl">Wear It.<br><span>Get Paid.</span></h1>
-    <p class="hero-sub">Your piece ships with a QR on the back. Someone scans it, buys — <strong>you earn 20%+.</strong> No selling.</p>
-    <button class="btn-next" onclick="goToCalc()" style="max-width:300px">Start Earning →</button>
-  </div>
+
+    <div class="lp-hero-content">
+      <div class="lp-ad-copy">
+        <p>YOUR CODE.</p>
+        <p>THEIR SCAN.</p>
+        <p>YOUR INCOME.</p>
+      </div>
+      <h1 class="lp-headline">Wear It.<br /><span class="accent">Get Paid.</span></h1>
+      <p class="lp-tagline">Every THREAD piece has a QR code on the back.<br />Someone scans it. They buy. <strong>You earn 20%+.</strong> No effort.</p>
+      <div class="lp-cta-row">
+        <button class="lp-btn-main" onclick="goToCalc()">Start Earning →</button>
+        <button class="lp-btn-ghost" onclick="scrollHeroTo('lp-how')">See How It Works</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── HOW IT WORKS ── -->
+  <section class="lp-how" id="lp-how">
+    <p class="lp-how-label">Simple as it gets</p>
+    <h2 class="lp-how-title">Three steps. Passive income.</h2>
+    <p class="lp-how-sub">No selling, no posting, no effort. Just wear the shirt.</p>
+
+    <div class="lp-steps">
+      <div class="lp-step">
+        <div class="lp-step-num">1</div>
+        <div>
+          <div class="lp-step-title">Get Your Shirt</div>
+          <div class="lp-step-desc">Every piece comes printed with your own unique QR code linked to your account.</div>
+        </div>
+      </div>
+      <div class="lp-step">
+        <div class="lp-step-num">2</div>
+        <div>
+          <div class="lp-step-title">People Scan It</div>
+          <div class="lp-step-desc">Someone sees your QR, scans it on their phone, lands on the THREAD store.</div>
+        </div>
+      </div>
+      <div class="lp-step">
+        <div class="lp-step-num">3</div>
+        <div>
+          <div class="lp-step-title">You Earn 20%</div>
+          <div class="lp-step-desc">Every sale that comes through your code puts 20%+ commission straight to you.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lp-proof">
+      <div class="lp-proof-stat">
+        <div class="lp-proof-num"><span>20</span>%</div>
+        <div class="lp-proof-label">Per Sale Earned</div>
+      </div>
+      <div class="lp-proof-stat">
+        <div class="lp-proof-num">$<span>0</span></div>
+        <div class="lp-proof-label">To Get Started</div>
+      </div>
+      <div class="lp-proof-stat">
+        <div class="lp-proof-num"><span>∞</span></div>
+        <div class="lp-proof-label">Earning Potential</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── BOTTOM CTA ── -->
+  <section class="lp-bottom-cta">
+    <h2>Ready to start<br />earning?</h2>
+    <p>Create your free account, get your unique QR code, and start earning from day one.</p>
+    <button class="lp-btn-main lp-btn-main--lg" onclick="goToCalc()">Get Started Free →</button>
+    <p class="lp-fine">Free to join. <a href="terms.html" target="_blank">Terms apply.</a></p>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer class="lp-footer">
+    <span>© 2026 THREAD.</span>
+    <a href="index.html">Main Site</a>
+    <a href="terms.html">Terms</a>
+  </footer>
+
 </div><!-- #screenHero -->
 
 
@@ -835,15 +957,21 @@ function updateOnbCalc() {
 }
 updateOnbCalc();
 
-/* Hero background lazy-load — triggers Ken Burns zoom-out once image is ready */
+/* Hero background lazy-load */
 (function () {
+  const bg = document.getElementById('lpHeroBg');
+  if (!bg) return;
   const img = new Image();
-  img.onload = function () {
-    const bg = document.getElementById('heroBg');
-    if (bg) bg.classList.add('loaded');
-  };
+  img.onload = function () { requestAnimationFrame(() => bg.classList.add('loaded')); };
   img.src = 'ADS/instagram-ad-test.png';
 })();
+
+/* Smooth scroll within the hero screen */
+function scrollHeroTo(id) {
+  const el = document.getElementById(id);
+  const sc = document.getElementById('screenHero');
+  if (el && sc) sc.scrollTo({ top: el.offsetTop, behavior: 'smooth' });
+}
 
 /* Init */
 buildSwatches();
