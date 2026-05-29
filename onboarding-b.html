@@ -25,7 +25,7 @@
     .site-logo span { color: var(--purple); }
 
     /* Screens */
-    .screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow-y: auto; opacity: 0; pointer-events: none; transition: opacity 0.45s ease, transform 0.45s ease; transform: translateX(60px); }
+    .screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow-y: auto; opacity: 0; pointer-events: none; transition: opacity 0.45s ease, transform 0.45s ease; transform: translateX(60px); background: var(--bg); }
     .screen.active { opacity: 1; pointer-events: auto; transform: translateX(0); }
     .screen.exit   { opacity: 0; transform: translateX(-60px); pointer-events: none; }
 
