@@ -136,27 +136,6 @@
     .btn-next:disabled, .btn-add:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
     .picker-note { text-align: center; font-size: 12px; color: #444; margin-top: 10px; line-height: 1.6; }
 
-    /* ── HERO SCREEN ── */
-    #screenHero { padding: 0; justify-content: flex-end; overflow: hidden; }
-    .hero-bg { position: absolute; inset: 0; background-image: url('ADS/instagram-ad-test.png'); background-size: auto 85%; background-position: center 18%; background-repeat: no-repeat; filter: brightness(0.55); transition: transform 8s ease-out; transform: scale(1.04); }
-    .hero-bg.loaded { transform: scale(1); }
-    .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(10,10,18,0.55) 0%, rgba(10,10,18,0.08) 35%, rgba(10,10,18,0.82) 72%, rgba(10,10,18,1) 100%); pointer-events: none; }
-    .hero-content { position: relative; z-index: 2; padding: 0 28px 56px; max-width: 560px; width: 100%; }
-    .hero-copy { font-size: 11px; letter-spacing: 0.14em; color: #aaa; line-height: 2.1; margin-bottom: 16px; font-weight: 600; }
-    .hero-copy p:last-child { color: var(--purple-light); }
-    .hero-hl { font-size: clamp(46px, 12vw, 76px); font-weight: 900; line-height: 1.0; letter-spacing: -2px; margin-bottom: 10px; }
-    .hero-hl span { color: var(--purple-light); }
-    .hero-sub { font-size: 15px; color: #777; margin-bottom: 32px; line-height: 1.65; }
-    .hero-sub strong { color: #22c55e; font-weight: 700; }
-    /* Floating notification cards */
-    .hero-notif { position: absolute; z-index: 10; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); background: rgba(14,14,22,0.92); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 24px rgba(0,0,0,0.55); display: flex; align-items: center; }
-    .hero-notif-top { top: 72px; left: 20px; border-radius: 50px; padding: 8px 16px 8px 10px; gap: 8px; animation: heroFloatIn 0.55s cubic-bezier(0.34,1.56,0.64,1) 0.7s both; }
-    .hero-notif-right { top: 38%; right: 16px; border-radius: 14px; padding: 10px 14px; gap: 10px; max-width: 172px; animation: heroFloatIn 0.55s cubic-bezier(0.34,1.56,0.64,1) 1.4s both; }
-    @keyframes heroFloatIn { from { opacity: 0; transform: scale(0.86); } to { opacity: 1; transform: scale(1); } }
-    .hero-pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--purple-light); flex-shrink: 0; animation: heroPulse 2s infinite; }
-    @keyframes heroPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
-    .hero-earn-icon { width: 32px; height: 32px; border-radius: 50%; background: #22c55e; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: #fff; flex-shrink: 0; }
-
     /* ── SIGNUP SCREEN ── */
     #screenSignup { padding: 68px 20px 80px; justify-content: flex-start; }
     .signup-wrap { width: 100%; max-width: 440px; }
@@ -194,44 +173,9 @@
 <div id="siteHeader"><span class="site-logo">THREAD<span>.</span></span></div>
 
 <!-- ══════════════════════════════════════════════
-     SCREEN 0: HERO (earn page)
-══════════════════════════════════════════════ -->
-<div class="screen active" id="screenHero">
-  <div class="hero-bg" id="heroBg"></div>
-  <div class="hero-overlay"></div>
-
-  <!-- Floating: live scan -->
-  <div class="hero-notif hero-notif-top">
-    <div class="hero-pulse"></div>
-    <span style="font-size:12px;font-weight:600;color:#f0f0f0;white-space:nowrap">New scan · just now 🔥</span>
-  </div>
-
-  <!-- Floating: commission paid -->
-  <div class="hero-notif hero-notif-right">
-    <div class="hero-earn-icon">$</div>
-    <div style="flex:1;min-width:0">
-      <div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">Commission</div>
-      <div style="font-size:12px;color:#ddd;font-weight:700">Jake · <span style="color:#22c55e">+$25</span></div>
-    </div>
-  </div>
-
-  <div class="hero-content">
-    <div class="hero-copy">
-      <p>YOUR CODE.</p>
-      <p>THEIR SCAN.</p>
-      <p>YOUR INCOME.</p>
-    </div>
-    <h1 class="hero-hl">Wear It.<br><span>Get Paid.</span></h1>
-    <p class="hero-sub">Your piece ships with a QR on the back. Someone scans it, buys — <strong>you earn 20%+.</strong> No selling.</p>
-    <button class="btn-next" onclick="goToSlides()" style="max-width:300px">Start Earning →</button>
-  </div>
-</div>
-
-
-<!-- ══════════════════════════════════════════════
      SCREEN 1: SLIDES (condensed — 2 slides)
 ══════════════════════════════════════════════ -->
-<div class="screen" id="screenSlides">
+<div class="screen active" id="screenSlides">
   <button id="slideBack" onclick="prevSlide()">← Back</button>
 
   <!-- Slide 1: The concept -->
@@ -639,12 +583,6 @@ function prevSlide() {
   setTimeout(() => slides.forEach(s => s.classList.remove('exit-right')), 500);
 }
 
-function goToSlides() {
-  window._onbTrack?.('funnel', 'hero_cta');
-  switchScreen('screenHero', 'screenSlides');
-  setProgress((1 / (TOTAL_SLIDES + 3)) * 100);
-}
-
 function goToPicker() {
   switchScreen('screenSlides', 'screenPicker');
   setProgress((TOTAL_SLIDES / (TOTAL_SLIDES + 2)) * 100);
@@ -890,15 +828,6 @@ updateOnbCalc();
 
 /* Init */
 buildSwatches();
-
-// Lazy-load hero background with zoom-in effect
-(function() {
-  const bg = document.getElementById('heroBg');
-  if (!bg) return;
-  const img = new Image();
-  img.onload = () => requestAnimationFrame(() => bg.classList.add('loaded'));
-  img.src = 'ADS/instagram-ad-test.png';
-})();
 </script>
 </body>
 </html>
