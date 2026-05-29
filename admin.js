@@ -526,7 +526,12 @@ function renderCustomers() {
        WHERE p.id = u.id
          AND (p.username IS NULL OR p.username = '')
          AND (u.raw_user_meta_data->>'username') IS NOT NULL
-         AND (u.raw_user_meta_data->>'username') != '';
+         AND (u.raw_user_meta_data->>'username') != ''
+         AND NOT EXISTS (
+           SELECT 1 FROM profiles p2
+           WHERE p2.username = (u.raw_user_meta_data->>'username')
+             AND p2.id != p.id
+         );
      GET DIAGNOSTICS updated_count = ROW_COUNT;
      RETURN json_build_object('updated', updated_count);
    END; $$;
