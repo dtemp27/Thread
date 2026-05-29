@@ -521,16 +521,25 @@ function renderCustomers() {
    DECLARE updated_count integer;
    BEGIN
      UPDATE profiles p
-       SET username = (u.raw_user_meta_data->>'username')
-       FROM auth.users u
-       WHERE p.id = u.id
-         AND (p.username IS NULL OR p.username = '')
-         AND (u.raw_user_meta_data->>'username') IS NOT NULL
-         AND (u.raw_user_meta_data->>'username') != ''
+       SET username = sub.meta_username
+       FROM (
+         SELECT DISTINCT ON (meta_username)
+           u.id,
+           (u.raw_user_meta_data->>'username') AS meta_username
+         FROM auth.users u
+         JOIN profiles p2 ON p2.id = u.id
+         WHERE (p2.username IS NULL OR p2.username = '')
+           AND (u.raw_user_meta_data->>'username') IS NOT NULL
+           AND (u.raw_user_meta_data->>'username') != ''
+         ORDER BY meta_username, u.created_at ASC
+       ) sub
+       WHERE p.id = sub.id
          AND NOT EXISTS (
-           SELECT 1 FROM profiles p2
-           WHERE p2.username = (u.raw_user_meta_data->>'username')
-             AND p2.id != p.id
+           SELECT 1 FROM profiles p3
+           WHERE p3.username = sub.meta_username
+             AND p3.id != sub.id
+             AND p3.username IS NOT NULL
+             AND p3.username != ''
          );
      GET DIAGNOSTICS updated_count = ROW_COUNT;
      RETURN json_build_object('updated', updated_count);
