@@ -245,13 +245,41 @@
 
 
 <!-- ══════════════════════════════════════════════
-     SCREEN 1: SLIDES (calculator)
+     SCREEN 1: SLIDES (how it works → calculator)
 ══════════════════════════════════════════════ -->
 <div class="screen" id="screenSlides">
-  <button id="slideBack" class="visible" onclick="goBack('screenHero')">← Back</button>
+  <button id="slideBack" onclick="prevSlide()">← Back</button>
 
-  <!-- Earnings calculator (only slide) -->
+  <!-- Slide 0: How It Works -->
   <div class="slide active" data-slide="0">
+    <div class="slide-icon">👕</div>
+    <div class="slide-eyebrow">How it works</div>
+    <h1 class="slide-headline">Three steps.<br><span>Passive income.</span></h1>
+    <div class="steps-row">
+      <div class="step-block">
+        <div class="step-icon">👕</div>
+        <div class="step-label">Wear it</div>
+        <div class="step-sub">Your unique QR is on the piece</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step-block">
+        <div class="step-icon">📲</div>
+        <div class="step-label">They scan</div>
+        <div class="step-sub">Someone hits your QR code</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step-block">
+        <div class="step-icon">💸</div>
+        <div class="step-label">You earn</div>
+        <div class="step-sub">They buy, you get 20%+</div>
+      </div>
+    </div>
+    <p class="slide-body">No selling. No posting. Just <strong>wear it</strong> and let your piece do the work.</p>
+    <button class="btn-next" onclick="nextSlide()">Got it — show me the numbers →</button>
+  </div>
+
+  <!-- Slide 1: Earnings calculator -->
+  <div class="slide" data-slide="1">
     <div class="slide-icon">💸</div>
     <div class="slide-eyebrow">See your potential</div>
     <h1 class="slide-headline">How much could<br><span>you earn?</span></h1>
@@ -600,25 +628,55 @@ document.getElementById('cardHoodie').addEventListener('click', function(e) {
 /* ══════════════════════════════════════════════
    SLIDE NAVIGATION
 ══════════════════════════════════════════════ */
-// Flow: Hero (0%) → Calculator (25%) → Picker (50%) → Signup (75%) → Checkout (100%)
+// Flow: Hero (0%) → How It Works (20%) → Calculator (40%) → Picker (60%) → Signup (80%)
+const TOTAL_SLIDES = 2;
+let currentSlide = 0;
+
 function goToCalc() {
   window._onbTrack?.('funnel', 'hero_cta');
+  currentSlide = 0;
   switchScreen('screenHero', 'screenSlides');
-  setProgress(25);
+  setProgress(20);
+  document.getElementById('slideBack').classList.add('visible');
+}
+
+function nextSlide() {
+  const slides = document.querySelectorAll('.slide');
+  slides[currentSlide].classList.remove('active');
+  slides[currentSlide].classList.add('exit');
+  currentSlide++;
+  slides[currentSlide].classList.add('active');
+  setProgress(20 + (currentSlide / TOTAL_SLIDES) * 20); // 20% → 40%
+  setTimeout(() => slides.forEach(s => s.classList.remove('exit')), 500);
+  window._onbTrack?.('slide_view', 'slide_' + currentSlide);
+}
+
+function prevSlide() {
+  if (currentSlide === 0) {
+    goBack('screenHero');
+    setProgress(0);
+    return;
+  }
+  const slides = document.querySelectorAll('.slide');
+  slides[currentSlide].classList.remove('active');
+  slides[currentSlide].classList.add('exit-right');
+  currentSlide--;
+  slides[currentSlide].classList.add('active');
+  setProgress(20); // back to how-it-works
+  setTimeout(() => slides.forEach(s => s.classList.remove('exit-right')), 500);
 }
 
 function goToPicker() {
   switchScreen('screenSlides', 'screenPicker');
-  setProgress(50);
+  setProgress(60);
   window._onbTrack?.('funnel', 'picker_reached');
 }
 
 function goToSignup() {
   buildOrderMini();
   switchScreen('screenPicker', 'screenSignup');
-  setProgress(75);
+  setProgress(80);
   window._onbTrack?.('funnel', 'signup_reached');
-  // Log which product(s) they selected
   if (_sel.tee.on)    window._onbTrack?.('select', 'tee_to_checkout');
   if (_sel.hoodie.on) window._onbTrack?.('select', 'hoodie_to_checkout');
 }
