@@ -363,6 +363,15 @@ function renderOrderEmailHtml({ customerName, orderNumber, items, subtotal, disc
         </div>
       </div>
 
+      <!-- Dashboard CTA -->
+      <div style="margin-top:28px;text-align:center;">
+        <div style="font-size:13px;color:#aaa;margin-bottom:14px;">Your QR code, earnings, and scan stats are waiting for you.</div>
+        <a href="https://mythread.shop/dashboard.html"
+           style="display:block;background:#6C63FF;color:#fff;text-decoration:none;padding:17px 32px;border-radius:50px;font-size:17px;font-weight:800;letter-spacing:0.02em;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+          Check Your Dashboard →
+        </a>
+      </div>
+
       <!-- Earn section -->
       <div style="margin-top:24px;background:linear-gradient(135deg,#0a0a0a 0%,#1a1030 100%);border-radius:14px;padding:22px 24px;">
         <div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:8px;">💰 &nbsp;Your hoodie earns you money</div>
@@ -372,8 +381,6 @@ function renderOrderEmailHtml({ customerName, orderNumber, items, subtotal, disc
           <br><br>
           Hit 11 monthly sales → <strong style="color:#a78bfa;">Hustler tier (25%)</strong>.
           Hit 26 → <strong style="color:#facc15;">Elite tier (30%)</strong>.
-          <br><br>
-          <a href="https://mythread.shop/dashboard.html" style="display:inline-block;margin-top:6px;background:#6C63FF;color:#fff;text-decoration:none;padding:8px 16px;border-radius:50px;font-size:12px;font-weight:700;">View Your Dashboard →</a>
         </div>
       </div>
 
@@ -432,11 +439,15 @@ function renderOrderEmailText({ customerName, orderNumber, items, subtotal, disc
     '• Shipping: 2-4 business days',
     '• Tracking info sent once your order ships',
     '',
+    'CHECK YOUR DASHBOARD',
+    '--------------------',
+    'Your QR code, earnings, and scan stats are live:',
+    'https://mythread.shop/dashboard.html',
+    '',
     'YOUR QR CODE EARNS YOU MONEY',
     '-----------------------------',
     'Your hoodie ships with your unique QR code. When someone scans it and buys,',
     'you earn 20% commission (25% at Hustler tier, 30% at Elite).',
-    'Track your earnings: https://mythread.shop/dashboard.html',
     '',
     'Questions? Reply to this email or contact us at contact@mythread.shop',
     '',
