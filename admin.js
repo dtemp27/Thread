@@ -766,7 +766,7 @@ async function downloadQR(code, name, color) {
   // white QR  → lime bg  (#00ff00) → strip R<50 & G>200 & B<50
   const bgColor  = isWhite ? '#00ff00' : '#00ffff';
 
-  const url      = `https://mythread.shop/?ref=${encodeURIComponent(code)}`;
+  const url      = `https://mythread.shop/scan.html?ref=${encodeURIComponent(code)}`;
   const safeName = (name || code).replace(/[^a-zA-Z0-9_-]/g, '_');
   const label    = isWhite ? 'WHITE' : 'BLACK';
 

@@ -738,6 +738,16 @@
     <div class="size-modal-hint">Unisex fit · Heavyweight cotton</div>
   </div>
 
+  <!-- QR scan redirect: send first-time ref visitors through the cinematic scan landing -->
+  <script>
+    (function() {
+      var ref = new URLSearchParams(window.location.search).get('ref');
+      if (ref && !window.location.hash && !sessionStorage.getItem('qr_seen')) {
+        sessionStorage.setItem('qr_seen', '1');
+        window.location.replace('scan.html?ref=' + encodeURIComponent(ref));
+      }
+    })();
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
   <script src="config.js"></script>
