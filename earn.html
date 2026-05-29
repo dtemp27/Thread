@@ -40,11 +40,9 @@
 
     /* ── NAV (sticky inside landing screen) ── */
     .lp-nav { position: sticky; top: 0; z-index: 9999; display: flex; flex-direction: column; background: rgba(8,8,8,0.92); backdrop-filter: blur(20px); }
-    .lp-nav-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; }
+    .lp-nav-row { display: flex; align-items: center; justify-content: center; padding: 16px 24px; }
     .lp-logo { font-family: 'Space Mono', monospace; font-size: 20px; font-weight: 700; letter-spacing: 1px; }
     .lp-logo span { color: var(--accent); }
-    .lp-nav-btn { background: var(--accent); color: #fff; border: none; border-radius: 50px; padding: 10px 22px; font-size: 14px; font-weight: 600; font-family: 'Space Grotesk', sans-serif; cursor: pointer; transition: background 0.2s, transform 0.2s; }
-    .lp-nav-btn:hover { background: var(--accent2); transform: translateY(-1px); }
 
     /* ── HERO ── */
     .lp-hero { position: relative; min-height: 100svh; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; }
@@ -214,7 +212,6 @@
   <nav class="lp-nav">
     <div class="lp-nav-row">
       <div class="lp-logo">THREAD<span>.</span></div>
-      <button class="lp-nav-btn" onclick="goToPicker()" data-track="nav-join">Join Free</button>
     </div>
   </nav>
 
@@ -340,21 +337,6 @@
 
     <button class="lp-btn-main lp-btn-main--lg" onclick="goToPicker()" data-track="calc-join">I'm in — pick my piece →</button>
   </section>
-
-  <!-- ── BOTTOM CTA ── -->
-  <section class="lp-bottom-cta">
-    <h2>Ready to start<br />earning?</h2>
-    <p>Create your free account, get your unique QR code, and start earning from day one.</p>
-    <button class="lp-btn-main lp-btn-main--lg" onclick="goToPicker()" data-track="bottom-join">Get Started Free →</button>
-    <p class="lp-fine">Free to join. <a href="terms.html" target="_blank">Terms apply.</a></p>
-  </section>
-
-  <!-- ── FOOTER ── -->
-  <footer class="lp-footer">
-    <span>© 2026 THREAD.</span>
-    <a href="index.html">Main Site</a>
-    <a href="terms.html">Terms</a>
-  </footer>
 
 </div><!-- #screenLanding -->
 
