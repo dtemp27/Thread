@@ -72,15 +72,21 @@
     /* ────────────────────────────────────────────────
        PHASE 0 — SCAN
     ──────────────────────────────────────────────── */
-    .p0-logo {
+    .site-logo {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      text-align: center;
+      padding: 20px 0;
       font-family: 'Space Mono', monospace;
       font-size: 16px;
       font-weight: 700;
       letter-spacing: 3px;
-      color: rgba(255,255,255,0.5);
-      margin-bottom: 56px;
+      color: rgba(255,255,255,0.7);
+      z-index: 100;
     }
-    .p0-logo span { color: var(--accent); }
+    .site-logo span { color: var(--accent); }
 
     .scan-wrap {
       position: relative;
@@ -442,10 +448,11 @@
 </head>
 <body>
 
+<!-- Fixed logo — persists across all phases -->
+<div class="site-logo">THREAD<span>.</span></div>
+
 <!-- ══ PHASE 0: SCANNING ══ -->
 <div class="phase" id="p0">
-  <div class="p0-logo">THREAD<span>.</span></div>
-
   <div class="scan-wrap">
     <div class="sc-ring"></div>
     <div class="sc-ring-2"></div>
