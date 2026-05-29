@@ -19,520 +19,202 @@
       --green: #22c55e;
       --text: #f0f0f0;
       --text2: #aaa;
+      --bg2: #111118;
+      --border: rgba(255,255,255,0.08);
     }
 
-    html, body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Space Grotesk', sans-serif;
-      overflow-x: hidden;
-      width: 100%;
-    }
-
+    html, body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; overflow: hidden; width: 100%; height: 100%; }
     a { color: inherit; text-decoration: none; }
     img { display: block; max-width: 100%; }
 
-    /* ── MINI NAV ── */
-    .lp-nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      background: rgba(8,8,8,0.92);
-      backdrop-filter: blur(20px);
-    }
-    .lp-nav-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 24px;
-    }
-    .lp-logo {
-      font-family: 'Space Mono', monospace;
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
+    /* ── PROGRESS BAR ── */
+    #progressBar { position: fixed; top: 0; left: 0; height: 3px; background: var(--accent); transition: width 0.4s ease; z-index: 99999; width: 0%; }
+
+    /* ── SCREENS ── */
+    .screen { position: fixed; inset: 0; opacity: 0; pointer-events: none; transition: opacity 0.45s ease, transform 0.45s ease; transform: translateX(60px); background: var(--bg); }
+    .screen.active { opacity: 1; pointer-events: auto; transform: translateX(0); }
+    .screen.exit   { opacity: 0; transform: translateX(-60px); pointer-events: none; }
+    #screenLanding { overflow-y: auto; overflow-x: hidden; display: block; }
+    #screenPicker  { display: flex; flex-direction: column; align-items: center; overflow-y: auto; padding: 68px 20px 80px; }
+    #screenSignup  { display: flex; flex-direction: column; align-items: center; overflow-y: auto; padding: 68px 20px 80px; }
+
+    /* ── NAV (sticky inside landing screen) ── */
+    .lp-nav { position: sticky; top: 0; z-index: 9999; display: flex; flex-direction: column; background: rgba(8,8,8,0.92); backdrop-filter: blur(20px); }
+    .lp-nav-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; }
+    .lp-logo { font-family: 'Space Mono', monospace; font-size: 20px; font-weight: 700; letter-spacing: 1px; }
     .lp-logo span { color: var(--accent); }
-    .lp-nav-btn {
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 50px;
-      padding: 10px 22px;
-      font-size: 14px;
-      font-weight: 600;
-      font-family: 'Space Grotesk', sans-serif;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-      transition: background 0.2s, transform 0.2s;
-    }
+    .lp-nav-btn { background: var(--accent); color: #fff; border: none; border-radius: 50px; padding: 10px 22px; font-size: 14px; font-weight: 600; font-family: 'Space Grotesk', sans-serif; cursor: pointer; transition: background 0.2s, transform 0.2s; }
     .lp-nav-btn:hover { background: var(--accent2); transform: translateY(-1px); }
 
     /* ── HERO ── */
-    .lp-hero {
-      position: relative;
-      min-height: 100svh;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      overflow: hidden;
-    }
-
-    .lp-hero-bg {
-      position: absolute;
-      inset: 0;
-      background-image: url('ADS/instagram-ad-test.png');
-      background-size: auto 80%;
-      background-position: center 20%;
-      background-repeat: no-repeat;
-      filter: brightness(0.6);
-      transform: scale(1.03);
-      transition: transform 8s ease-out;
-    }
+    .lp-hero { position: relative; min-height: 100svh; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; }
+    .lp-hero-bg { position: absolute; inset: 0; background-image: url('ADS/instagram-ad-test.png'); background-size: auto 80%; background-position: center 20%; background-repeat: no-repeat; filter: brightness(0.6); transform: scale(1.03); transition: transform 8s ease-out; }
     .lp-hero-bg.loaded { transform: scale(1); }
-
-    /* Dark gradient overlays — heavier at bottom for text legibility */
-    .lp-hero-overlay {
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(to bottom,
-          rgba(8,8,8,0.6) 0%,
-          rgba(8,8,8,0.1) 35%,
-          rgba(8,8,8,0.15) 55%,
-          rgba(8,8,8,0.92) 85%,
-          rgba(8,8,8,1) 100%
-        );
-    }
-
-    /* Subtle purple vignette matching ad color grade */
-    .lp-hero-vignette {
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse at 70% 40%, rgba(108,99,255,0.12) 0%, transparent 65%);
-      pointer-events: none;
-    }
-
-    .lp-hero-content {
-      position: relative;
-      z-index: 2;
-      padding: 0 24px 52px;
-      max-width: 600px;
-    }
-
-    /* Ad copy: YOUR CODE. THEIR SCAN. YOUR INCOME. */
-    .lp-ad-copy {
-      margin-bottom: 20px;
-    }
-    .lp-ad-copy p {
-      font-family: 'Space Mono', monospace;
-      font-size: clamp(11px, 2.8vw, 13px);
-      letter-spacing: 0.12em;
-      line-height: 1.9;
-      color: #ccc;
-    }
+    .lp-hero-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(8,8,8,0.6) 0%, rgba(8,8,8,0.1) 35%, rgba(8,8,8,0.15) 55%, rgba(8,8,8,0.92) 85%, rgba(8,8,8,1) 100%); }
+    .lp-hero-vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 40%, rgba(108,99,255,0.12) 0%, transparent 65%); pointer-events: none; }
+    .lp-hero-content { position: relative; z-index: 2; padding: 0 24px 52px; max-width: 600px; }
+    .lp-ad-copy { margin-bottom: 20px; }
+    .lp-ad-copy p { font-family: 'Space Mono', monospace; font-size: clamp(11px, 2.8vw, 13px); letter-spacing: 0.12em; line-height: 1.9; color: #ccc; }
     .lp-ad-copy p:last-child { color: var(--accent2); font-weight: 700; }
-
-    .lp-commission-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(34,197,94,0.12);
-      border: 1px solid rgba(34,197,94,0.3);
-      color: #22c55e;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      padding: 6px 14px;
-      border-radius: 50px;
-      margin-bottom: 14px;
-    }
-    .lp-commission-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: #22c55e;
-      flex-shrink: 0;
-    }
-
-    .lp-headline {
-      font-size: clamp(42px, 11vw, 72px);
-      font-weight: 700;
-      line-height: 1.0;
-      letter-spacing: -1px;
-      margin-bottom: 6px;
-    }
+    .lp-headline { font-size: clamp(42px, 11vw, 72px); font-weight: 700; line-height: 1.0; letter-spacing: -1px; margin-bottom: 6px; }
     .lp-headline .accent { color: var(--accent2); }
-
-    .lp-tagline {
-      font-size: clamp(13px, 3.5vw, 16px);
-      color: var(--text2);
-      margin-bottom: 28px;
-      font-weight: 400;
-      letter-spacing: 0.02em;
-    }
+    .lp-tagline { font-size: clamp(13px, 3.5vw, 16px); color: var(--text2); margin-bottom: 28px; font-weight: 400; letter-spacing: 0.02em; line-height: 1.6; }
     .lp-tagline strong { color: var(--green); font-weight: 700; }
-
-    .lp-cta-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .lp-btn-main {
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 50px;
-      padding: 16px 32px;
-      font-size: 16px;
-      font-weight: 700;
-      font-family: 'Space Grotesk', sans-serif;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-      transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-      letter-spacing: 0.02em;
-    }
-    .lp-btn-main:hover {
-      background: var(--accent2);
-      transform: translateY(-2px);
-      box-shadow: 0 10px 40px rgba(108,99,255,0.45);
-    }
-
-    .lp-btn-ghost {
-      background: transparent;
-      color: var(--text);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 50px;
-      padding: 15px 28px;
-      font-size: 15px;
-      font-weight: 600;
-      font-family: 'Space Grotesk', sans-serif;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-      transition: border-color 0.2s, background 0.2s;
-    }
+    .lp-cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .lp-btn-main { background: var(--accent); color: #fff; border: none; border-radius: 50px; padding: 16px 32px; font-size: 16px; font-weight: 700; font-family: 'Space Grotesk', sans-serif; cursor: pointer; display: inline-block; transition: background 0.2s, transform 0.2s, box-shadow 0.2s; letter-spacing: 0.02em; }
+    .lp-btn-main:hover { background: var(--accent2); transform: translateY(-2px); box-shadow: 0 10px 40px rgba(108,99,255,0.45); }
+    .lp-btn-main--lg { font-size: 17px; padding: 18px 40px; }
+    .lp-btn-ghost { background: transparent; color: var(--text); border: 1px solid rgba(255,255,255,0.2); border-radius: 50px; padding: 15px 28px; font-size: 15px; font-weight: 600; font-family: 'Space Grotesk', sans-serif; cursor: pointer; display: inline-block; transition: border-color 0.2s, background 0.2s; }
     .lp-btn-ghost:hover { border-color: var(--accent2); background: rgba(108,99,255,0.08); }
 
-    /* ── FLOATING NOTIFICATION CARDS ── */
-    @keyframes floatFromTop {
-      from { opacity: 0; transform: translateY(-16px) scale(0.92); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    @keyframes floatFromLeft {
-      from { opacity: 0; transform: translateX(-16px) scale(0.92); }
-      to   { opacity: 1; transform: translateX(0) scale(1); }
-    }
-    @keyframes floatFromRight {
-      from { opacity: 0; transform: translateX(16px) scale(0.92); }
-      to   { opacity: 1; transform: translateX(0) scale(1); }
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(167,139,250,0.4); }
-      50% { opacity: 0.8; transform: scale(1.1); box-shadow: 0 0 0 6px rgba(167,139,250,0); }
-    }
-
-    /* shared base */
-    .lp-notif {
-      position: absolute;
-      z-index: 10;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      background: rgba(16,16,16,0.92);
-      border: 1px solid rgba(255,255,255,0.1);
-      box-shadow: 0 4px 24px rgba(0,0,0,0.55);
-      display: flex;
-      align-items: center;
-    }
-
-    /* 1 — top left pop-in */
-    .lp-notif-topleft {
-      top: 195px;
-      left: 16px;
-      border-radius: 50px;
-      padding: 8px 14px 8px 10px;
-      gap: 8px;
-      animation: floatFromTop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.8s both;
-    }
-    .lp-notif-topleft .pulse-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--accent2);
-      animation: pulse 2s infinite;
-      flex-shrink: 0;
-    }
-    .lp-notif-topleft span {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text);
-      white-space: nowrap;
-    }
-
-    /* 2 — left side mid */
-    .lp-notif-left {
-      left: 16px;
-      top: 38%;
-      border-radius: 14px;
-      padding: 10px 14px;
-      gap: 10px;
-      animation: floatFromLeft 0.5s cubic-bezier(0.34,1.56,0.64,1) 1.4s both;
-      max-width: 185px;
-    }
-    .lp-notif-left .nl-icon {
-      width: 28px; height: 28px;
-      border-radius: 50%;
-      background: rgba(108,99,255,0.25);
-      border: 1px solid rgba(108,99,255,0.4);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px;
-      flex-shrink: 0;
-    }
-    .lp-notif-left .nl-text { font-size: 11px; color: #ccc; font-weight: 600; line-height: 1.4; }
-    .lp-notif-left .nl-sub  { font-size: 10px; color: #666; }
-
-    /* 3 — mid right commission */
-    .lp-notif-botright {
-      top: 42%;
-      right: 16px;
-      border-radius: 14px;
-      padding: 10px 14px;
-      gap: 10px;
-      animation: floatFromRight 0.5s cubic-bezier(0.34,1.56,0.64,1) 2s both;
-      max-width: 175px;
-    }
-    .lp-earn-icon {
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      background: var(--green);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 15px;
-      font-weight: 700;
-      color: #fff;
-      flex-shrink: 0;
-    }
-    .lp-earn-label {
-      font-size: 9px;
-      color: #777;
-      font-weight: 500;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-    .lp-earn-name {
-      font-size: 11px;
-      color: #ddd;
-      font-weight: 600;
-      line-height: 1.35;
-    }
-    .lp-earn-amount {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--green);
-      margin-left: auto;
-      white-space: nowrap;
-      padding-left: 6px;
-    }
+    /* ── FLOATING CARDS ── */
+    @keyframes floatFromTop  { from { opacity:0; transform:translateY(-16px) scale(.92); } to { opacity:1; transform:translateY(0) scale(1); } }
+    @keyframes floatFromRight { from { opacity:0; transform:translateX(16px) scale(.92); } to { opacity:1; transform:translateX(0) scale(1); } }
+    @keyframes lpPulse { 0%,100%{ opacity:1; box-shadow:0 0 0 0 rgba(167,139,250,.4); } 50%{ opacity:.8; box-shadow:0 0 0 6px rgba(167,139,250,0); } }
+    .lp-notif { position: absolute; z-index: 10; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(16,16,16,0.92); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 24px rgba(0,0,0,0.55); display: flex; align-items: center; }
+    .lp-notif-topleft { top: 195px; left: 16px; border-radius: 50px; padding: 8px 14px 8px 10px; gap: 8px; animation: floatFromTop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.8s both; }
+    .lp-notif-topleft .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent2); animation: lpPulse 2s infinite; flex-shrink: 0; }
+    .lp-notif-topleft span { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; }
+    .lp-notif-botright { top: 42%; right: 16px; border-radius: 14px; padding: 10px 14px; gap: 10px; animation: floatFromRight 0.5s cubic-bezier(0.34,1.56,0.64,1) 2s both; max-width: 175px; }
+    .lp-earn-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .lp-earn-label { font-size: 9px; color: #777; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
+    .lp-earn-name  { font-size: 11px; color: #ddd; font-weight: 600; line-height: 1.35; }
 
     /* ── HOW IT WORKS ── */
-    .lp-how {
-      background: #0a0a0a;
-      padding: 72px 24px 64px;
-      text-align: center;
-    }
-
-    .lp-how-label {
-      font-size: 12px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--accent2);
-      font-weight: 600;
-      margin-bottom: 12px;
-    }
-
-    .lp-how-title {
-      font-size: clamp(26px, 6vw, 40px);
-      font-weight: 700;
-      margin-bottom: 8px;
-      letter-spacing: -0.5px;
-    }
-
-    .lp-how-sub {
-      font-size: 15px;
-      color: var(--text2);
-      margin-bottom: 48px;
-      max-width: 420px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .lp-steps {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      max-width: 480px;
-      margin: 0 auto 48px;
-      text-align: left;
-    }
-
-    .lp-step {
-      display: flex;
-      gap: 20px;
-      align-items: flex-start;
-      padding: 24px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
+    .lp-how { background: #0a0a0a; padding: 72px 24px 64px; text-align: center; }
+    .lp-how-label { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent2); font-weight: 600; margin-bottom: 12px; }
+    .lp-how-title { font-size: clamp(26px, 6vw, 40px); font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
+    .lp-how-sub { font-size: 15px; color: var(--text2); margin-bottom: 48px; max-width: 420px; margin-left: auto; margin-right: auto; }
+    .lp-steps { display: flex; flex-direction: column; gap: 0; max-width: 480px; margin: 0 auto 48px; text-align: left; }
+    .lp-step { display: flex; gap: 20px; align-items: flex-start; padding: 24px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
     .lp-step:last-child { border-bottom: none; }
-
-    .lp-step-num {
-      width: 40px; height: 40px;
-      border-radius: 50%;
-      background: rgba(108,99,255,0.15);
-      border: 1px solid rgba(108,99,255,0.3);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--accent2);
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-
-    .lp-step-title {
-      font-size: 17px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .lp-step-desc {
-      font-size: 14px;
-      color: var(--text2);
-      line-height: 1.6;
-    }
-
-    /* ── PROOF STRIP ── */
-    .lp-proof {
-      display: flex;
-      justify-content: center;
-      gap: 40px;
-      flex-wrap: wrap;
-      padding: 0 24px 16px;
-    }
-
-    .lp-proof-stat {
-      text-align: center;
-    }
-
-    .lp-proof-num {
-      font-size: 32px;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: -1px;
-    }
+    .lp-step-num { width: 40px; height: 40px; border-radius: 50%; background: rgba(108,99,255,0.15); border: 1px solid rgba(108,99,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: var(--accent2); flex-shrink: 0; margin-top: 2px; }
+    .lp-step-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+    .lp-step-desc  { font-size: 14px; color: var(--text2); line-height: 1.6; }
+    .lp-proof { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; padding: 0 24px 16px; }
+    .lp-proof-stat { text-align: center; }
+    .lp-proof-num { font-size: 32px; font-weight: 700; color: var(--text); letter-spacing: -1px; }
     .lp-proof-num span { color: var(--accent2); }
+    .lp-proof-label { font-size: 12px; color: var(--text2); margin-top: 2px; letter-spacing: 0.04em; }
 
-    .lp-proof-label {
-      font-size: 12px;
-      color: var(--text2);
-      margin-top: 2px;
-      letter-spacing: 0.04em;
-    }
+    /* ── EARNINGS CALCULATOR SECTION ── */
+    .lp-calc { background: #080808; padding: 72px 24px 72px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
+    .earn-calc { width: 100%; max-width: 500px; background: rgba(108,99,255,0.08); border: 1px solid rgba(108,99,255,0.2); border-radius: 18px; padding: 24px; margin: 0 auto 32px; }
+    .earn-calc-title { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .earn-calc-desc  { font-size: 13px; color: #888; margin-bottom: 16px; }
+    .earn-slider { width: 100%; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; background: rgba(108,99,255,0.4); outline: none; cursor: pointer; margin-bottom: 8px; }
+    .earn-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); cursor: pointer; transition: transform 0.15s; box-shadow: 0 0 0 4px rgba(108,99,255,0.25); }
+    .earn-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+    .earn-slider-labels { display: flex; justify-content: space-between; font-size: 11px; color: #444; margin-bottom: 16px; }
+    .earn-stats { display: flex; border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+    .earn-stat { flex: 1; padding: 12px 6px; text-align: center; border-right: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.2); }
+    .earn-stat:last-child { border-right: none; }
+    .earn-stat-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .earn-stat-value { font-size: 18px; font-weight: 900; color: #fff; font-family: 'Space Mono', monospace; }
+    .earn-divider { height: 1px; background: rgba(255,255,255,0.06); margin-bottom: 14px; }
+    .earn-result-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 1.5px; text-align: center; margin-bottom: 6px; }
+    .earn-result-amt { font-size: 52px; font-weight: 900; color: var(--accent2); line-height: 1; margin-bottom: 4px; transition: all 0.2s; text-align: center; }
+    .earn-result-sub { font-size: 12px; color: #555; line-height: 1.5; text-align: center; }
 
     /* ── BOTTOM CTA ── */
-    .lp-bottom-cta {
-      background: linear-gradient(to bottom, #0a0a0a, #0d0b18);
-      padding: 64px 24px 80px;
-      text-align: center;
-    }
-
-    .lp-bottom-cta h2 {
-      font-size: clamp(28px, 7vw, 48px);
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      margin-bottom: 12px;
-    }
-
-    .lp-bottom-cta p {
-      font-size: 15px;
-      color: var(--text2);
-      margin-bottom: 32px;
-      max-width: 380px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .lp-bottom-cta .lp-btn-main {
-      font-size: 17px;
-      padding: 18px 40px;
-    }
-
-    .lp-fine {
-      margin-top: 16px;
-      font-size: 12px;
-      color: #555;
-    }
+    .lp-bottom-cta { background: linear-gradient(to bottom, #0a0a0a, #0d0b18); padding: 64px 24px 80px; text-align: center; }
+    .lp-bottom-cta h2 { font-size: clamp(28px, 7vw, 48px); font-weight: 700; letter-spacing: -0.5px; margin-bottom: 12px; }
+    .lp-bottom-cta > p { font-size: 15px; color: var(--text2); margin-bottom: 32px; max-width: 380px; margin-left: auto; margin-right: auto; }
+    .lp-fine { margin-top: 16px; font-size: 12px; color: #555; }
     .lp-fine a { color: #666; text-decoration: underline; }
-
-    /* ── FOOTER ── */
-    .lp-footer {
-      padding: 24px;
-      text-align: center;
-      border-top: 1px solid rgba(255,255,255,0.06);
-      font-size: 12px;
-      color: #444;
-    }
+    .lp-footer { padding: 24px; text-align: center; border-top: 1px solid rgba(255,255,255,0.06); font-size: 12px; color: #444; }
     .lp-footer a { color: #555; margin: 0 8px; }
 
-    /* ── RESPONSIVE ── */
-    @media (min-width: 600px) {
-      .lp-hero-content { padding: 0 48px 72px; }
-      .lp-notif-topleft { left: 24px; }
-      .lp-notif-botright { right: 24px; top: 40%; }
-      .lp-steps { text-align: left; }
-    }
+    /* ── BACK BUTTON (shared) ── */
+    .screen-back { font-size: 13px; color: #555; cursor: pointer; margin-bottom: 24px; display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; font-family: 'Space Grotesk', sans-serif; font-weight: 700; background: none; border: none; padding: 0; }
+    .screen-back:hover { color: #888; }
 
-    @media (min-width: 900px) {
-      .lp-hero {
-        min-height: 100vh;
-      }
-      .lp-hero-bg {
-        background-position: center 15%;
-      }
-      .lp-hero-content {
-        padding: 0 80px 100px;
-        max-width: 680px;
-      }
-      .lp-notif-topleft { left: 48px; top: 145px; }
-      .lp-notif-botright { right: 48px; top: 38%; }
-      .lp-steps {
-        flex-direction: row;
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 24px;
-        max-width: 800px;
-        text-align: left;
-      }
-      .lp-step {
-        flex-direction: column;
-        padding: 28px 24px;
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.07);
-        border-radius: 16px;
-        border-bottom: 1px solid rgba(255,255,255,0.07);
-      }
-      .lp-proof { gap: 64px; }
-    }
+    /* ── PICKER SCREEN ── */
+    .picker-headline { font-size: clamp(20px, 4vw, 30px); font-weight: 900; letter-spacing: -0.5px; text-align: center; margin-bottom: 6px; max-width: 500px; }
+    .picker-sub { font-size: 14px; color: #888; text-align: center; margin-bottom: 32px; max-width: 420px; line-height: 1.6; }
+    .picker-cards { display: flex; gap: 16px; width: 100%; max-width: 700px; margin-bottom: 28px; }
+    @media (max-width: 580px) { .picker-cards { flex-direction: column; } }
+    .picker-card { flex: 1; background: var(--bg2); border: 2px solid var(--border); border-radius: 20px; cursor: pointer; transition: border-color 0.25s, transform 0.2s; position: relative; }
+    .picker-card:hover { transform: translateY(-2px); }
+    .picker-card.selected { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(108,99,255,0.15); }
+    .picker-check { position: absolute; top: 12px; right: 12px; width: 26px; height: 26px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; opacity: 0; transform: scale(0.4); transition: opacity 0.2s, transform 0.2s; z-index: 3; }
+    .picker-card.selected .picker-check { opacity: 1; transform: scale(1); }
+    .picker-deselect { display: none; background: none; border: none; color: #555; font-size: 11px; font-weight: 700; cursor: pointer; padding: 0; margin-top: 3px; letter-spacing: 0.3px; }
+    .picker-deselect:hover { color: #888; }
+    .picker-card.selected .picker-deselect { display: inline-block; }
+    .color-swatches { display: flex; gap: 6px; padding: 12px 14px 0; flex-wrap: wrap; }
+    .swatch { width: 22px; height: 22px; border-radius: 4px; border: 2px solid transparent; cursor: pointer; transition: border-color 0.15s, transform 0.15s; flex-shrink: 0; }
+    .swatch:hover { transform: scale(1.15); }
+    .swatch.active { border-color: #fff; }
+    .picker-imgs { position: relative; height: 260px; overflow: hidden; background: #0d0d1a; }
+    .picker-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center; transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.4,0,0.2,1); }
+    .picker-front { opacity: 1; z-index: 1; }
+    .picker-back  { opacity: 0; z-index: 2; }
+    @media (hover: hover) and (pointer: fine) { .picker-imgs:hover .picker-front { opacity: 0; transform: scale(1.02); } .picker-imgs:hover .picker-back { opacity: 1; transform: scale(1.02); } }
+    .picker-card.flipped .picker-front { opacity: 0; transform: scale(1.02); }
+    .picker-card.flipped .picker-back  { opacity: 1; transform: scale(1.02); }
+    .flip-hint { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 600; letter-spacing: 1px; color: rgba(255,255,255,0.35); text-transform: uppercase; pointer-events: none; z-index: 3; }
+    @media (hover: hover) and (pointer: fine) { .flip-hint { display: none; } }
+    .picker-info { padding: 14px 16px 12px; }
+    .picker-name  { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 2px; }
+    .picker-price { font-size: 14px; color: var(--accent2); font-weight: 700; }
+    .card-sizes { padding: 0 14px 16px; display: none; }
+    .picker-card.selected .card-sizes { display: block; }
+    .card-sizes-label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .card-size-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .card-size-btn { padding: 9px 15px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.22); border-radius: 8px; color: #ddd; font-size: 13px; font-weight: 700; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; }
+    .card-size-btn:hover { border-color: var(--accent); color: #fff; background: rgba(108,99,255,0.12); }
+    .card-size-btn.selected { border-color: var(--accent); color: #fff; background: rgba(108,99,255,0.22); }
+    .picker-or { font-size: 12px; font-weight: 700; color: #333; letter-spacing: 2px; align-self: center; padding: 0 4px; }
+    @media (max-width: 580px) { .picker-or { text-align: center; } }
+    #pickerCTA { width: 100%; max-width: 700px; }
+    .btn-add { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--accent); color: #fff; border: none; border-radius: 50px; padding: 16px 40px; font-size: 16px; font-weight: 800; cursor: pointer; transition: opacity 0.2s, transform 0.15s; width: 100%; font-family: 'Space Grotesk', sans-serif; }
+    .btn-add:hover { opacity: 0.88; transform: scale(1.01); }
+    .btn-add:active { transform: scale(0.98); }
+    .btn-add:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+    .picker-note { text-align: center; font-size: 12px; color: #444; margin-top: 10px; line-height: 1.6; }
+
+    /* ── SIGNUP SCREEN ── */
+    .signup-wrap { width: 100%; max-width: 440px; }
+    .signup-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--accent2); margin-bottom: 12px; }
+    .signup-headline { font-size: clamp(22px, 5vw, 32px); font-weight: 900; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .signup-sub { font-size: 14px; color: #888; margin-bottom: 28px; line-height: 1.6; }
+    .signup-sub strong { color: #fff; }
+    .order-mini { background: rgba(108,99,255,0.08); border: 1px solid rgba(108,99,255,0.2); border-radius: 14px; padding: 14px 18px; margin-bottom: 24px; }
+    .order-mini-row { display: flex; justify-content: space-between; font-size: 13px; color: #aaa; margin-bottom: 4px; }
+    .order-mini-row:last-child { margin-bottom: 0; color: #fff; font-weight: 700; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px; margin-top: 4px; }
+    .form-field { margin-bottom: 14px; }
+    .form-field label { display: block; font-size: 12px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    .form-field input { width: 100%; padding: 13px 16px; background: var(--bg2); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-size: 15px; font-family: 'Space Grotesk', sans-serif; outline: none; transition: border-color 0.2s; }
+    .form-field input:focus { border-color: var(--accent); }
+    .form-field input::placeholder { color: #444; }
+    .form-row { display: flex; gap: 12px; }
+    .form-row .form-field { flex: 1; }
+    .form-error { font-size: 13px; color: #f87171; min-height: 18px; margin-bottom: 10px; }
+    .form-terms { font-size: 12px; color: #555; margin-bottom: 18px; line-height: 1.5; }
+    .form-terms a { color: #666; }
+    .already-have { text-align: center; font-size: 13px; color: #555; margin-top: 14px; }
+    .already-have a { color: var(--accent2); cursor: pointer; text-decoration: none; }
+
+    /* ── RESPONSIVE ── */
+    @media (min-width: 600px) { .lp-hero-content { padding: 0 48px 72px; } .lp-notif-topleft { left: 24px; } .lp-notif-botright { right: 24px; top: 40%; } }
+    @media (min-width: 900px) { .lp-hero { min-height: 100vh; } .lp-hero-bg { background-position: center 15%; } .lp-hero-content { padding: 0 80px 100px; max-width: 680px; } .lp-notif-topleft { left: 48px; top: 145px; } .lp-notif-botright { right: 48px; top: 38%; } .lp-steps { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; max-width: 800px; text-align: left; } .lp-step { flex-direction: column; padding: 28px 24px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; border-bottom: 1px solid rgba(255,255,255,0.07); } .lp-proof { gap: 64px; } }
   </style>
 </head>
 <body>
+
+<div id="progressBar"></div>
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 0: LANDING PAGE
+══════════════════════════════════════════════ -->
+<div class="screen active" id="screenLanding">
 
   <!-- ── NAV ── -->
   <nav class="lp-nav">
     <div class="lp-nav-row">
       <div class="lp-logo">THREAD<span>.</span></div>
-      <a href="auth.html?from=earn" class="lp-nav-btn" data-track="nav-join">Join Free</a>
+      <button class="lp-nav-btn" onclick="goToPicker()" data-track="nav-join">Join Free</button>
     </div>
   </nav>
 
@@ -542,13 +224,11 @@
     <div class="lp-hero-overlay"></div>
     <div class="lp-hero-vignette"></div>
 
-    <!-- TOP LEFT: new scan pop-in -->
     <div class="lp-notif lp-notif-topleft">
       <div class="pulse-dot"></div>
       <span>New scan · just now 🔥</span>
     </div>
 
-    <!-- MID RIGHT: commission paid -->
     <div class="lp-notif lp-notif-botright">
       <div class="lp-earn-icon">$</div>
       <div>
@@ -575,8 +255,8 @@
       </p>
 
       <div class="lp-cta-row">
-        <a href="auth.html?from=earn" class="lp-btn-main" data-track="hero-join">Start Earning →</a>
-        <a href="#how-it-works" class="lp-btn-ghost" data-track="hero-how">See How It Works</a>
+        <button class="lp-btn-main" onclick="goToPicker()" data-track="hero-join">Start Earning →</button>
+        <button class="lp-btn-ghost" onclick="scrollLandingTo('how-it-works')" data-track="hero-how">See How It Works</button>
       </div>
     </div>
   </section>
@@ -611,7 +291,6 @@
       </div>
     </div>
 
-    <!-- Social proof numbers -->
     <div class="lp-proof">
       <div class="lp-proof-stat">
         <div class="lp-proof-num"><span>20</span>%</div>
@@ -628,11 +307,45 @@
     </div>
   </section>
 
+  <!-- ── EARNINGS CALCULATOR ── -->
+  <section class="lp-calc" id="lp-calc">
+    <p class="lp-how-label">Your potential</p>
+    <h2 class="lp-how-title">How much could you earn?</h2>
+    <p class="lp-how-sub">Drag the slider to estimate your monthly commission.</p>
+
+    <div class="earn-calc">
+      <div class="earn-calc-title">Calculate Your Earnings</div>
+      <div class="earn-calc-desc">How many people could scan your QR code per week?</div>
+      <input type="range" id="earnSlider" min="1" max="50" value="10" class="earn-slider" oninput="updateEarnCalc()" />
+      <div class="earn-slider-labels"><span>1</span><span>10</span><span>25</span><span>50</span></div>
+      <div class="earn-stats">
+        <div class="earn-stat">
+          <div class="earn-stat-label">Scans/week</div>
+          <div class="earn-stat-value" id="earnScanDisplay">10</div>
+        </div>
+        <div class="earn-stat">
+          <div class="earn-stat-label">Conversion</div>
+          <div class="earn-stat-value">~18%</div>
+        </div>
+        <div class="earn-stat">
+          <div class="earn-stat-label">Commission</div>
+          <div class="earn-stat-value" id="earnTierPct">20%</div>
+        </div>
+      </div>
+      <div class="earn-divider"></div>
+      <div class="earn-result-label">Monthly Earnings</div>
+      <div class="earn-result-amt" id="earnCalcAmt">$144</div>
+      <div class="earn-result-sub" id="earnCalcSub">~3.6 purchases/month</div>
+    </div>
+
+    <button class="lp-btn-main lp-btn-main--lg" onclick="goToPicker()" data-track="calc-join">I'm in — pick my piece →</button>
+  </section>
+
   <!-- ── BOTTOM CTA ── -->
   <section class="lp-bottom-cta">
     <h2>Ready to start<br />earning?</h2>
     <p>Create your free account, get your unique QR code, and start earning from day one.</p>
-    <a href="auth.html?from=earn" class="lp-btn-main" data-track="bottom-join">Get Started Free →</a>
+    <button class="lp-btn-main lp-btn-main--lg" onclick="goToPicker()" data-track="bottom-join">Get Started Free →</button>
     <p class="lp-fine">Free to join. <a href="terms.html" target="_blank">Terms apply.</a></p>
   </section>
 
@@ -641,101 +354,496 @@
     <span>© 2026 THREAD.</span>
     <a href="index.html">Main Site</a>
     <a href="terms.html">Terms</a>
-    <a href="auth.html">Sign Up</a>
   </footer>
 
-  <script src="config.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script src="app.js?v=20260525f"></script>
-  <script>
-    // Lazy load hero background
-    const bg = document.getElementById('lpHeroBg');
-    const img = new Image();
-    img.onload = () => {
-      bg.style.backgroundImage = "url('ADS/instagram-ad-test.png')";
-      requestAnimationFrame(() => bg.classList.add('loaded'));
-    };
-    img.src = 'ADS/instagram-ad-test.png';
+</div><!-- #screenLanding -->
 
-    // Smooth scroll for "See How It Works"
-    document.querySelectorAll('a[href="#how-it-works"]').forEach(a => {
-      a.addEventListener('click', e => {
-        e.preventDefault();
-        document.getElementById('how-it-works').scrollIntoView({ behavior: 'smooth' });
-      });
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 1: PRODUCT PICKER
+══════════════════════════════════════════════ -->
+<div class="screen" id="screenPicker">
+
+  <button class="screen-back" onclick="goBack('screenLanding')">← Back</button>
+
+  <h2 class="picker-headline">What's your pick?</h2>
+  <p class="picker-sub">Tap a color to switch. Hover or tap the image to flip.<br>You can pick both — stack 'em.</p>
+
+  <div class="picker-cards">
+
+    <!-- TEE CARD -->
+    <div class="picker-card" id="cardTee">
+      <div class="picker-check">✓</div>
+      <div class="color-swatches" id="teeSwatches"></div>
+      <div class="picker-imgs" onclick="handleImgTap(event,'tee')">
+        <img id="teeFront" src="images/tee-jet-black-front.png" class="picker-img picker-front" alt="Tee front" loading="eager" />
+        <img id="teeBack"  src="images/tee-jet-black-back.png"  class="picker-img picker-back"  alt="Tee back"  loading="eager" />
+        <div class="flip-hint">Tap to flip</div>
+      </div>
+      <div class="picker-info">
+        <div class="picker-name" id="teeColorName">Jet Black Tee</div>
+        <div class="picker-price">$55</div>
+        <button class="picker-deselect" onclick="deselect('tee')">✕ Remove</button>
+      </div>
+      <div class="card-sizes">
+        <div class="card-sizes-label">Pick your size</div>
+        <div class="card-size-btns">
+          <button class="card-size-btn" onclick="pickSize('tee','XS',this)">XS</button>
+          <button class="card-size-btn" onclick="pickSize('tee','S',this)">S</button>
+          <button class="card-size-btn" onclick="pickSize('tee','M',this)">M</button>
+          <button class="card-size-btn" onclick="pickSize('tee','L',this)">L</button>
+          <button class="card-size-btn" onclick="pickSize('tee','XL',this)">XL</button>
+          <button class="card-size-btn" onclick="pickSize('tee','XXL',this)">XXL</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="picker-or">OR</div>
+
+    <!-- HOODIE CARD -->
+    <div class="picker-card" id="cardHoodie">
+      <div class="picker-check">✓</div>
+      <div class="color-swatches" id="hoodieSwatches"></div>
+      <div class="picker-imgs" onclick="handleImgTap(event,'hoodie')">
+        <img id="hoodieFront" src="images/phantom-black-front.png" class="picker-img picker-front" alt="Hoodie front" loading="eager" />
+        <img id="hoodieBack"  src="images/phantom-black-back.png"  class="picker-img picker-back"  alt="Hoodie back"  loading="eager" />
+        <div class="flip-hint">Tap to flip</div>
+      </div>
+      <div class="picker-info">
+        <div class="picker-name" id="hoodieColorName">Phantom Black Hoodie</div>
+        <div class="picker-price">$79</div>
+        <button class="picker-deselect" onclick="deselect('hoodie')">✕ Remove</button>
+      </div>
+      <div class="card-sizes">
+        <div class="card-sizes-label">Pick your size</div>
+        <div class="card-size-btns">
+          <button class="card-size-btn" onclick="pickSize('hoodie','XS',this)">XS</button>
+          <button class="card-size-btn" onclick="pickSize('hoodie','S',this)">S</button>
+          <button class="card-size-btn" onclick="pickSize('hoodie','M',this)">M</button>
+          <button class="card-size-btn" onclick="pickSize('hoodie','L',this)">L</button>
+          <button class="card-size-btn" onclick="pickSize('hoodie','XL',this)">XL</button>
+          <button class="card-size-btn" onclick="pickSize('hoodie','XXL',this)">XXL</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- .picker-cards -->
+
+  <div id="pickerCTA">
+    <button class="btn-add" id="addBtn" disabled onclick="goToSignup()">Select a piece to continue</button>
+    <p class="picker-note">Free shipping when you order both · $10 for a single item · Ships in 5–7 business days<br>Your unique QR code is printed at order time.</p>
+  </div>
+
+</div><!-- #screenPicker -->
+
+
+<!-- ══════════════════════════════════════════════
+     SCREEN 2: SIGN UP
+══════════════════════════════════════════════ -->
+<div class="screen" id="screenSignup">
+  <div class="signup-wrap">
+
+    <button class="screen-back" onclick="goBack('screenPicker')">← Back</button>
+
+    <div class="signup-eyebrow">Almost there</div>
+    <h2 class="signup-headline">Create your account</h2>
+    <p class="signup-sub">Your order + <strong>unique QR code</strong> will be tied to this account.</p>
+
+    <div class="order-mini" id="orderMini"></div>
+
+    <div class="form-row">
+      <div class="form-field">
+        <label>First name</label>
+        <input type="text" id="sfName" placeholder="Alex" autocomplete="given-name" />
+      </div>
+      <div class="form-field">
+        <label>Last name</label>
+        <input type="text" id="sfLast" placeholder="Rivera" autocomplete="family-name" />
+      </div>
+    </div>
+    <div class="form-field">
+      <label>Username</label>
+      <input type="text" id="sfUsername" placeholder="alexrivera" autocomplete="username" oninput="sfUsername.value=sfUsername.value.toLowerCase().replace(/[^a-z0-9_.]/g,'')" />
+    </div>
+    <div class="form-field">
+      <label>Email</label>
+      <input type="email" id="sfEmail" placeholder="you@email.com" autocomplete="email" />
+    </div>
+    <div class="form-field">
+      <label>Password</label>
+      <input type="password" id="sfPassword" placeholder="Min 7 chars + special character" autocomplete="new-password" />
+    </div>
+
+    <div class="form-error" id="sfError"></div>
+    <p class="form-terms">By creating an account you agree to our <a href="terms.html" target="_blank">Terms</a>.</p>
+
+    <button class="btn-add" id="sfSubmit" onclick="doSignup()">Create Account &amp; Go to Checkout →</button>
+
+    <p class="already-have">Already have an account? <a onclick="doSignin()">Sign in instead</a></p>
+  </div>
+</div><!-- #screenSignup -->
+
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="app.js?v=20260525f"></script>
+<script>
+
+/* ── HERO BACKGROUND LAZY LOAD ── */
+(function () {
+  const bg = document.getElementById('lpHeroBg');
+  if (!bg) return;
+  const img = new Image();
+  img.onload = function () { requestAnimationFrame(() => bg.classList.add('loaded')); };
+  img.src = 'ADS/instagram-ad-test.png';
+})();
+
+/* ── SCREEN NAVIGATION ── */
+function setProgress(pct) {
+  document.getElementById('progressBar').style.width = Math.min(100, pct) + '%';
+}
+
+function switchScreen(fromId, toId) {
+  const from = document.getElementById(fromId);
+  const to   = document.getElementById(toId);
+  from.classList.remove('active'); from.classList.add('exit');
+  setTimeout(() => from.classList.remove('exit'), 500);
+  to.classList.add('active');
+  to.scrollTop = 0;
+}
+
+function goBack(targetId) {
+  const current = document.querySelector('.screen.active');
+  if (current) { current.classList.remove('active'); current.classList.add('exit'); setTimeout(() => current.classList.remove('exit'), 500); }
+  const target = document.getElementById(targetId);
+  target.style.transform = 'translateX(-60px)';
+  target.classList.add('active');
+  setTimeout(() => { target.style.transform = ''; }, 10);
+}
+
+function scrollLandingTo(id) {
+  const el = document.getElementById(id);
+  const sc = document.getElementById('screenLanding');
+  if (el && sc) sc.scrollTo({ top: el.offsetTop, behavior: 'smooth' });
+}
+
+function goToPicker() {
+  window._earnTrack?.('funnel', 'cta_click');
+  switchScreen('screenLanding', 'screenPicker');
+  setProgress(33);
+}
+
+function goToSignup() {
+  buildOrderMini();
+  switchScreen('screenPicker', 'screenSignup');
+  setProgress(66);
+  window._earnTrack?.('funnel', 'signup_reached');
+  if (_sel.tee.on)    window._earnTrack?.('select', 'tee_to_checkout');
+  if (_sel.hoodie.on) window._earnTrack?.('select', 'hoodie_to_checkout');
+}
+
+/* ── EARNINGS CALCULATOR ── */
+function updateEarnCalc() {
+  const slider = document.getElementById('earnSlider');
+  if (!slider) return;
+  window._earnTrack?.('calc_interact', 'earn_slider');
+  const scans = parseInt(slider.value, 10);
+  const monthlyConv = scans * 0.18 * 4.33;
+  let pct, tierLabel;
+  if (monthlyConv <= 10)      { pct = 0.20; tierLabel = '20%'; }
+  else if (monthlyConv <= 25) { pct = 0.25; tierLabel = '25%'; }
+  else                        { pct = 0.30; tierLabel = '30%'; }
+  const rounded = Math.round(monthlyConv * 80 * pct / 5) * 5;
+  document.getElementById('earnScanDisplay').textContent = scans;
+  document.getElementById('earnTierPct').textContent = tierLabel;
+  document.getElementById('earnCalcAmt').textContent = '$' + rounded.toLocaleString();
+  document.getElementById('earnCalcSub').textContent = '~' + monthlyConv.toFixed(1) + ' purchases/month';
+}
+updateEarnCalc();
+
+/* ── COLOR DATA ── */
+const TEE_COLORS = [
+  { name: 'Jet Black',   color: '#111111', front: 'images/tee-jet-black-front.png',    back: 'images/tee-jet-black-back.png'    },
+  { name: 'Clean White', color: '#e8e8e8', front: 'images/tee-clean-white-front.png',  back: 'images/tee-clean-white-back.png'  },
+  { name: 'Deep Navy',   color: '#1a2744', front: 'images/tee-deep-navy-2.png',         back: 'images/tee-deep-navy-back-2.png'  },
+  { name: 'Raw Stone',   color: '#b5a898', front: 'images/tee-raw-stone-front.png',    back: 'images/tee-raw-stone-back.png'    },
+  { name: 'Slate Grey',  color: '#6b7280', front: 'images/tee-slate-grey-2.png',        back: 'images/tee-slate-grey-back-2.png' },
+];
+
+const HOODIE_COLORS = [
+  { name: 'Phantom Black', color: '#1a1a1a', front: 'images/phantom-black-front.png',  back: 'images/phantom-black-back.png'  },
+  { name: 'Ivory Pure',    color: '#f5f5f5', front: 'images/ivory-pure-front.png',     back: 'images/ivory-pure-back.png'     },
+  { name: 'Silver Mist',   color: '#c0c4cc', front: 'images/silver-mist-front.png',    back: 'images/silver-mist-back.png'    },
+  { name: 'Bone',          color: '#e0d5c0', front: 'images/bone-front.png',           back: 'images/bone-back.png'           },
+  { name: 'Ash Stone',     color: '#9e9e9e', front: 'hoodie-variants/ash-stone-front.png', back: 'hoodie-variants/ash-stone-back.png' },
+  { name: 'Tawny Dusk',    color: '#b87c5a', front: 'images/tawny-dusk-front.png',     back: 'images/tawny-dusk-back.png'     },
+  { name: 'Forest Shadow', color: '#2d4a2d', front: 'images/forest-shadow-front.png',  back: 'images/forest-shadow-back.png'  },
+  { name: 'Midnight Navy', color: '#1a2744', front: 'images/midnight-navy-front.png',  back: 'images/midnight-navy-back.png'  },
+  { name: 'Ember Crimson', color: '#8b1a1a', front: 'images/ember-crimson-front.png',  back: 'images/ember-crimson-back.png'  },
+];
+
+const _sel = { tee: { color: 0, size: null, on: false }, hoodie: { color: 0, size: null, on: false } };
+
+function buildSwatches() {
+  buildSwatchRow('teeSwatches',    TEE_COLORS,    'tee');
+  buildSwatchRow('hoodieSwatches', HOODIE_COLORS, 'hoodie');
+}
+
+function buildSwatchRow(containerId, colors, type) {
+  const wrap = document.getElementById(containerId);
+  colors.forEach((c, i) => {
+    const s = document.createElement('div');
+    s.className = 'swatch' + (i === 0 ? ' active' : '');
+    s.style.background = c.color;
+    if (c.color === '#e8e8e8' || c.color === '#f5f5f5' || c.color === '#e0d5c0') {
+      s.style.border = '2px solid rgba(255,255,255,0.2)';
+    }
+    s.title = c.name;
+    s.onclick = (e) => { e.stopPropagation(); setColor(type, i); };
+    wrap.appendChild(s);
+  });
+}
+
+function setColor(type, idx) {
+  const colors = type === 'tee' ? TEE_COLORS : HOODIE_COLORS;
+  _sel[type].color = idx;
+  const c = colors[idx];
+  document.getElementById(type + 'Front').src = c.front;
+  document.getElementById(type + 'Back').src  = c.back;
+  document.getElementById(type + 'ColorName').textContent = c.name + (type === 'tee' ? ' Tee' : ' Hoodie');
+  const swatches = document.getElementById(type === 'tee' ? 'teeSwatches' : 'hoodieSwatches').querySelectorAll('.swatch');
+  swatches.forEach((s, i) => s.classList.toggle('active', i === idx));
+  if (!_sel[type].on) toggleCard(type);
+}
+
+function handleImgTap(e, type) {
+  if (window.matchMedia('(hover: none)').matches) {
+    document.getElementById('card' + capitalize(type)).classList.toggle('flipped');
+  }
+  if (!_sel[type].on) toggleCard(type);
+}
+
+function toggleCard(type) {
+  _sel[type].on = !_sel[type].on;
+  if (_sel[type].on) window._earnTrack?.('select', type + '_selected');
+  const card = document.getElementById('card' + capitalize(type));
+  card.classList.toggle('selected', _sel[type].on);
+  if (!_sel[type].on) { _sel[type].size = null; card.querySelectorAll('.card-size-btn').forEach(b => b.classList.remove('selected')); }
+  updateCTA();
+}
+
+function pickSize(type, size, btn) {
+  _sel[type].size = size;
+  btn.closest('.card-size-btns').querySelectorAll('.card-size-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  updateCTA();
+  window._earnTrack?.('select', type + '_size_' + size);
+}
+
+function updateCTA() {
+  const btn = document.getElementById('addBtn');
+  const teeReady    = _sel.tee.on    && _sel.tee.size;
+  const hoodieReady = _sel.hoodie.on && _sel.hoodie.size;
+  const teeNeeds    = _sel.tee.on    && !_sel.tee.size;
+  const hoodieNeeds = _sel.hoodie.on && !_sel.hoodie.size;
+  const noneSelected = !_sel.tee.on && !_sel.hoodie.on;
+  if (noneSelected) {
+    btn.disabled = true; btn.textContent = 'Select a piece to continue';
+  } else if (teeNeeds || hoodieNeeds) {
+    btn.disabled = true; btn.textContent = 'Pick a size to continue';
+  } else {
+    btn.disabled = false;
+    const parts = [];
+    if (teeReady)    parts.push('Tee (' + _sel.tee.size + ')');
+    if (hoodieReady) parts.push('Hoodie (' + _sel.hoodie.size + ')');
+    btn.textContent = 'Continue with ' + parts.join(' + ') + ' →';
+  }
+}
+
+function deselect(type) {
+  _sel[type].on = false; _sel[type].size = null;
+  const card = document.getElementById('card' + capitalize(type));
+  card.classList.remove('selected');
+  card.querySelectorAll('.card-size-btn').forEach(b => b.classList.remove('selected'));
+  updateCTA();
+}
+
+document.getElementById('cardTee').addEventListener('click', function(e) {
+  if (e.target.closest('.picker-imgs') || e.target.closest('.color-swatches') || e.target.closest('.card-size-btns') || e.target.closest('.picker-deselect')) return;
+  toggleCard('tee');
+});
+document.getElementById('cardHoodie').addEventListener('click', function(e) {
+  if (e.target.closest('.picker-imgs') || e.target.closest('.color-swatches') || e.target.closest('.card-size-btns') || e.target.closest('.picker-deselect')) return;
+  toggleCard('hoodie');
+});
+
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+/* ── ORDER SUMMARY ── */
+function buildOrderMini() {
+  const teeC    = TEE_COLORS[_sel.tee.color];
+  const hoodieC = HOODIE_COLORS[_sel.hoodie.color];
+  let rows = ''; let total = 0;
+  if (_sel.tee.on && _sel.tee.size)       { rows += '<div class="order-mini-row"><span>' + teeC.name + ' Tee — ' + _sel.tee.size + '</span><span>$55</span></div>'; total += 55; }
+  if (_sel.hoodie.on && _sel.hoodie.size) { rows += '<div class="order-mini-row"><span>' + hoodieC.name + ' Hoodie — ' + _sel.hoodie.size + '</span><span>$79</span></div>'; total += 79; }
+  rows += '<div class="order-mini-row"><span>Total</span><span>$' + total + '</span></div>';
+  document.getElementById('orderMini').innerHTML = rows;
+}
+
+/* ── SAVE CART ── */
+function saveCartItems() {
+  const items = [];
+  if (_sel.tee.on && _sel.tee.size)       { const c = TEE_COLORS[_sel.tee.color];       items.push({ name: c.name + ' Tee',    price: 55, size: _sel.tee.size,    type: 'tee',    qty: 1 }); }
+  if (_sel.hoodie.on && _sel.hoodie.size) { const c = HOODIE_COLORS[_sel.hoodie.color]; items.push({ name: c.name + ' Hoodie', price: 79, size: _sel.hoodie.size, type: 'hoodie', qty: 1 }); }
+  let cart;
+  try { cart = JSON.parse(localStorage.getItem('thread_cart') || '{"items":[],"promoCode":null,"discount":0}'); } catch { cart = { items: [], promoCode: null, discount: 0 }; }
+  cart.items = items;
+  localStorage.setItem('thread_cart', JSON.stringify(cart));
+  const totalItems = items.reduce((s, i) => s + (i.qty || 1), 0);
+  const subtotal   = items.reduce((s, i) => s + i.price * (i.qty || 1), 0);
+  const shipping   = totalItems >= 2 ? 0 : (totalItems === 1 ? 10 : 0);
+  const total      = subtotal + shipping - (cart.discount || 0);
+  localStorage.setItem('thread_checkout', JSON.stringify({ items, promoCode: cart.promoCode || null, discount: cart.discount || 0, subtotal, shipping, total }));
+}
+
+/* ── SIGN UP / SIGN IN ── */
+function generateReferralCode(name) {
+  const base = (name || 'USER').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4).padEnd(4, 'X');
+  return base + Math.random().toString(36).substring(2, 6).toUpperCase();
+}
+
+async function doSignup() {
+  const name     = (document.getElementById('sfName').value.trim() + ' ' + document.getElementById('sfLast').value.trim()).trim();
+  const username = document.getElementById('sfUsername').value.trim().toLowerCase();
+  const email    = document.getElementById('sfEmail').value.trim();
+  const password = document.getElementById('sfPassword').value;
+  const errEl    = document.getElementById('sfError');
+  const btn      = document.getElementById('sfSubmit');
+  errEl.textContent = '';
+  if (!name || name.length < 2)        { errEl.textContent = 'Enter your name.'; return; }
+  if (!username || username.length < 3) { errEl.textContent = 'Username must be at least 3 characters.'; return; }
+  if (!email || !email.includes('@'))   { errEl.textContent = 'Enter a valid email.'; return; }
+  if (password.length < 7)             { errEl.textContent = 'Password must be at least 7 characters.'; return; }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) { errEl.textContent = 'Password must include at least one special character (e.g. !@#$%).'; return; }
+  window._earnTrack?.('funnel', 'signup_submitted');
+  btn.disabled = true; btn.textContent = 'Creating your account…';
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) throw new Error('Service unavailable. Please try again.');
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const { data: available } = await sb.rpc('check_username_available', { p_username: username });
+    if (available === false) { errEl.textContent = 'That username is taken. Try another.'; btn.disabled = false; btn.textContent = 'Create Account & Go to Checkout →'; return; }
+    const referralCode = generateReferralCode(name);
+    const referredBy   = (localStorage.getItem('thread_ref') || '').trim() || null;
+    const { data, error } = await sb.auth.signUp({ email, password, options: { data: { name, username }, emailRedirectTo: 'https://mythread.shop/checkout.html' } });
+    if (error) throw new Error(error.message);
+    localStorage.setItem('thread_pending_profile', JSON.stringify({ name, username, dob: null, email, referralCode, referredBy, parentEmail: null }));
+    if (data.user) {
+      const { error: upsertErr } = await sb.from('profiles').upsert({ id: data.user.id, email, name, username, referral_code: referralCode, referred_by: referredBy }, { onConflict: 'id' });
+      if (!upsertErr) localStorage.removeItem('thread_pending_profile');
+      try { await sb.auth.signInWithPassword({ email, password }); } catch(_) {}
+      localStorage.setItem('thread_session', JSON.stringify({ id: data.user.id, email, name, username, referralCode, referral_code: referralCode, avatar: (name || email || 'U').slice(0, 2).toUpperCase(), stats: { totalScans: 0, conversions: 0, pendingEarnings: 0, totalEarned: 0, scanHistory: [] }, purchases: [] }));
+    }
+    saveCartItems();
+    window._earnTrack?.('funnel', 'account_created');
+    window.location.href = 'checkout.html';
+  } catch(e) {
+    errEl.textContent = e.message || 'Something went wrong. Please try again.';
+    btn.disabled = false; btn.textContent = 'Create Account & Go to Checkout →';
+  }
+}
+
+async function doSignin() {
+  const email    = document.getElementById('sfEmail').value.trim();
+  const password = document.getElementById('sfPassword').value;
+  const errEl    = document.getElementById('sfError');
+  const btn      = document.getElementById('sfSubmit');
+  if (!email || !password) { errEl.textContent = 'Enter your email and password to sign in.'; return; }
+  window._earnTrack?.('funnel', 'signin_submitted');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  errEl.textContent = '';
+  try {
+    const cfg = window.THREAD_CONFIG;
+    const sb  = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) throw new Error(error.message);
+    if (data.user) {
+      const { data: profile } = await sb.from('profiles').select('name, username, referral_code').eq('id', data.user.id).single();
+      localStorage.setItem('thread_session', JSON.stringify({ id: data.user.id, email, name: profile?.name || email, username: profile?.username || '', referralCode: profile?.referral_code || '', referral_code: profile?.referral_code || '', avatar: (profile?.name || email || 'U').slice(0, 2).toUpperCase(), stats: { totalScans: 0, conversions: 0, pendingEarnings: 0, totalEarned: 0, scanHistory: [] }, purchases: [] }));
+    }
+    saveCartItems();
+    window.location.href = 'checkout.html';
+  } catch(e) {
+    errEl.textContent = e.message || 'Could not sign in. Check your email and password.';
+    btn.disabled = false; btn.textContent = 'Create Account & Go to Checkout →';
+  }
+}
+
+function autoUsername() {
+  const first = document.getElementById('sfName').value.trim().toLowerCase().replace(/[^a-z]/g, '');
+  const last  = document.getElementById('sfLast').value.trim().toLowerCase().replace(/[^a-z]/g, '');
+  const un    = document.getElementById('sfUsername');
+  if (un && !un._touched) un.value = (first + last).slice(0, 16);
+}
+document.getElementById('sfName').addEventListener('blur', autoUsername);
+document.getElementById('sfLast').addEventListener('blur', autoUsername);
+document.getElementById('sfUsername').addEventListener('input', () => { document.getElementById('sfUsername')._touched = true; });
+
+/* ── ANALYTICS ── */
+(async function () {
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) return;
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const PAGE = 'earn';
+    const OWNER_IPS = ['65.130.60.246', '187.199.28.205', '187.199.69.171'];
+    let ip = null, country = null, city = null, region = null;
+
+    window._earnTrack = async function (type, label) {
+      const key = 'earnt_' + type + '_' + label;
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, '1');
+      try { await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_region: region, p_page: PAGE, p_label: label }); } catch (_) {}
+    };
+
+    try {
+      const cached = sessionStorage.getItem('thread_geo');
+      const geo = cached ? JSON.parse(cached) : null;
+      if (geo) {
+        ip = geo.ip || null; country = geo.country_name || null; city = geo.city || null; region = geo.region || null;
+      } else {
+        const r = await fetch('https://ipapi.co/json/');
+        if (r.ok) { const g = await r.json(); sessionStorage.setItem('thread_geo', JSON.stringify(g)); ip = g.ip || null; country = g.country_name || null; city = g.city || null; region = g.region || null; }
+      }
+    } catch (_) {}
+
+    if (OWNER_IPS.includes(ip)) { window._earnTrack = null; return; }
+
+    window._earnTrack('visit', PAGE);
+
+    [[15000,'15s+'],[30000,'30s+'],[60000,'1m+'],[180000,'3m+'],[300000,'5m+']].forEach(([d, l]) => {
+      setTimeout(() => window._earnTrack?.('time_on_page', l), d);
     });
 
-    // ── EARN PAGE ANALYTICS ──
-    (async function () {
-      try {
-        const cfg = window.THREAD_CONFIG;
-        if (!cfg?.supabaseUrl || !window.supabase) return;
-        const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
-        const PAGE = 'earn';
-        const OWNER_IPS = ['65.130.60.246', '187.199.28.205', '187.199.69.171'];
+    const _scrollFired = new Set();
+    document.getElementById('screenLanding').addEventListener('scroll', function () {
+      const sc = this;
+      const pct = Math.round((sc.scrollTop / (sc.scrollHeight - sc.clientHeight)) * 100);
+      [25, 50, 75, 90].forEach(m => {
+        if (pct >= m && !_scrollFired.has(m)) { _scrollFired.add(m); window._earnTrack?.('scroll_depth', m + '%'); }
+      });
+    }, { passive: true });
 
-        // let so _threadTrackRaw can close over them and pick up values after geo resolves
-        let ip = null, country = null, city = null, region = null;
+    document.querySelectorAll('[data-track]').forEach(el => {
+      el.addEventListener('click', () => window._earnTrack?.('cta_click', el.dataset.track));
+    });
 
-        // Expose raw tracker immediately — before the geo fetch — so any cart event
-        // fired quickly is never dropped (same fix as app.js on the home page).
-        window._threadTrackRaw = async function(type, label) {
-          try { await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_region: region, p_page: PAGE, p_label: label }); } catch(_) {}
-        };
+  } catch (_) {}
+})();
 
-        // Fetch geo (reuse session cache from index.html/app.js if already set)
-        try {
-          const cached = sessionStorage.getItem('thread_geo');
-          const geo = cached ? JSON.parse(cached) : null;
-          if (geo) {
-            ip = geo.ip || null; country = geo.country_name || null; city = geo.city || null; region = geo.region || null;
-          } else {
-            const r = await fetch('https://ipapi.co/json/');
-            if (r.ok) {
-              const g = await r.json();
-              sessionStorage.setItem('thread_geo', JSON.stringify(g));
-              ip = g.ip || null; country = g.country_name || null; city = g.city || null; region = g.region || null;
-            }
-          }
-        } catch(_) {}
+/* ── INIT ── */
+buildSwatches();
 
-        if (OWNER_IPS.includes(ip)) {
-          window._threadTrackRaw = null; // disable tracker for owner
-          return;
-        }
-
-        // Helper: fire once per session per label
-        async function track(type, label) {
-          const key = `thread_tracked_${type}_${label}_earn`;
-          if (sessionStorage.getItem(key)) return;
-          sessionStorage.setItem(key, '1');
-          try { await sb.rpc('log_page_event', { p_event_type: type, p_ip: ip, p_country: country, p_city: city, p_region: region, p_page: PAGE, p_label: label }); } catch(_) {}
-        }
-
-        // Page visit
-        await track('visit', PAGE);
-
-        // Time on page (setTimeout milestones — pagehide + fetch is cancelled by browsers on unload)
-        [[15000, '15s+'], [30000, '30s+'], [60000, '1m+'], [180000, '3m+'], [300000, '5m+']].forEach(([delay, label]) => {
-          setTimeout(() => track('time_on_page', label), delay);
-        });
-
-        // Scroll depth
-        const _scrollFired = new Set();
-        window.addEventListener('scroll', () => {
-          const pct = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
-          [25, 50, 75, 90].forEach(m => {
-            if (pct >= m && !_scrollFired.has(m)) { _scrollFired.add(m); track('scroll_depth', m + '%'); }
-          });
-        }, { passive: true });
-
-        // CTA button clicks
-        document.querySelectorAll('[data-track]').forEach(el => {
-          el.addEventListener('click', () => track('cta_click', el.dataset.track));
-        });
-
-      } catch(_) {}
-    })();
-  </script>
+</script>
 </body>
 </html>
