@@ -715,7 +715,20 @@ async function doSignup() {
     const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
     const { data: available } = await sb.rpc('check_username_available', { p_username: username });
     if (available === false) { errEl.textContent = 'That username is taken. Try another.'; btn.disabled = false; btn.textContent = 'Create Account & Go to Checkout →'; return; }
-    const referralCode = generateReferralCode(name);
+    // Preserve existing referral code so printed QR codes never break
+    let referralCode = null;
+    try {
+      const existingSession = JSON.parse(localStorage.getItem('thread_session') || 'null');
+      const existingPending = JSON.parse(localStorage.getItem('thread_pending_profile') || 'null');
+      referralCode = existingSession?.referral_code || existingSession?.referralCode
+                  || existingPending?.referralCode || null;
+      // Also check Supabase in case they signed up before on this device
+      if (!referralCode) {
+        const { data: existProf } = await sb.from('profiles').select('referral_code').eq('email', email).maybeSingle();
+        referralCode = existProf?.referral_code || null;
+      }
+    } catch(_) {}
+    if (!referralCode) referralCode = generateReferralCode(name);
     const referredBy   = (localStorage.getItem('thread_ref') || '').trim() || null;
     const { data, error } = await sb.auth.signUp({ email, password, options: { data: { name, username }, emailRedirectTo: 'https://mythread.shop/checkout.html' } });
     if (error) throw new Error(error.message);

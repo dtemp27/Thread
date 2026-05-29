@@ -797,7 +797,19 @@ async function doSignup() {
       return;
     }
 
-    const referralCode = generateReferralCode(name);
+    // Preserve existing referral code so printed QR codes never break
+    let referralCode = null;
+    try {
+      const existingSession = JSON.parse(localStorage.getItem('thread_session') || 'null');
+      const existingPending = JSON.parse(localStorage.getItem('thread_pending_profile') || 'null');
+      referralCode = existingSession?.referral_code || existingSession?.referralCode
+                  || existingPending?.referralCode || null;
+      if (!referralCode) {
+        const { data: existProf } = await sb.from('profiles').select('referral_code').eq('email', email).maybeSingle();
+        referralCode = existProf?.referral_code || null;
+      }
+    } catch(_) {}
+    if (!referralCode) referralCode = generateReferralCode(name);
     const referredBy   = (localStorage.getItem('thread_ref') || '').trim() || null;
 
     const { data, error } = await sb.auth.signUp({
