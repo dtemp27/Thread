@@ -70,7 +70,15 @@ async function handleCheckoutCompleted(session) {
 
   // Pull line items from Stripe (authoritative source of truth)
   const lineItems = await fetchStripeLineItems(stripeKey, session.id);
-  const items = lineItems.map((li) => {
+
+  // Separate shipping line item from product items
+  const shippingLineItem  = lineItems.find(li => (li.description || '').toLowerCase() === 'shipping');
+  const productLineItems  = lineItems.filter(li => (li.description || '').toLowerCase() !== 'shipping');
+  const shippingAmt = shippingLineItem
+    ? Number((Number(shippingLineItem.amount_total || 0) / 100).toFixed(2))
+    : 0;
+
+  const items = productLineItems.map((li) => {
     const qty    = li.quantity || 1;
     const amount = Number(li.amount_subtotal || li.amount_total || 0);
     const rawName = li.description || 'THREAD Hoodie';
@@ -138,6 +146,7 @@ async function handleCheckoutCompleted(session) {
     items,
     subtotal,
     discount,
+    shipping:        shippingAmt,
     total,
     promoCode,
     shippingAddress,
@@ -231,13 +240,13 @@ async function upsertPaidOrder(order) {
 }
 
 /* ─── Email via Resend ──────────────────────────────────────────────────── */
-async function sendOrderEmail({ to, customerName, orderNumber, items, subtotal, discount, total, promoCode, shippingAddress }) {
+async function sendOrderEmail({ to, customerName, orderNumber, items, subtotal, discount, shipping, total, promoCode, shippingAddress }) {
   const resendKey  = mustEnv('RESEND_API_KEY');
   const from       = Deno.env.get('ORDER_EMAIL_FROM')    || 'THREAD <contact@mythread.shop>';
   const adminEmail = Deno.env.get('ORDER_ADMIN_EMAIL')   || 'contact@mythread.shop';
 
-  const html = renderOrderEmailHtml({ customerName, orderNumber, items, subtotal, discount, total, promoCode, shippingAddress });
-  const text = renderOrderEmailText({ customerName, orderNumber, items, subtotal, discount, total, promoCode, shippingAddress });
+  const html = renderOrderEmailHtml({ customerName, orderNumber, items, subtotal, discount, shipping, total, promoCode, shippingAddress });
+  const text = renderOrderEmailText({ customerName, orderNumber, items, subtotal, discount, shipping, total, promoCode, shippingAddress });
 
   const res = await fetch('https://api.resend.com/emails', {
     method:  'POST',
@@ -264,7 +273,7 @@ async function sendOrderEmail({ to, customerName, orderNumber, items, subtotal, 
 }
 
 /* ─── HTML Email Template ───────────────────────────────────────────────── */
-function renderOrderEmailHtml({ customerName, orderNumber, items, subtotal, discount, total, promoCode, shippingAddress }) {
+function renderOrderEmailHtml({ customerName, orderNumber, items, subtotal, discount, shipping = 0, total, promoCode, shippingAddress }) {
   const firstName = customerName ? customerName.split(' ')[0] : 'there';
 
   const itemRows = items.map((item) => `
@@ -343,7 +352,7 @@ function renderOrderEmailHtml({ customerName, orderNumber, items, subtotal, disc
         ${discountRow}
         <tr>
           <td style="padding:8px 0;font-size:14px;color:#888;">Shipping</td>
-          <td style="padding:8px 0;text-align:right;font-family:monospace;font-size:14px;color:#16a34a;font-weight:700;">FREE</td>
+          <td style="padding:8px 0;text-align:right;font-family:monospace;font-size:14px;color:${shipping > 0 ? '#555' : '#16a34a'};font-weight:700;">${shipping > 0 ? '$' + shipping.toFixed(2) : 'FREE'}</td>
         </tr>
         <tr>
           <td style="padding:14px 0 0;font-size:18px;font-weight:800;color:#0a0a0a;border-top:2px solid #0a0a0a;">Total</td>
@@ -358,7 +367,7 @@ function renderOrderEmailHtml({ customerName, orderNumber, items, subtotal, disc
         <div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;">What Happens Next</div>
         <div style="display:flex;flex-direction:column;gap:0;">
           <div style="font-size:13px;color:#444;padding:4px 0;">📦 &nbsp;Processing: 1–2 business days</div>
-          <div style="font-size:13px;color:#444;padding:4px 0;">🚚 &nbsp;Shipping: 2–4 business days (free)</div>
+          <div style="font-size:13px;color:#444;padding:4px 0;">🚚 &nbsp;Shipping: 2–4 business days${shipping > 0 ? '' : ' (free)'}</div>
           <div style="font-size:13px;color:#444;padding:4px 0;">📬 &nbsp;Tracking info sent once shipped</div>
         </div>
       </div>
@@ -406,7 +415,7 @@ function renderOrderEmailHtml({ customerName, orderNumber, items, subtotal, disc
 }
 
 /* ─── Plain Text Fallback ───────────────────────────────────────────────── */
-function renderOrderEmailText({ customerName, orderNumber, items, subtotal, discount, total, promoCode, shippingAddress }) {
+function renderOrderEmailText({ customerName, orderNumber, items, subtotal, discount, shipping = 0, total, promoCode, shippingAddress }) {
   const firstName = customerName ? customerName.split(' ')[0] : 'there';
   const itemLines = items.map(
     (i) => `  - ${i.name} (${i.typeLabel}) · Size ${i.size} · Qty ${i.qty}: $${(i.price * i.qty).toFixed(2)}`
@@ -429,7 +438,7 @@ function renderOrderEmailText({ customerName, orderNumber, items, subtotal, disc
     '------',
     `Subtotal:  $${subtotal.toFixed(2)}`,
     discLine.trim() || null,
-    `Shipping:  FREE`,
+    `Shipping:  ${shipping > 0 ? '$' + shipping.toFixed(2) : 'FREE'}`,
     `Total:     $${total.toFixed(2)}`,
     shipLine.trim() || null,
     '',
