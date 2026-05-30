@@ -199,6 +199,11 @@
 
     .already-have { text-align: center; font-size: 13px; color: #555; margin-top: 14px; }
     .already-have a { color: var(--purple-light); cursor: pointer; text-decoration: none; }
+
+    /* ── SOCIAL PROOF ON SIGNUP ── */
+    .signup-proof { background: rgba(124,58,237,0.07); border: 1px solid rgba(124,58,237,0.18); border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; }
+    .sp-quote { font-size: 14px; color: #ddd; line-height: 1.65; font-style: italic; margin-bottom: 8px; }
+    .sp-author { font-size: 11px; color: var(--purple-light); font-weight: 700; letter-spacing: 0.3px; }
   </style>
 </head>
 <body>
@@ -308,7 +313,7 @@
       <div class="earn-result-sub" id="onbCalcSub">~3.6 purchases/month</div>
     </div>
     <p class="slide-body" style="margin-bottom:20px;">Every scan through your QR = commission in your pocket.<br><strong>No selling. Just wear it.</strong></p>
-    <button class="btn-next" onclick="goToPicker()">I'm in — pick my piece →</button>
+    <button class="btn-next" onclick="goToSignupScreen()">Create Free Account →</button>
   </div>
 
 </div><!-- #screenSlides -->
@@ -392,7 +397,7 @@
   </div><!-- .picker-cards -->
 
   <div id="pickerCTA">
-    <button class="btn-add" id="addBtn" disabled onclick="goToSignup()">Select a piece to continue</button>
+    <button class="btn-add" id="addBtn" disabled onclick="goToCheckoutFromPicker()">Select a piece to continue</button>
     <p class="picker-note">Free shipping when you order both · $10 for a single item · Ships in 5–7 days<br>Your unique QR code is printed at order time.</p>
   </div>
 
@@ -400,34 +405,27 @@
 
 
 <!-- ══════════════════════════════════════════════
-     SCREEN 3: SIGN UP
+     SCREEN 3: SIGN UP (before product picker)
 ══════════════════════════════════════════════ -->
 <div class="screen" id="screenSignup">
   <div class="signup-wrap">
 
-    <div class="signup-back" onclick="goBack('screenPicker')">← Back</div>
+    <div class="signup-back" onclick="goBack('screenSlides')">← Back</div>
 
-    <div class="signup-eyebrow">Almost there</div>
-    <h2 class="signup-headline">Create your account</h2>
-    <p class="signup-sub">Your order + <strong>unique QR code</strong> will be tied to this account.</p>
-
-    <!-- Mini order summary -->
-    <div class="order-mini" id="orderMini"></div>
-
-    <!-- Form -->
-    <div class="form-row">
-      <div class="form-field">
-        <label>First name</label>
-        <input type="text" id="sfName" placeholder="Alex" autocomplete="given-name" />
-      </div>
-      <div class="form-field">
-        <label>Last name</label>
-        <input type="text" id="sfLast" placeholder="Rivera" autocomplete="family-name" />
-      </div>
+    <!-- Social proof -->
+    <div class="signup-proof">
+      <div class="sp-quote">"Got $60 cash in my first week just wearing my hoodie to the gym. Didn't post anything, didn't sell a thing."</div>
+      <div class="sp-author">— Jasmine L., Houston · 38 scans last month</div>
     </div>
+
+    <div class="signup-eyebrow">Step 2 of 3 · Free to join</div>
+    <h2 class="signup-headline">Claim your spot</h2>
+    <p class="signup-sub"><strong>No payment yet</strong> — pick your piece on the next screen.</p>
+
+    <!-- Form: name + email + password only -->
     <div class="form-field">
-      <label>Username</label>
-      <input type="text" id="sfUsername" placeholder="alexrivera" autocomplete="username" oninput="sfUsername.value=sfUsername.value.toLowerCase().replace(/[^a-z0-9_.]/g,'')" />
+      <label>Your name</label>
+      <input type="text" id="sfName" placeholder="First name" autocomplete="given-name" />
     </div>
     <div class="form-field">
       <label>Email</label>
@@ -435,13 +433,13 @@
     </div>
     <div class="form-field">
       <label>Password</label>
-      <input type="password" id="sfPassword" placeholder="Min 7 chars + special character" autocomplete="new-password" />
+      <input type="password" id="sfPassword" placeholder="Min 7 chars + one special character" autocomplete="new-password" />
     </div>
 
     <div class="form-error" id="sfError"></div>
-    <p class="form-terms">By creating an account you agree to our <a href="terms.html" target="_blank">Terms</a>.</p>
+    <p class="form-terms">By joining you agree to our <a href="terms.html" target="_blank">Terms</a>. Free account — no subscription fees.</p>
 
-    <button class="btn-add" id="sfSubmit" onclick="doSignup()">Create Account &amp; Go to Checkout →</button>
+    <button class="btn-add" id="sfSubmit" onclick="doSignup()">Join Free — Pick My Piece →</button>
 
     <p class="already-have">Already have an account? <a onclick="doSignin()">Sign in instead</a></p>
   </div>
@@ -666,19 +664,24 @@ function prevSlide() {
   setTimeout(() => slides.forEach(s => s.classList.remove('exit-right')), 500);
 }
 
-function goToPicker() {
-  switchScreen('screenSlides', 'screenPicker');
+function goToSignupScreen() {
+  switchScreen('screenSlides', 'screenSignup');
   setProgress(60);
+  window._onbTrack?.('funnel', 'signup_reached');
+}
+
+function goToPickerAfterSignup() {
+  switchScreen('screenSignup', 'screenPicker');
+  setProgress(80);
   window._onbTrack?.('funnel', 'picker_reached');
 }
 
-function goToSignup() {
-  buildOrderMini();
-  switchScreen('screenPicker', 'screenSignup');
-  setProgress(80);
-  window._onbTrack?.('funnel', 'signup_reached');
+function goToCheckoutFromPicker() {
+  saveCartItems();
+  window._onbTrack?.('funnel', 'checkout_started');
   if (_sel.tee.on)    window._onbTrack?.('select', 'tee_to_checkout');
   if (_sel.hoodie.on) window._onbTrack?.('select', 'hoodie_to_checkout');
+  window.location.href = 'checkout.html';
 }
 
 function goBack(targetId) {
@@ -767,8 +770,7 @@ function generateReferralCode(name) {
 }
 
 async function doSignup() {
-  const name     = (document.getElementById('sfName').value.trim() + ' ' + document.getElementById('sfLast').value.trim()).trim();
-  const username = document.getElementById('sfUsername').value.trim().toLowerCase();
+  const rawName  = document.getElementById('sfName').value.trim();
   const email    = document.getElementById('sfEmail').value.trim();
   const password = document.getElementById('sfPassword').value;
   const errEl    = document.getElementById('sfError');
@@ -776,11 +778,12 @@ async function doSignup() {
 
   errEl.textContent = '';
 
-  if (!name || name.length < 2)         { errEl.textContent = 'Enter your name.'; return; }
-  if (!username || username.length < 3)  { errEl.textContent = 'Username must be at least 3 characters.'; return; }
+  // Use entered name or derive from email
+  const name = rawName || email.split('@')[0].replace(/[^a-zA-Z]/g, ' ').trim() || 'Wearer';
+
   if (!email || !email.includes('@'))    { errEl.textContent = 'Enter a valid email.'; return; }
   if (password.length < 7)              { errEl.textContent = 'Password must be at least 7 characters.'; return; }
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) { errEl.textContent = 'Password must include at least one special character (e.g. !@#$%).'; return; }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) { errEl.textContent = 'Password needs at least one special character (e.g. !@#$%).'; return; }
 
   window._onbTrack?.('funnel', 'signup_submitted');
   btn.disabled = true; btn.textContent = 'Creating your account…';
@@ -790,12 +793,9 @@ async function doSignup() {
     if (!cfg?.supabaseUrl || !window.supabase) throw new Error('Service unavailable. Please try again.');
     const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
 
-    const { data: available } = await sb.rpc('check_username_available', { p_username: username });
-    if (available === false) {
-      errEl.textContent = 'That username is taken. Try another.';
-      btn.disabled = false; btn.textContent = 'Create Account & Go to Checkout →';
-      return;
-    }
+    // Auto-generate a unique username
+    const baseUsername = name.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 10) || 'wearer';
+    const username = baseUsername + Math.floor(Math.random() * 9000 + 1000);
 
     // Preserve existing referral code so printed QR codes never break
     let referralCode = null;
@@ -810,7 +810,7 @@ async function doSignup() {
       }
     } catch(_) {}
     if (!referralCode) referralCode = generateReferralCode(name);
-    const referredBy   = (localStorage.getItem('thread_ref') || '').trim() || null;
+    const referredBy = (localStorage.getItem('thread_ref') || '').trim() || null;
 
     const { data, error } = await sb.auth.signUp({
       email, password,
@@ -840,13 +840,12 @@ async function doSignup() {
       }));
     }
 
-    saveCartItems();
     window._onbTrack?.('funnel', 'account_created');
-    window.location.href = 'checkout.html';
+    goToPickerAfterSignup();
 
   } catch(e) {
     errEl.textContent = e.message || 'Something went wrong. Please try again.';
-    btn.disabled = false; btn.textContent = 'Create Account & Go to Checkout →';
+    btn.disabled = false; btn.textContent = 'Join Free — Pick My Piece →';
   }
 }
 
@@ -879,23 +878,13 @@ async function doSignin() {
       }));
     }
 
-    saveCartItems();
-    window.location.href = 'checkout.html';
+    goToPickerAfterSignup();
   } catch(e) {
     errEl.textContent = e.message || 'Could not sign in. Check your email and password.';
-    btn.disabled = false; btn.textContent = 'Create Account & Go to Checkout →';
+    btn.disabled = false; btn.textContent = 'Join Free — Pick My Piece →';
   }
 }
 
-function autoUsername() {
-  const first = document.getElementById('sfName').value.trim().toLowerCase().replace(/[^a-z]/g, '');
-  const last  = document.getElementById('sfLast').value.trim().toLowerCase().replace(/[^a-z]/g, '');
-  const un    = document.getElementById('sfUsername');
-  if (un && !un._touched) un.value = (first + last).slice(0, 16);
-}
-document.getElementById('sfName').addEventListener('blur', autoUsername);
-document.getElementById('sfLast').addEventListener('blur', autoUsername);
-document.getElementById('sfUsername').addEventListener('input', () => { document.getElementById('sfUsername')._touched = true; });
 
 function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
