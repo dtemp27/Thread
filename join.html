@@ -281,6 +281,60 @@
     /* ── FOOTER ── */
     footer { padding: 28px 24px; text-align: center; border-top: 1px solid var(--border); font-size: 12px; color: #282828; }
     footer a { color: #333; margin: 0 10px; }
+
+    /* ── QR POPUP MODAL ── */
+    .qr-modal {
+      position: fixed; inset: 0; z-index: 2000;
+      background: rgba(8,8,8,0.98);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 32px 28px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.45s ease;
+    }
+    .qr-modal.visible { opacity: 1; pointer-events: auto; }
+    @keyframes qrPop { from { opacity:0; transform: scale(0.85) translateY(20px); } to { opacity:1; transform: none; } }
+    .qr-modal-inner {
+      display: flex; flex-direction: column; align-items: center;
+      max-width: 360px; width: 100%; text-align: center;
+    }
+    .qr-modal-eyebrow {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--green); margin-bottom: 10px;
+    }
+    .qr-modal-title {
+      font-size: clamp(24px, 6vw, 34px); font-weight: 900; line-height: 1.1;
+      letter-spacing: -1px; margin-bottom: 8px;
+    }
+    .qr-modal-title span { color: var(--purple2); }
+    .qr-modal-sub {
+      font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 28px; max-width: 300px;
+    }
+    .qr-frame {
+      background: #fff; border-radius: 20px; padding: 16px;
+      box-shadow: 0 0 0 1px rgba(124,58,237,0.3), 0 20px 60px rgba(124,58,237,0.2);
+      margin-bottom: 12px;
+      animation: qrPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;
+    }
+    .qr-code-label {
+      font-family: 'Space Mono', monospace; font-size: 11px; color: #444;
+      letter-spacing: 0.1em; margin-bottom: 28px;
+    }
+    .qr-modal-btns { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+    .btn-qr-primary {
+      display: block; width: 100%; background: var(--purple); color: #fff;
+      border: none; border-radius: 50px; padding: 18px; font-size: 17px; font-weight: 800;
+      font-family: inherit; cursor: pointer; text-decoration: none; text-align: center;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-qr-primary:active { transform: scale(0.97); }
+    .btn-qr-secondary {
+      display: block; width: 100%; background: transparent; color: #777;
+      border: 1px solid rgba(255,255,255,0.12); border-radius: 50px; padding: 16px;
+      font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer;
+      text-decoration: none; text-align: center;
+      -webkit-tap-highlight-color: transparent;
+    }
   </style>
 </head>
 <body>
@@ -424,9 +478,9 @@
 <!-- ── CLAIM — email capture BEFORE showing product price ── -->
 <section class="section" id="claim">
   <div style="text-align:center;margin-bottom:40px;">
-    <p class="section-label">Free to join</p>
-    <h2 class="section-title">Claim your spot</h2>
-    <p class="section-sub" style="margin-bottom:0"><strong style="color:#fff">No payment yet</strong> — you'll pick your piece on the next screen.</p>
+    <p class="section-label">Your QR code awaits</p>
+    <h2 class="section-title">Create your account.<br/>Get your QR.</h2>
+    <p class="section-sub" style="margin-bottom:0">Your personal QR code is generated the moment you sign up — <strong style="color:#fff">unique to you, forever.</strong></p>
   </div>
 
   <div class="claim-inner">
@@ -438,7 +492,7 @@
     <div style="display:flex;gap:12px;">
       <div class="field" style="flex:1">
         <label>First name</label>
-        <input type="text" id="fFirst" placeholder="Dylan" autocomplete="given-name" />
+        <input type="text" id="fFirst" placeholder="Jordan" autocomplete="given-name" />
       </div>
       <div class="field" style="flex:1">
         <label>Last name</label>
@@ -473,8 +527,24 @@
   <br /><br />© 2026 THREAD. All rights reserved.
 </footer>
 
+<!-- ── QR POPUP MODAL ── -->
+<div class="qr-modal" id="qrModal">
+  <div class="qr-modal-inner">
+    <p class="qr-modal-eyebrow">✦ Your QR code is ready</p>
+    <h2 class="qr-modal-title">This is yours,<br/><span id="qrModalName">you</span>.</h2>
+    <p class="qr-modal-sub">Every time someone scans this on your piece and buys, the commission goes straight to you. No effort.</p>
+    <div class="qr-frame" id="qrFrame"></div>
+    <p class="qr-code-label" id="qrCodeLabel"></p>
+    <div class="qr-modal-btns">
+      <a href="checkout.html" class="btn-qr-primary">Get My First Piece →</a>
+      <a href="thread-details.html" class="btn-qr-secondary">Learn how it works first</a>
+    </div>
+  </div>
+</div>
+
 <script src="config.js?v=5"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
 <script>
 
 /* ── EARNINGS CALCULATOR ── */
@@ -566,13 +636,46 @@ async function doSignup() {
     }
 
     window._track?.('funnel', 'account_created');
-    /* Send to checkout where they pick product — price reveal after commitment */
-    window.location.href = 'checkout.html';
+    btn.textContent = 'Account created!';
+    showQRModal(username, referralCode);
 
   } catch(e) {
     errEl.textContent = e.message || 'Something went wrong. Please try again.';
     btn.disabled = false; btn.textContent = 'Create Free Account →';
   }
+}
+
+function showQRModal(username, referralCode) {
+  const modal   = document.getElementById('qrModal');
+  const nameEl  = document.getElementById('qrModalName');
+  const labelEl = document.getElementById('qrCodeLabel');
+  const frameEl = document.getElementById('qrFrame');
+
+  nameEl.textContent  = username;
+  labelEl.textContent = referralCode;
+
+  const refURL = 'https://mythread.shop/?ref=' + referralCode;
+
+  if (window.QRCodeStyling) {
+    const qr = new QRCodeStyling({
+      width: 200, height: 200, type: 'canvas',
+      data: refURL, margin: 0,
+      qrOptions:          { errorCorrectionLevel: 'H' },
+      dotsOptions:         { color: '#1a0533', type: 'dots' },
+      cornersSquareOptions:{ color: '#1a0533', type: 'extra-rounded' },
+      cornersDotOptions:   { color: '#7c3aed', type: 'dot' },
+      backgroundOptions:   { color: '#ffffff' },
+    });
+    qr.append(frameEl);
+  } else {
+    const img = document.createElement('img');
+    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(refURL) + '&ecc=H&margin=4';
+    img.style.cssText = 'width:200px;height:200px;display:block;border-radius:8px;';
+    frameEl.appendChild(img);
+  }
+
+  modal.classList.add('visible');
+  document.body.style.overflow = 'hidden';
 }
 
 function switchToSignin() {

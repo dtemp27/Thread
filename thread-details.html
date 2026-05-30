@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>THREAD. — How It Works</title>
+  <link rel="icon" href="favicon.ico?v=5" sizes="any" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=5" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --purple:  #7c3aed;
+      --purple2: #a78bfa;
+      --green:   #22c55e;
+      --bg:      #080808;
+      --bg2:     #0f0f18;
+      --bg3:     #13131f;
+      --text:    #f0f0f0;
+      --border:  rgba(255,255,255,0.08);
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      height: 54px;
+      background: rgba(8,8,8,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+    .logo b { color: var(--purple2); }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 72px 28px 64px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--green); margin-bottom: 16px; }
+    .hero h1 { font-size: clamp(32px, 8vw, 56px); font-weight: 900; letter-spacing: -1.5px; line-height: 1.05; margin-bottom: 18px; }
+    .hero h1 span { color: var(--purple2); }
+    .hero-sub { font-size: clamp(15px, 3vw, 17px); color: #666; line-height: 1.7; max-width: 480px; margin: 0 auto; }
+
+    /* ── HOW THE QR WORKS ── */
+    .section { padding: 72px 28px; border-bottom: 1px solid var(--border); }
+    .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--purple2); margin-bottom: 10px; text-align: center; }
+    .section-title { font-size: clamp(26px, 5vw, 38px); font-weight: 900; letter-spacing: -1px; margin-bottom: 36px; text-align: center; }
+
+    .detail-steps { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 0; }
+    .detail-step {
+      display: flex; gap: 20px; align-items: flex-start;
+      padding: 28px 0; border-bottom: 1px solid var(--border);
+    }
+    .detail-step:last-child { border-bottom: none; }
+    .step-icon {
+      width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0;
+      background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; margin-top: 2px;
+    }
+    .detail-step h3 { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+    .detail-step p  { font-size: 14px; color: #555; line-height: 1.65; }
+
+    /* ── EARNINGS BREAKDOWN ── */
+    #earnings { background: var(--bg2); }
+    .earn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; max-width: 560px; margin: 0 auto; }
+    .earn-card {
+      background: var(--bg3); border: 1px solid var(--border); border-radius: 18px;
+      padding: 24px 18px; text-align: center;
+    }
+    .earn-card-val { font-size: 32px; font-weight: 900; color: var(--purple2); letter-spacing: -1px; margin-bottom: 4px; }
+    .earn-card-val b { color: var(--green); }
+    .earn-card-lbl { font-size: 12px; color: #444; line-height: 1.5; }
+
+    /* ── FAQ ── */
+    .faq-list { max-width: 600px; margin: 0 auto; }
+    .faq-item { padding: 22px 0; border-bottom: 1px solid var(--border); }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-q { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .faq-a { font-size: 14px; color: #555; line-height: 1.65; }
+    .faq-a strong { color: #aaa; }
+
+    /* ── CTA ── */
+    #get-piece {
+      background: linear-gradient(to bottom, var(--bg2), #0d0b18);
+      padding: 80px 28px 96px;
+      text-align: center;
+    }
+    #get-piece h2 { font-size: clamp(30px, 7vw, 52px); font-weight: 900; letter-spacing: -1.5px; margin-bottom: 14px; line-height: 1.05; }
+    #get-piece h2 span { color: var(--purple2); }
+    #get-piece p { font-size: 15px; color: #555; margin-bottom: 36px; max-width: 360px; margin-left: auto; margin-right: auto; }
+    .btn-cta {
+      display: inline-block;
+      background: var(--purple); color: #fff;
+      border: none; border-radius: 50px;
+      padding: 20px 48px; font-size: 18px; font-weight: 800;
+      font-family: inherit; cursor: pointer; text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s, box-shadow 0.2s;
+      letter-spacing: 0.01em;
+    }
+    .btn-cta:hover  { transform: translateY(-3px); box-shadow: 0 16px 50px rgba(124,58,237,0.5); }
+    .btn-cta:active { transform: scale(0.97); }
+    .cta-fine { margin-top: 16px; font-size: 12px; color: #2a2a2a; }
+
+    footer { padding: 28px 24px; text-align: center; border-top: 1px solid var(--border); font-size: 12px; color: #282828; }
+    footer a { color: #333; margin: 0 10px; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">THREAD<b>.</b></div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <p class="hero-eyebrow">Here's exactly how it works</p>
+  <h1>Your shirt earns<br/><span>while you live.</span></h1>
+  <p class="hero-sub">THREAD pieces have your personal QR code printed on the back. Every time someone scans it and buys — you get paid. No posting, no selling, no effort.</p>
+</div>
+
+<!-- HOW THE QR WORKS -->
+<section class="section" id="how">
+  <p class="section-label">Step by step</p>
+  <h2 class="section-title">How your QR makes money</h2>
+  <div class="detail-steps">
+    <div class="detail-step">
+      <div class="step-icon">👕</div>
+      <div>
+        <h3>You get your piece</h3>
+        <p>Your THREAD tee or hoodie ships with your unique QR code printed directly on the back — permanently linked to your account. No stickers, no add-ons.</p>
+      </div>
+    </div>
+    <div class="detail-step">
+      <div class="step-icon">📲</div>
+      <div>
+        <h3>Someone scans it</h3>
+        <p>You're out — at school, the gym, a coffee shop, anywhere. Someone notices the QR on your back, scans it with their phone, and lands on the THREAD store.</p>
+      </div>
+    </div>
+    <div class="detail-step">
+      <div class="step-icon">🛒</div>
+      <div>
+        <h3>They buy</h3>
+        <p>If they purchase anything, the sale is attributed to your QR code. That's it. You weren't there, you didn't say a word, you didn't post anything.</p>
+      </div>
+    </div>
+    <div class="detail-step">
+      <div class="step-icon">💸</div>
+      <div>
+        <h3>You get paid</h3>
+        <p>Commission lands in your account automatically. The more pieces you have, the more codes you have out there, the more chances to earn. It stacks.</p>
+      </div>
+    </div>
+    <div class="detail-step">
+      <div class="step-icon">📈</div>
+      <div>
+        <h3>Your rate goes up</h3>
+        <p>Start at <strong style="color:var(--purple2)">20% commission</strong>. Hit milestones and your rate climbs to 25%, then 30%. The dashboard tracks everything in real time.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EARNINGS SNAPSHOT -->
+<section class="section" id="earnings">
+  <p class="section-label">The numbers</p>
+  <h2 class="section-title">What you actually earn</h2>
+  <div class="earn-grid">
+    <div class="earn-card">
+      <div class="earn-card-val">20<b>%</b></div>
+      <div class="earn-card-lbl">Starting commission rate</div>
+    </div>
+    <div class="earn-card">
+      <div class="earn-card-val"><b>$</b>55</div>
+      <div class="earn-card-lbl">Per tee sold through your QR</div>
+    </div>
+    <div class="earn-card">
+      <div class="earn-card-val"><b>$</b>79</div>
+      <div class="earn-card-lbl">Per hoodie sold through your QR</div>
+    </div>
+    <div class="earn-card">
+      <div class="earn-card-val">30<b>%</b></div>
+      <div class="earn-card-lbl">Max rate at top tier</div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section">
+  <p class="section-label">Quick answers</p>
+  <h2 class="section-title">Common questions</h2>
+  <div class="faq-list">
+    <div class="faq-item">
+      <p class="faq-q">Is there a subscription or monthly fee?</p>
+      <p class="faq-a">No. <strong>You pay once for your piece and that's it.</strong> No monthly fees, no hidden charges. Your QR code is active for life.</p>
+    </div>
+    <div class="faq-item">
+      <p class="faq-q">Do I need to post on social media?</p>
+      <p class="faq-a">Nope. The QR is on your shirt — it works in the real world. <strong>You just wear it.</strong> Anyone near you can scan it.</p>
+    </div>
+    <div class="faq-item">
+      <p class="faq-q">When do I get paid?</p>
+      <p class="faq-a">Commissions accumulate in your dashboard. Payouts are processed once you hit the minimum threshold. You can track every scan and sale in real time.</p>
+    </div>
+    <div class="faq-item">
+      <p class="faq-q">Can I have more than one piece?</p>
+      <p class="faq-a"><strong>Yes — and it helps.</strong> More pieces means more QR codes out in the world simultaneously. Your tee earns at the gym while your hoodie earns on the train.</p>
+    </div>
+    <div class="faq-item">
+      <p class="faq-q">What if no one scans my QR?</p>
+      <p class="faq-a">You still have a quality piece of clothing. But between school, work, transit, and social settings, most wearers start seeing scans within the first week.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="get-piece">
+  <h2>Ready to start<br/><span>earning?</span></h2>
+  <p>Pick your piece, get your QR code, and start earning the moment it ships.</p>
+  <a href="checkout.html" class="btn-cta">Get Your First Piece Now →</a>
+  <p class="cta-fine">Free shipping · ships in 5–7 days · no subscription ever</p>
+</section>
+
+<footer>
+  <a href="terms.html">Terms</a>
+  <a href="privacy.html">Privacy</a>
+  <a href="mailto:support@mythread.shop">Contact</a>
+  <br /><br />© 2026 THREAD. All rights reserved.
+</footer>
+
+</body>
+</html>
