@@ -41,14 +41,29 @@
 
     /* ── HERO ── */
     .hero {
+      position: relative;
       min-height: calc(100vh - 54px);
       min-height: calc(100svh - 54px);
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       text-align: center;
       padding: 56px 24px 56px;
-      background: radial-gradient(ellipse at 50% -10%, rgba(124,58,237,0.22) 0%, transparent 60%), var(--bg);
+      background: var(--bg);
     }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url('ADS/joinpic.png') center center / cover no-repeat;
+      filter: brightness(0.35);
+      pointer-events: none;
+    }
+    .hero::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, rgba(8,8,8,0.55) 0%, rgba(8,8,8,0.1) 35%, rgba(8,8,8,0.15) 60%, rgba(8,8,8,0.92) 88%, rgba(8,8,8,1) 100%);
+      pointer-events: none;
+    }
+    .hero > * { position: relative; z-index: 1; }
     .hero-badge {
       display: inline-flex; align-items: center; gap: 8px;
       border: 1px solid rgba(124,58,237,0.4); border-radius: 50px;
