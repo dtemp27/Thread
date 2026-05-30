@@ -202,6 +202,8 @@
   </div>
 </div>
 
+<script src="config.js?v=5"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 const TEE_COLORS = [
   { name: 'Jet Black',   hex: '#111111', front: 'images/tee-jet-black-front.png',    back: 'images/tee-jet-black-back.png' },
@@ -354,6 +356,40 @@ buildSwatches(HOODIE_COLORS, 'hoodieSwatches', hoodieColorIdx, setHoodieColor);
 buildSizes('teeSizes',    teeSize,    setTeeSize);
 buildSizes('hoodieSizes', hoodieSize, setHoodieSize);
 updatePreview();
+
+/* ── ANALYTICS ── */
+(async function() {
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) return;
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    let ip = null, country = null, city = null, region = null;
+    const OWNER_IPS = ['65.130.60.246','187.199.28.205','187.199.69.171'];
+
+    window._track = async (type, label) => {
+      const k = 'jt_'+type+'_'+label;
+      if (sessionStorage.getItem(k)) return;
+      sessionStorage.setItem(k,'1');
+      try { await sb.rpc('log_page_event', { p_event_type:type, p_ip:ip, p_country:country, p_city:city, p_region:region, p_page:'pick', p_label:label }); } catch(_) {}
+    };
+
+    try {
+      const cached = sessionStorage.getItem('thread_geo');
+      const g = cached ? JSON.parse(cached) : null;
+      if (g) { ip=g.ip; country=g.country_name; city=g.city; region=g.region; }
+      else {
+        const r = await fetch('https://ipapi.co/json/');
+        if (r.ok) { const d=await r.json(); sessionStorage.setItem('thread_geo',JSON.stringify(d)); ip=d.ip; country=d.country_name; city=d.city; region=d.region; }
+      }
+    } catch(_) {}
+
+    if (OWNER_IPS.includes(ip)) { window._track=null; return; }
+    window._track('visit','pick');
+    [[15000,'15s+'],[30000,'30s+'],[60000,'1m+']].forEach(([d,l]) =>
+      setTimeout(() => window._track?.('time_on_page', l), d)
+    );
+  } catch(_) {}
+})();
 </script>
 </body>
 </html>

@@ -461,7 +461,6 @@ function renderCustomers() {
           const item = (e.page_label || '—').replace(/^uid:[^|]+\|/, '');
           return `<div style="display:flex;gap:16px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:12px">
             <span style="color:#888;white-space:nowrap">${t}</span>
-            <code style="color:#a78bfa;font-size:11px">${escapeHtml(e.ip_address || '—')}</code>
             <span style="color:#ccc">${escapeHtml(loc)}</span>
             <span style="color:#e2e8f0;font-weight:600">${escapeHtml(item)}</span>
           </div>`;
@@ -671,6 +670,10 @@ function renderReferrals() {
       productSection: 'Products',
       checkoutPage:   'Checkout',
       catalogPage:    'Catalog',
+      join:           'Join',
+      earn:           'Earn',
+      pick:           'Pick Your Piece',
+      details:        'Details Page',
     };
     return map[raw] || raw;
   }
@@ -1141,16 +1144,14 @@ async function loadAnalytics() {
       const time     = new Date(e.created_at).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
       const label    = e.page_label || '';
       const ip       = e.ip_address || '';
-      const ipCell   = ip
-        ? `<code style="font-size:11px;color:#a78bfa">${escapeHtml(ip)}</code>
-           <button onclick="deleteEventsByIP('${escapeHtml(ip)}')"
-             style="margin-left:6px;padding:1px 6px;background:#2a0a0a;border:1px solid #7f1d1d;border-radius:4px;color:#fca5a5;font-size:10px;cursor:pointer;vertical-align:middle"
+      const deleteBtn = ip
+        ? `<button onclick="deleteEventsByIP('${escapeHtml(ip)}')"
+             style="padding:1px 6px;background:#2a0a0a;border:1px solid #7f1d1d;border-radius:4px;color:#fca5a5;font-size:10px;cursor:pointer;vertical-align:middle;margin-left:4px"
              title="Delete all events from this IP">🗑</button>`
-        : '—';
+        : '';
       return `<tr>
         <td>${badge}</td>
-        <td style="white-space:nowrap">${ipCell}</td>
-        <td>${escapeHtml(location)}</td>
+        <td>${escapeHtml(location)}${deleteBtn}</td>
         <td>${escapeHtml(e.page || '—')}${label ? `<span style="color:#888;font-size:11px"> · ${escapeHtml(label)}</span>` : ''}</td>
         <td style="color:#888;font-size:12px">${time}</td>
       </tr>`;
