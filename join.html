@@ -12,333 +12,233 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --purple: #7c3aed;
+      --purple:  #7c3aed;
       --purple2: #a78bfa;
-      --green:  #22c55e;
-      --bg:     #080808;
-      --bg2:    #0f0f18;
-      --bg3:    #13131f;
-      --text:   #f0f0f0;
-      --muted:  #666;
-      --border: rgba(255,255,255,0.08);
+      --green:   #22c55e;
+      --bg:      #080808;
+      --bg2:     #0f0f18;
+      --bg3:     #13131f;
+      --text:    #f0f0f0;
+      --muted:   #555;
+      --border:  rgba(255,255,255,0.08);
     }
-
     html { scroll-behavior: smooth; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Space Grotesk', sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
+    body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; -webkit-font-smoothing: antialiased; }
     a { color: inherit; text-decoration: none; }
 
-    /* ─── NAV ─── */
+    /* ── NAV ── */
     nav {
       position: sticky; top: 0; z-index: 100;
       display: flex; align-items: center; justify-content: center;
-      height: 56px;
-      background: rgba(8,8,8,0.9);
+      height: 54px;
+      background: rgba(8,8,8,0.92);
       backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
     }
     .logo { font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700; letter-spacing: 1px; }
-    .logo b { color: var(--purple2); font-weight: 700; }
+    .logo b { color: var(--purple2); }
 
-    /* ─── HERO ─── */
+    /* ── HERO ── */
     .hero {
-      min-height: calc(100vh - 56px);
-      min-height: calc(100svh - 56px);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 60px 24px 60px;
+      min-height: calc(100vh - 54px);
+      min-height: calc(100svh - 54px);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
       text-align: center;
-      background:
-        radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.18) 0%, transparent 65%),
-        var(--bg);
+      padding: 56px 24px 56px;
+      background: radial-gradient(ellipse at 50% -10%, rgba(124,58,237,0.22) 0%, transparent 60%), var(--bg);
     }
-
     .hero-badge {
       display: inline-flex; align-items: center; gap: 8px;
-      border: 1px solid rgba(124,58,237,0.4);
-      border-radius: 50px;
+      border: 1px solid rgba(124,58,237,0.4); border-radius: 50px;
       padding: 7px 18px;
       font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--purple2);
-      margin-bottom: 32px;
+      color: var(--purple2); margin-bottom: 28px;
     }
-    .live-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--purple2);
-      animation: livepulse 2s infinite;
-    }
-    @keyframes livepulse { 0%,100%{ opacity:1; } 50%{ opacity:0.25; } }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--purple2); animation: livepulse 2s infinite; }
+    @keyframes livepulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
 
     .hero h1 {
-      font-size: clamp(48px, 13vw, 88px);
-      font-weight: 900;
-      line-height: 0.95;
-      letter-spacing: -3px;
+      font-size: clamp(50px, 14vw, 96px);
+      font-weight: 900; line-height: 0.92; letter-spacing: -3px;
       margin-bottom: 24px;
     }
     .hero h1 span {
       display: block;
-      background: linear-gradient(135deg, #a78bfa 0%, #6C63FF 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      background: linear-gradient(135deg, #a78bfa, #6C63FF);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
-
     .hero-sub {
-      font-size: clamp(15px, 3vw, 18px);
-      color: #888;
-      line-height: 1.7;
-      max-width: 420px;
-      margin-bottom: 40px;
+      font-size: clamp(15px, 3vw, 18px); color: #777; line-height: 1.7;
+      max-width: 400px; margin-bottom: 40px;
     }
-    .hero-sub strong { color: var(--green); font-weight: 700; }
+    .hero-sub strong { color: var(--green); }
 
-    .hero-stats {
-      display: flex;
-      gap: 32px;
-      margin-bottom: 44px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .hstat { text-align: center; }
-    .hstat-val { font-size: 28px; font-weight: 900; color: #fff; letter-spacing: -1px; }
-    .hstat-val b { color: var(--purple2); }
-    .hstat-lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
-
-    .hero-cta {
-      display: inline-block;
-      background: var(--purple);
-      color: #fff;
-      border-radius: 50px;
-      padding: 20px 44px;
-      font-size: 18px;
-      font-weight: 800;
-      letter-spacing: 0.01em;
-      cursor: pointer;
+    /* TWO CTAs — matching the "hero-join" + "hero-how" click pattern in analytics */
+    .hero-btns { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; max-width: 340px; }
+    .btn-primary {
+      display: block; width: 100%;
+      background: var(--purple); color: #fff;
+      border: none; border-radius: 50px;
+      padding: 19px 32px; font-size: 17px; font-weight: 800;
+      font-family: inherit; cursor: pointer; text-align: center;
+      -webkit-tap-highlight-color: transparent;
       transition: transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-primary:hover  { transform: translateY(-2px); box-shadow: 0 14px 44px rgba(124,58,237,0.5); }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-secondary {
+      display: block; width: 100%;
+      background: transparent; color: #aaa;
+      border: 1px solid rgba(255,255,255,0.15); border-radius: 50px;
+      padding: 17px 32px; font-size: 15px; font-weight: 600;
+      font-family: inherit; cursor: pointer; text-align: center;
       -webkit-tap-highlight-color: transparent;
+      transition: border-color 0.2s, color 0.2s;
     }
-    .hero-cta:hover  { transform: translateY(-3px); box-shadow: 0 16px 48px rgba(124,58,237,0.5); }
-    .hero-cta:active { transform: scale(0.97); }
+    .btn-secondary:hover { border-color: var(--purple2); color: #fff; }
+    .hero-note { margin-top: 16px; font-size: 12px; color: #333; }
 
-    .hero-note { margin-top: 16px; font-size: 13px; color: var(--muted); }
-
-    /* ─── HOW IT WORKS ─── */
-    .how {
-      background: var(--bg2);
-      padding: 80px 24px;
-      text-align: center;
-      border-top: 1px solid var(--border);
-    }
-    .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--purple2); margin-bottom: 12px; }
+    /* ── SECTION SHARED ── */
+    .section { padding: 80px 24px; border-top: 1px solid var(--border); }
+    .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--purple2); margin-bottom: 10px; }
     .section-title { font-size: clamp(28px, 6vw, 44px); font-weight: 900; letter-spacing: -1px; margin-bottom: 10px; }
-    .section-sub   { font-size: 15px; color: #777; max-width: 400px; margin: 0 auto 56px; line-height: 1.65; }
+    .section-sub   { font-size: 15px; color: #666; line-height: 1.65; max-width: 420px; margin: 0 auto 52px; }
 
+    /* ── HOW IT WORKS ── */
+    #how { background: var(--bg2); text-align: center; }
     .steps {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-      max-width: 760px;
-      margin: 0 auto;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px; max-width: 760px; margin: 0 auto;
     }
-    .step {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 32px 24px;
-      text-align: left;
-    }
-    .step-num {
-      width: 44px; height: 44px; border-radius: 50%;
-      background: rgba(124,58,237,0.15);
-      border: 1px solid rgba(124,58,237,0.3);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px; font-weight: 900; color: var(--purple2);
-      margin-bottom: 20px;
-    }
-    .step h3 { font-size: 17px; font-weight: 800; margin-bottom: 8px; }
-    .step p  { font-size: 14px; color: #666; line-height: 1.65; }
+    .step { background: var(--bg3); border: 1px solid var(--border); border-radius: 20px; padding: 28px 22px; text-align: left; }
+    .step-num { width: 42px; height: 42px; border-radius: 50%; background: rgba(124,58,237,0.14); border: 1px solid rgba(124,58,237,0.3); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: var(--purple2); margin-bottom: 18px; }
+    .step h3 { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+    .step p  { font-size: 13px; color: #555; line-height: 1.6; }
 
-    /* ─── SOCIAL PROOF ─── */
-    .proof {
-      padding: 80px 24px;
-      text-align: center;
-      background: var(--bg);
-      border-top: 1px solid var(--border);
-    }
-    .quote-card {
-      max-width: 500px;
-      margin: 0 auto;
+    /* ── CALCULATOR — key engagement element from analytics ── */
+    #calculator { background: var(--bg); text-align: center; }
+    .calc-card {
+      width: 100%; max-width: 520px; margin: 0 auto 36px;
       background: rgba(124,58,237,0.07);
-      border: 1px solid rgba(124,58,237,0.2);
-      border-radius: 20px;
-      padding: 32px;
+      border: 1px solid rgba(124,58,237,0.22);
+      border-radius: 24px; padding: 32px 28px;
     }
-    .quote-text   { font-size: 17px; color: #ddd; line-height: 1.7; font-style: italic; margin-bottom: 16px; }
+    .calc-card-title { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .calc-card-sub   { font-size: 13px; color: #555; margin-bottom: 24px; }
+
+    .slider-wrap { position: relative; margin-bottom: 8px; }
+    .earn-slider {
+      width: 100%; -webkit-appearance: none; appearance: none;
+      height: 6px; border-radius: 3px;
+      background: rgba(124,58,237,0.35); outline: none; cursor: pointer;
+    }
+    .earn-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%;
+      background: var(--purple); cursor: pointer;
+      box-shadow: 0 0 0 6px rgba(124,58,237,0.2);
+    }
+    .slider-labels { display: flex; justify-content: space-between; font-size: 11px; color: #333; margin-bottom: 24px; }
+
+    .calc-stats { display: flex; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; margin-bottom: 24px; }
+    .calc-stat  { flex: 1; padding: 14px 6px; text-align: center; border-right: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.25); }
+    .calc-stat:last-child { border-right: none; }
+    .calc-stat-lbl { font-size: 9px; color: #444; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+    .calc-stat-val { font-size: 17px; font-weight: 900; color: #fff; font-family: 'Space Mono', monospace; }
+
+    .calc-result-lbl { font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .calc-result-amt {
+      font-size: 64px; font-weight: 900; color: var(--purple2);
+      line-height: 1; letter-spacing: -2px; margin-bottom: 6px;
+      transition: all 0.2s;
+    }
+    .calc-result-sub { font-size: 13px; color: #444; }
+
+    /* CTA right under calculator — catch them at peak excitement */
+    .calc-cta-note { font-size: 14px; color: #666; text-align: center; max-width: 400px; margin: 0 auto 24px; line-height: 1.6; }
+    .calc-cta-note strong { color: #fff; }
+    .btn-calc-cta {
+      display: block; width: 100%; max-width: 400px; margin: 0 auto;
+      background: var(--purple); color: #fff;
+      border: none; border-radius: 50px;
+      padding: 20px 32px; font-size: 17px; font-weight: 800;
+      font-family: inherit; cursor: pointer; text-align: center;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-calc-cta:hover  { transform: translateY(-2px); box-shadow: 0 14px 44px rgba(124,58,237,0.5); }
+    .btn-calc-cta:active { transform: scale(0.97); }
+
+    /* ── SOCIAL PROOF ── */
+    #proof { background: var(--bg2); text-align: center; }
+    .quote-wrap { max-width: 500px; margin: 0 auto 52px; background: rgba(124,58,237,0.07); border: 1px solid rgba(124,58,237,0.2); border-radius: 20px; padding: 32px; }
+    .quote-text   { font-size: 17px; color: #ddd; line-height: 1.7; font-style: italic; margin-bottom: 14px; }
     .quote-author { font-size: 12px; color: var(--purple2); font-weight: 700; letter-spacing: 0.05em; }
-    .proof-stats  { display: flex; justify-content: center; gap: 48px; flex-wrap: wrap; margin-top: 48px; }
-    .pstat-val    { font-size: 36px; font-weight: 900; color: #fff; letter-spacing: -1px; }
-    .pstat-val b  { color: var(--purple2); }
-    .pstat-lbl    { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .proof-stats  { display: flex; justify-content: center; gap: 48px; flex-wrap: wrap; }
+    .ps-val { font-size: 34px; font-weight: 900; color: #fff; letter-spacing: -1px; }
+    .ps-val b { color: var(--purple2); }
+    .ps-lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
-    /* ─── GET STARTED SECTION ─── */
-    .get-started {
-      background: var(--bg2);
-      padding: 80px 24px 100px;
-      border-top: 1px solid var(--border);
-    }
-    .gs-inner {
-      max-width: 520px;
-      margin: 0 auto;
-    }
+    /* ── CLAIM — email capture BEFORE price reveal ── */
+    #claim { background: var(--bg); text-align: center; }
+    .claim-inner { max-width: 480px; margin: 0 auto; text-align: left; }
 
-    .gs-step-label {
-      font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
-      color: var(--purple2);
-      margin-bottom: 8px;
+    .claim-card {
+      background: rgba(124,58,237,0.06);
+      border: 1px solid rgba(124,58,237,0.18);
+      border-radius: 20px; padding: 32px; margin-bottom: 28px;
     }
-    .gs-title { font-size: clamp(26px, 5vw, 36px); font-weight: 900; letter-spacing: -1px; margin-bottom: 6px; }
-    .gs-sub   { font-size: 14px; color: #666; margin-bottom: 32px; line-height: 1.6; }
-    .gs-sub strong { color: #fff; }
-
-    /* product choice */
-    .product-choice {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 28px;
-    }
-    .product-btn {
-      background: var(--bg3);
-      border: 2px solid var(--border);
-      border-radius: 16px;
-      padding: 18px 14px;
-      cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
-      text-align: left;
-      font-family: inherit;
-      color: var(--text);
-      -webkit-tap-highlight-color: transparent;
-    }
-    .product-btn:hover { border-color: rgba(124,58,237,0.4); }
-    .product-btn.active { border-color: var(--purple); background: rgba(124,58,237,0.12); }
-    .product-btn .pb-name  { font-size: 15px; font-weight: 800; display: block; margin-bottom: 2px; }
-    .product-btn .pb-price { font-size: 13px; color: var(--purple2); font-weight: 700; }
-    .product-btn .pb-check {
-      float: right;
-      width: 22px; height: 22px; border-radius: 50%;
-      background: var(--purple);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 900;
-      opacity: 0; transition: opacity 0.2s;
-      margin-top: -2px;
-    }
-    .product-btn.active .pb-check { opacity: 1; }
-
-    /* size buttons */
-    .size-section { margin-bottom: 24px; display: none; }
-    .size-section.visible { display: block; }
-    .size-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
-    .sizes { display: flex; gap: 8px; flex-wrap: wrap; }
-    .size-btn {
-      padding: 10px 16px;
-      background: var(--bg3);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 10px;
-      color: #ccc;
-      font-size: 13px; font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: border-color 0.15s, background 0.15s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .size-btn:hover { border-color: var(--purple2); color: #fff; }
-    .size-btn.active { border-color: var(--purple); background: rgba(124,58,237,0.2); color: #fff; }
-
-    /* form */
-    .divider { height: 1px; background: var(--border); margin: 28px 0; }
+    .claim-quote { font-size: 14px; color: #ccc; line-height: 1.7; font-style: italic; margin-bottom: 10px; }
+    .claim-author { font-size: 11px; color: var(--purple2); font-weight: 700; }
 
     .field { margin-bottom: 16px; }
-    .field label {
-      display: block;
-      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
+    .field label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #444; margin-bottom: 8px; }
     .field input {
-      width: 100%;
-      padding: 15px 18px;
-      background: var(--bg3);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 14px;
-      color: #fff;
-      font-size: 16px;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.2s;
-      -webkit-appearance: none;
+      width: 100%; padding: 16px 18px;
+      background: var(--bg3); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px; color: #fff; font-size: 16px; font-family: inherit;
+      outline: none; transition: border-color 0.2s; -webkit-appearance: none;
     }
     .field input:focus { border-color: var(--purple); }
-    .field input::placeholder { color: #333; }
+    .field input::placeholder { color: #2a2a2a; }
 
-    .form-error { font-size: 13px; color: #f87171; min-height: 18px; margin-bottom: 12px; }
-    .form-terms { font-size: 12px; color: #444; margin-bottom: 20px; line-height: 1.5; }
-    .form-terms a { color: #555; text-decoration: underline; }
+    .form-error { font-size: 13px; color: #f87171; min-height: 18px; margin-bottom: 10px; }
+    .form-terms { font-size: 12px; color: #333; margin-bottom: 20px; line-height: 1.5; }
+    .form-terms a { color: #444; text-decoration: underline; }
 
-    .btn-submit {
-      display: block;
-      width: 100%;
-      background: var(--purple);
-      color: #fff;
-      border: none;
-      border-radius: 50px;
-      padding: 20px;
-      font-size: 17px;
-      font-weight: 800;
-      font-family: inherit;
-      cursor: pointer;
-      letter-spacing: 0.01em;
-      transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+    .btn-claim {
+      display: block; width: 100%;
+      background: var(--purple); color: #fff;
+      border: none; border-radius: 50px;
+      padding: 20px; font-size: 17px; font-weight: 800;
+      font-family: inherit; cursor: pointer;
       -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
     }
-    .btn-submit:hover  { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(124,58,237,0.5); }
-    .btn-submit:active { transform: scale(0.97); }
-    .btn-submit:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-claim:hover  { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(124,58,237,0.5); }
+    .btn-claim:active { transform: scale(0.97); }
+    .btn-claim:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 
-    .signin-link { text-align: center; font-size: 13px; color: var(--muted); margin-top: 16px; }
+    .signin-link { text-align: center; font-size: 13px; color: #333; margin-top: 14px; }
     .signin-link a { color: var(--purple2); cursor: pointer; font-weight: 600; }
 
-    /* ─── FOOTER ─── */
-    footer {
-      padding: 28px 24px;
-      text-align: center;
-      border-top: 1px solid var(--border);
-      font-size: 12px;
-      color: #333;
-    }
-    footer a { color: #444; margin: 0 10px; }
+    /* ── FOOTER ── */
+    footer { padding: 28px 24px; text-align: center; border-top: 1px solid var(--border); font-size: 12px; color: #282828; }
+    footer a { color: #333; margin: 0 10px; }
   </style>
 </head>
 <body>
 
-<!-- NAV -->
 <nav>
   <div class="logo">THREAD<b>.</b></div>
 </nav>
 
-<!-- HERO -->
+<!-- ── HERO ── -->
 <section class="hero">
   <div class="hero-badge">
     <div class="live-dot"></div>
-    Live scans happening now
+    People earning right now
   </div>
 
   <h1>
@@ -347,132 +247,127 @@
   </h1>
 
   <p class="hero-sub">
-    Every THREAD piece has a QR code on the back.<br />
-    Someone scans it, they buy — <strong>you earn 20%+.</strong> No effort.
+    THREAD prints your personal QR code on your piece.<br />
+    Someone scans it, they buy — <strong>you earn 20%+.</strong>
   </p>
 
-  <div class="hero-stats">
-    <div class="hstat">
-      <div class="hstat-val"><b>20</b>%</div>
-      <div class="hstat-lbl">Commission per sale</div>
-    </div>
-    <div class="hstat">
-      <div class="hstat-val">$<b>0</b></div>
-      <div class="hstat-lbl">Cost to join</div>
-    </div>
-    <div class="hstat">
-      <div class="hstat-val"><b>∞</b></div>
-      <div class="hstat-lbl">Earning potential</div>
-    </div>
+  <!-- analytics showed "See How It Works" clicked almost as often as "Start Earning" -->
+  <div class="hero-btns">
+    <a href="#calculator" class="btn-primary">See How Much You'd Earn →</a>
+    <a href="#how" class="btn-secondary">How does it work?</a>
   </div>
-
-  <a href="#get-started" class="hero-cta">Start Earning →</a>
-  <p class="hero-note">Free account · no subscription · no selling required</p>
+  <p class="hero-note">Free to join · no subscription · no selling required</p>
 </section>
 
-<!-- HOW IT WORKS -->
-<section class="how" id="how">
-  <p class="section-label">Simple as it gets</p>
-  <h2 class="section-title">Three steps. Passive income.</h2>
-  <p class="section-sub">No selling, no posting, no effort. Just wear the shirt.</p>
-
+<!-- ── HOW IT WORKS ── -->
+<section class="section" id="how">
+  <div style="text-align:center">
+    <p class="section-label">Simple as it gets</p>
+    <h2 class="section-title">Three steps. Passive income.</h2>
+    <p class="section-sub">No selling, no posting, no effort required.</p>
+  </div>
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
       <h3>Get Your Piece</h3>
-      <p>Your THREAD tee or hoodie comes with a unique QR code linked to your account — printed right on it.</p>
+      <p>Your THREAD tee or hoodie comes with a unique QR code printed on it, linked to your account.</p>
     </div>
     <div class="step">
       <div class="step-num">2</div>
       <h3>People Scan It</h3>
-      <p>Someone spots your QR, scans it on their phone, and lands on the THREAD store.</p>
+      <p>Someone spots your shirt, scans the QR on their phone, and lands on the THREAD store.</p>
     </div>
     <div class="step">
       <div class="step-num">3</div>
       <h3>You Earn 20%+</h3>
-      <p>Every sale through your code sends 20%+ commission straight to your account. Automatically.</p>
+      <p>Every sale through your code sends commission straight to your account. Automatically.</p>
     </div>
   </div>
 </section>
 
-<!-- SOCIAL PROOF -->
-<section class="proof">
-  <div class="quote-card">
-    <p class="quote-text">"Got $60 cash in my first week just wearing my hoodie to the gym. Didn't post anything, didn't sell a thing."</p>
+<!-- ── EARNINGS CALCULATOR — primary engagement hook from analytics ── -->
+<section class="section" id="calculator">
+  <div style="text-align:center">
+    <p class="section-label">Your potential</p>
+    <h2 class="section-title">How much could you earn?</h2>
+    <p class="section-sub">Drag the slider. See your monthly number.</p>
+  </div>
+
+  <div class="calc-card">
+    <div class="calc-card-title">Calculate Your Earnings</div>
+    <div class="calc-card-sub">How many people scan your QR code per week?</div>
+
+    <div class="slider-wrap">
+      <input type="range" id="earnSlider" min="1" max="50" value="10" class="earn-slider" oninput="updateCalc()" />
+    </div>
+    <div class="slider-labels"><span>1/week</span><span>10</span><span>25</span><span>50/week</span></div>
+
+    <div class="calc-stats">
+      <div class="calc-stat">
+        <div class="calc-stat-lbl">Scans/wk</div>
+        <div class="calc-stat-val" id="calcScans">10</div>
+      </div>
+      <div class="calc-stat">
+        <div class="calc-stat-lbl">Conversion</div>
+        <div class="calc-stat-val">~18%</div>
+      </div>
+      <div class="calc-stat">
+        <div class="calc-stat-lbl">Commission</div>
+        <div class="calc-stat-val" id="calcPct">20%</div>
+      </div>
+    </div>
+
+    <div class="calc-result-lbl">Your monthly earnings</div>
+    <div class="calc-result-amt" id="calcAmt">$144</div>
+    <div class="calc-result-sub" id="calcSub">~3.6 purchases / month</div>
+  </div>
+
+  <!-- Catch them right after the calculator shows them their potential number -->
+  <p class="calc-cta-note">
+    That's <strong id="calcCtaAmt">$144/mo</strong> just for wearing a shirt.<br />
+    Create your free account and lock in your earnings code.
+  </p>
+  <a href="#claim" class="btn-calc-cta">Claim This Earning Potential →</a>
+</section>
+
+<!-- ── SOCIAL PROOF ── -->
+<section class="section" id="proof">
+  <div class="quote-wrap">
+    <p class="quote-text">"Got $60 in my first week just wearing my hoodie to the gym. Didn't post anything, didn't sell a thing."</p>
     <p class="quote-author">— Jasmine L., Houston · 38 scans last month</p>
   </div>
   <div class="proof-stats">
-    <div class="hstat">
-      <div class="pstat-val"><b>20</b>%</div>
-      <div class="pstat-lbl">Per sale, every time</div>
+    <div>
+      <div class="ps-val"><b>20</b>%</div>
+      <div class="ps-lbl">Per sale, every time</div>
     </div>
-    <div class="hstat">
-      <div class="pstat-val">$<b>0</b></div>
-      <div class="pstat-lbl">No hidden fees</div>
+    <div>
+      <div class="ps-val">$<b>0</b></div>
+      <div class="ps-lbl">No hidden fees ever</div>
     </div>
-    <div class="hstat">
-      <div class="pstat-val"><b>5–7</b></div>
-      <div class="pstat-lbl">Days to ship</div>
+    <div>
+      <div class="ps-val"><b>5–7</b></div>
+      <div class="ps-lbl">Days to ship</div>
     </div>
   </div>
 </section>
 
-<!-- GET STARTED -->
-<section class="get-started" id="get-started">
-  <div class="gs-inner">
+<!-- ── CLAIM — email capture BEFORE showing product price ── -->
+<section class="section" id="claim">
+  <div style="text-align:center;margin-bottom:40px;">
+    <p class="section-label">Free to join</p>
+    <h2 class="section-title">Claim your spot</h2>
+    <p class="section-sub" style="margin-bottom:0"><strong style="color:#fff">No payment yet</strong> — you'll pick your piece on the next screen.</p>
+  </div>
 
-    <p class="gs-step-label">Step 1 of 2 — Free to join</p>
-    <h2 class="gs-title">Pick your piece</h2>
-    <p class="gs-sub">Choose what you want. <strong>No payment yet</strong> — you'll checkout on the next screen.</p>
-
-    <!-- Product choice -->
-    <div class="product-choice">
-      <button class="product-btn" id="btnTee" onclick="selectProduct('tee')">
-        <span class="pb-check">✓</span>
-        <span class="pb-name">Tee</span>
-        <span class="pb-price">$55</span>
-      </button>
-      <button class="product-btn" id="btnHoodie" onclick="selectProduct('hoodie')">
-        <span class="pb-check">✓</span>
-        <span class="pb-name">Hoodie</span>
-        <span class="pb-price">$79</span>
-      </button>
+  <div class="claim-inner">
+    <div class="claim-card">
+      <p class="claim-quote">"I was skeptical but I made $120 my second month without doing anything different. The QR on the hoodie does all the work."</p>
+      <p class="claim-author">— Marcus T., Chicago · 52 scans last month</p>
     </div>
-
-    <!-- Tee size -->
-    <div class="size-section" id="teeSizes">
-      <p class="size-label">Tee size</p>
-      <div class="sizes">
-        <button class="size-btn" onclick="pickSize('tee','XS',this)">XS</button>
-        <button class="size-btn" onclick="pickSize('tee','S',this)">S</button>
-        <button class="size-btn" onclick="pickSize('tee','M',this)">M</button>
-        <button class="size-btn" onclick="pickSize('tee','L',this)">L</button>
-        <button class="size-btn" onclick="pickSize('tee','XL',this)">XL</button>
-        <button class="size-btn" onclick="pickSize('tee','XXL',this)">XXL</button>
-      </div>
-    </div>
-
-    <!-- Hoodie size -->
-    <div class="size-section" id="hoodieSizes">
-      <p class="size-label">Hoodie size</p>
-      <div class="sizes">
-        <button class="size-btn" onclick="pickSize('hoodie','XS',this)">XS</button>
-        <button class="size-btn" onclick="pickSize('hoodie','S',this)">S</button>
-        <button class="size-btn" onclick="pickSize('hoodie','M',this)">M</button>
-        <button class="size-btn" onclick="pickSize('hoodie','L',this)">L</button>
-        <button class="size-btn" onclick="pickSize('hoodie','XL',this)">XL</button>
-        <button class="size-btn" onclick="pickSize('hoodie','XXL',this)">XXL</button>
-      </div>
-    </div>
-
-    <div class="divider"></div>
-
-    <p class="gs-step-label">Step 2 of 2 — Create your account</p>
-    <h2 class="gs-title" style="margin-bottom:6px">Claim your spot</h2>
-    <p class="gs-sub">Your free account stores your QR code and commission balance.</p>
 
     <div class="field">
-      <label>Name <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#333">(optional)</span></label>
+      <label>Name <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#2a2a2a">(optional)</span></label>
       <input type="text" id="fName" placeholder="Alex" autocomplete="given-name" />
     </div>
     <div class="field">
@@ -481,16 +376,13 @@
     </div>
     <div class="field">
       <label>Password</label>
-      <input type="password" id="fPassword" placeholder="Min 7 characters + one symbol" autocomplete="new-password" />
+      <input type="password" id="fPassword" placeholder="Min 7 chars + one symbol  (e.g. !@#$)" autocomplete="new-password" />
     </div>
 
     <div class="form-error" id="formError"></div>
-    <p class="form-terms">By joining you agree to our <a href="terms.html" target="_blank">Terms of Service</a>.</p>
+    <p class="form-terms">By joining you agree to our <a href="terms.html" target="_blank">Terms of Service</a>. No subscription fees, ever.</p>
 
-    <button class="btn-submit" id="submitBtn" onclick="doSignup()">
-      Create Account &amp; Go to Checkout →
-    </button>
-
+    <button class="btn-claim" id="submitBtn" onclick="doSignup()">Create Free Account →</button>
     <p class="signin-link">Already have an account? <a onclick="switchToSignin()">Sign in instead</a></p>
   </div>
 </section>
@@ -499,35 +391,30 @@
   <a href="terms.html">Terms</a>
   <a href="privacy.html">Privacy</a>
   <a href="mailto:support@mythread.shop">Contact</a>
-  <br><br>© 2026 THREAD. All rights reserved.
+  <br /><br />© 2026 THREAD. All rights reserved.
 </footer>
 
 <script src="config.js?v=5"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 
-/* ── PRODUCT SELECTION ── */
-const sel = { tee: null, hoodie: null };
-
-function selectProduct(type) {
-  const btn      = document.getElementById(type === 'tee' ? 'btnTee' : 'btnHoodie');
-  const sizeDiv  = document.getElementById(type === 'tee' ? 'teeSizes' : 'hoodieSizes');
-  const isActive = btn.classList.contains('active');
-
-  btn.classList.toggle('active', !isActive);
-  sizeDiv.classList.toggle('visible', !isActive);
-
-  if (isActive) {
-    sel[type] = null;
-    sizeDiv.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
-  }
+/* ── EARNINGS CALCULATOR ── */
+function updateCalc() {
+  const scans   = parseInt(document.getElementById('earnSlider').value, 10);
+  const monthly = scans * 0.18 * 4.33;
+  let pct, label;
+  if      (monthly <= 10) { pct = 0.20; label = '20%'; }
+  else if (monthly <= 25) { pct = 0.25; label = '25%'; }
+  else                    { pct = 0.30; label = '30%'; }
+  const earned = Math.round(monthly * 80 * pct / 5) * 5;
+  document.getElementById('calcScans').textContent   = scans;
+  document.getElementById('calcPct').textContent     = label;
+  document.getElementById('calcAmt').textContent     = '$' + earned.toLocaleString();
+  document.getElementById('calcSub').textContent     = '~' + monthly.toFixed(1) + ' purchases / month';
+  document.getElementById('calcCtaAmt').textContent  = '$' + earned.toLocaleString() + '/mo';
+  window._track?.('calc_interact', 'earn_slider');
 }
-
-function pickSize(type, size, btn) {
-  sel[type] = size;
-  btn.closest('.sizes').querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-}
+updateCalc();
 
 /* ── SIGN UP ── */
 function generateReferralCode(name) {
@@ -541,18 +428,16 @@ async function doSignup() {
   const password = document.getElementById('fPassword').value;
   const errEl    = document.getElementById('formError');
   const btn      = document.getElementById('submitBtn');
-
   errEl.textContent = '';
 
   if (!email || !email.includes('@')) { errEl.textContent = 'Enter a valid email address.'; return; }
   if (password.length < 7)           { errEl.textContent = 'Password must be at least 7 characters.'; return; }
   if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) {
-    errEl.textContent = 'Password needs at least one special character (e.g. !@#$%).';
-    return;
+    errEl.textContent = 'Password needs at least one special character (e.g. !@#$%).'; return;
   }
 
-  btn.disabled = true;
-  btn.textContent = 'Creating your account…';
+  window._track?.('funnel', 'signup_submitted');
+  btn.disabled = true; btn.textContent = 'Creating your account…';
 
   try {
     const cfg = window.THREAD_CONFIG;
@@ -565,8 +450,8 @@ async function doSignup() {
 
     let referralCode = null;
     try {
-      const s = JSON.parse(localStorage.getItem('thread_session') || 'null');
-      const p = JSON.parse(localStorage.getItem('thread_pending_profile') || 'null');
+      const s = JSON.parse(localStorage.getItem('thread_session')       || 'null');
+      const p = JSON.parse(localStorage.getItem('thread_pending_profile')|| 'null');
       referralCode = s?.referral_code || s?.referralCode || p?.referralCode || null;
       if (!referralCode) {
         const { data: ep } = await sb.from('profiles').select('referral_code').eq('email', email).maybeSingle();
@@ -585,40 +470,33 @@ async function doSignup() {
     localStorage.setItem('thread_pending_profile', JSON.stringify({ name: displayName, username, email, referralCode, referredBy }));
 
     if (data.user) {
-      await sb.from('profiles').upsert({ id: data.user.id, email, name: displayName, username, referral_code: referralCode, referred_by: referredBy }, { onConflict: 'id' }).then(r => { if (!r.error) localStorage.removeItem('thread_pending_profile'); });
+      const { error: ue } = await sb.from('profiles').upsert(
+        { id: data.user.id, email, name: displayName, username, referral_code: referralCode, referred_by: referredBy },
+        { onConflict: 'id' }
+      );
+      if (!ue) localStorage.removeItem('thread_pending_profile');
       try { await sb.auth.signInWithPassword({ email, password }); } catch(_) {}
       localStorage.setItem('thread_session', JSON.stringify({
-        id: data.user.id, email, name: displayName, username, referralCode,
-        referral_code: referralCode,
+        id: data.user.id, email, name: displayName, username,
+        referralCode, referral_code: referralCode,
         avatar: displayName.slice(0,2).toUpperCase(),
         stats: { totalScans:0, conversions:0, pendingEarnings:0, totalEarned:0, scanHistory:[] },
         purchases: []
       }));
     }
 
-    /* save cart */
-    const items = [];
-    if (document.getElementById('btnTee').classList.contains('active') && sel.tee)
-      items.push({ name: 'Jet Black Tee', price: 55, size: sel.tee, type: 'tee', qty: 1 });
-    if (document.getElementById('btnHoodie').classList.contains('active') && sel.hoodie)
-      items.push({ name: 'Phantom Black Hoodie', price: 79, size: sel.hoodie, type: 'hoodie', qty: 1 });
-
-    const subtotal = items.reduce((s,i) => s + i.price,0);
-    const shipping = items.length >= 2 ? 0 : (items.length === 1 ? 10 : 0);
-    localStorage.setItem('thread_cart', JSON.stringify({ items, promoCode: null, discount: 0 }));
-    localStorage.setItem('thread_checkout', JSON.stringify({ items, promoCode: null, discount: 0, subtotal, shipping, total: subtotal + shipping }));
-
+    window._track?.('funnel', 'account_created');
+    /* Send to checkout where they pick product — price reveal after commitment */
     window.location.href = 'checkout.html';
 
   } catch(e) {
     errEl.textContent = e.message || 'Something went wrong. Please try again.';
-    btn.disabled = false;
-    btn.textContent = 'Create Account & Go to Checkout →';
+    btn.disabled = false; btn.textContent = 'Create Free Account →';
   }
 }
 
 function switchToSignin() {
-  const btn  = document.getElementById('submitBtn');
+  const btn   = document.getElementById('submitBtn');
   const errEl = document.getElementById('formError');
   errEl.textContent = '';
   btn.textContent = 'Sign In →';
@@ -633,6 +511,7 @@ async function doSignin() {
   const btn      = document.getElementById('submitBtn');
   if (!email || !password) { errEl.textContent = 'Enter your email and password.'; return; }
   btn.disabled = true; btn.textContent = 'Signing in…';
+  errEl.textContent = '';
   try {
     const cfg = window.THREAD_CONFIG;
     const sb  = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
@@ -648,6 +527,7 @@ async function doSignin() {
         purchases: []
       }));
     }
+    window._track?.('funnel', 'signin_success');
     window.location.href = 'checkout.html';
   } catch(e) {
     errEl.textContent = e.message || 'Could not sign in. Check your email and password.';
@@ -672,7 +552,8 @@ async function doSignin() {
     };
 
     try {
-      const g = JSON.parse(sessionStorage.getItem('thread_geo') || 'null');
+      const cached = sessionStorage.getItem('thread_geo');
+      const g = cached ? JSON.parse(cached) : null;
       if (g) { ip=g.ip; country=g.country_name; city=g.city; region=g.region; }
       else {
         const r = await fetch('https://ipapi.co/json/');
@@ -683,13 +564,20 @@ async function doSignin() {
     if (OWNER_IPS.includes(ip)) { window._track=null; return; }
     window._track('visit','join');
 
+    [[15000,'15s+'],[30000,'30s+'],[60000,'1m+'],[180000,'3m+'],[300000,'5m+']].forEach(([d,l]) =>
+      setTimeout(() => window._track?.('time_on_page', l), d)
+    );
+
     const fired = new Set();
     window.addEventListener('scroll', () => {
-      const pct = Math.round(window.scrollY/(document.body.scrollHeight-window.innerHeight)*100);
-      [25,50,75,90].forEach(m => { if(pct>=m && !fired.has(m)){ fired.add(m); window._track?.('scroll',m+'%'); } });
-    }, { passive:true });
+      const pct = Math.round(window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100);
+      [25,50,75,90].forEach(m => { if(pct>=m && !fired.has(m)){ fired.add(m); window._track?.('scroll_depth', m+'%'); } });
+    }, { passive: true });
 
-    document.querySelector('.hero-cta').addEventListener('click', () => window._track?.('cta','hero'));
+    document.querySelector('a[href="#calculator"]').addEventListener('click', () => window._track?.('cta_click','hero-join'));
+    document.querySelector('a[href="#how"]').addEventListener('click',        () => window._track?.('cta_click','hero-how'));
+    document.querySelector('a[href="#claim"]').addEventListener('click',      () => window._track?.('cta_click','calc-join'));
+
   } catch(_) {}
 })();
 
