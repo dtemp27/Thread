@@ -536,8 +536,8 @@
     <div class="qr-frame" id="qrFrame"></div>
     <p class="qr-code-label" id="qrCodeLabel"></p>
     <div class="qr-modal-btns">
-      <a href="checkout.html" class="btn-qr-primary">Get My First Piece →</a>
-      <a href="thread-details.html" class="btn-qr-secondary">Learn how it works first</a>
+      <a href="pick.html" class="btn-qr-primary">Get My First Piece →</a>
+      <a href="thread-details.html" class="btn-qr-secondary">More Info</a>
     </div>
   </div>
 </div>
@@ -646,7 +646,7 @@ async function doSignup() {
   }
 }
 
-function showQRModal(username, referralCode) {
+async function showQRModal(username, referralCode) {
   const modal   = document.getElementById('qrModal');
   const nameEl  = document.getElementById('qrModalName');
   const labelEl = document.getElementById('qrCodeLabel');
@@ -656,27 +656,43 @@ function showQRModal(username, referralCode) {
   labelEl.textContent = referralCode;
 
   const refURL = 'https://mythread.shop/?ref=' + referralCode;
+  modal.classList.add('visible');
+  document.body.style.overflow = 'hidden';
+
+  // Load THREAD logo as data URL so it embeds in QR center
+  let logoDataUrl = null;
+  try {
+    const resp = await fetch('images/Transparent-Logo.png');
+    const blob = await resp.blob();
+    logoDataUrl = await new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.readAsDataURL(blob);
+    });
+  } catch(_) {}
 
   if (window.QRCodeStyling) {
-    const qr = new QRCodeStyling({
-      width: 200, height: 200, type: 'canvas',
+    const qrOpts = {
+      width: 220, height: 220, type: 'canvas',
       data: refURL, margin: 0,
       qrOptions:          { errorCorrectionLevel: 'H' },
       dotsOptions:         { color: '#1a0533', type: 'dots' },
       cornersSquareOptions:{ color: '#1a0533', type: 'extra-rounded' },
       cornersDotOptions:   { color: '#7c3aed', type: 'dot' },
       backgroundOptions:   { color: '#ffffff' },
-    });
+    };
+    if (logoDataUrl) {
+      qrOpts.image        = logoDataUrl;
+      qrOpts.imageOptions = { margin: 6, imageSize: 0.25, hideBackgroundDots: true };
+    }
+    const qr = new QRCodeStyling(qrOpts);
     qr.append(frameEl);
   } else {
     const img = document.createElement('img');
-    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(refURL) + '&ecc=H&margin=4';
-    img.style.cssText = 'width:200px;height:200px;display:block;border-radius:8px;';
+    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(refURL) + '&ecc=H&margin=4';
+    img.style.cssText = 'width:220px;height:220px;display:block;border-radius:8px;';
     frameEl.appendChild(img);
   }
-
-  modal.classList.add('visible');
-  document.body.style.overflow = 'hidden';
 }
 
 function switchToSignin() {
