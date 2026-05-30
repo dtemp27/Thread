@@ -42,84 +42,118 @@
     /* ── HERO ── */
     .hero {
       position: relative;
-      min-height: calc(100vh - 54px);
-      min-height: calc(100svh - 54px);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: flex-end;
-      text-align: center;
-      padding: 0 24px 52px;
-      background: var(--bg);
+      min-height: 100vh;
+      min-height: 100svh;
+      background: #080808;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
     }
     .hero::before {
       content: '';
       position: absolute; inset: 0;
-      background: url('ADS/joinpic.png') center 20% / cover no-repeat;
-      filter: brightness(0.5);
+      background: url('ADS/joinpic.png') center 20% / cover no-repeat #080808;
+      filter: brightness(0.45);
       pointer-events: none;
     }
     .hero::after {
       content: '';
       position: absolute; inset: 0;
-      background: linear-gradient(to bottom,
-        rgba(8,8,8,0.15) 0%,
-        rgba(8,8,8,0.05) 25%,
-        rgba(8,8,8,0.1)  45%,
-        rgba(8,8,8,0.7)  68%,
-        rgba(8,8,8,0.96) 82%,
-        rgba(8,8,8,1)   100%);
+      background: linear-gradient(
+        to bottom,
+        rgba(8,8,8,0.7)  0%,
+        rgba(8,8,8,0.1)  30%,
+        rgba(8,8,8,0.15) 55%,
+        rgba(8,8,8,0.95) 80%,
+        rgba(8,8,8,1)    100%
+      );
       pointer-events: none;
     }
-    .hero > * { position: relative; z-index: 1; }
-    .hero-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      border: 1px solid rgba(124,58,237,0.4); border-radius: 50px;
-      padding: 7px 18px;
-      font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--purple2); margin-bottom: 20px;
-    }
-    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--purple2); animation: livepulse 2s infinite; }
-    @keyframes livepulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
 
-    .hero h1 {
-      font-size: clamp(50px, 14vw, 96px);
-      font-weight: 900; line-height: 0.92; letter-spacing: -3px;
-      margin-bottom: 24px;
+    /* floating notification cards */
+    .hero-notif {
+      position: absolute;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: rgba(16,16,16,0.92);
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.55);
+      display: flex; align-items: center;
+      pointer-events: none;
+      z-index: 2;
     }
-    .hero h1 span {
-      display: block;
-      background: linear-gradient(135deg, #a78bfa, #6C63FF);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .hero-sub {
-      font-size: clamp(15px, 3vw, 18px); color: #777; line-height: 1.7;
-      max-width: 400px; margin-bottom: 40px;
-    }
-    .hero-sub strong { color: var(--green); }
+    @keyframes floatFromTop  { from { opacity:0; transform:translateY(-16px) scale(.92); } to { opacity:1; transform:none; } }
+    @keyframes floatFromRight { from { opacity:0; transform:translateX(16px) scale(.92); } to { opacity:1; transform:none; } }
+    @keyframes pulse { 0%,100%{ box-shadow:0 0 0 0 rgba(167,139,250,.4); } 50%{ box-shadow:0 0 0 6px rgba(167,139,250,0); } }
 
-    /* TWO CTAs — matching the "hero-join" + "hero-how" click pattern in analytics */
-    .hero-btns { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; max-width: 340px; }
+    .hero-notif-topleft {
+      top: 180px; left: 16px;
+      border-radius: 50px; padding: 8px 14px 8px 10px; gap: 8px;
+      animation: floatFromTop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.8s both;
+    }
+    .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--purple2); animation: pulse 2s infinite; flex-shrink: 0; }
+    .hero-notif-topleft span { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; }
+
+    .hero-notif-botright {
+      top: 34%; right: 16px;
+      border-radius: 14px; padding: 10px 14px; gap: 10px;
+      animation: floatFromRight 0.5s cubic-bezier(0.34,1.56,0.64,1) 2s both;
+      max-width: 175px;
+    }
+    .earn-icon  { width: 32px; height: 32px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .earn-label { font-size: 9px; color: #777; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
+    .earn-name  { font-size: 11px; color: #ddd; font-weight: 600; line-height: 1.35; }
+
+    /* hero content */
+    .hero-content {
+      position: relative;
+      z-index: 3;
+      padding: 0 24px 56px;
+      max-width: 600px;
+    }
+    .hero-ad-copy { margin-bottom: 20px; }
+    .hero-ad-copy p { font-family: 'Space Mono', monospace; font-size: clamp(11px, 2.8vw, 13px); letter-spacing: 0.12em; line-height: 1.9; color: #ccc; }
+    .hero-ad-copy p:last-child { color: var(--purple2); font-weight: 700; }
+
+    .hero h1 { font-size: clamp(42px, 11vw, 72px); font-weight: 700; line-height: 1.0; letter-spacing: -1px; margin-bottom: 6px; }
+    .hero h1 .accent { color: var(--purple2); }
+
+    .hero-tagline { font-size: clamp(13px, 3.5vw, 16px); color: #aaa; margin-bottom: 32px; font-weight: 400; letter-spacing: 0.02em; line-height: 1.6; }
+    .hero-tagline strong { color: var(--green); font-weight: 700; }
+
+    .hero-cta-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+
     .btn-primary {
-      display: block; width: 100%;
+      display: inline-block;
       background: var(--purple); color: #fff;
       border: none; border-radius: 50px;
-      padding: 19px 32px; font-size: 17px; font-weight: 800;
-      font-family: inherit; cursor: pointer; text-align: center;
+      padding: 18px 36px; font-size: 17px; font-weight: 700;
+      font-family: inherit; cursor: pointer; text-decoration: none;
+      letter-spacing: 0.02em;
       -webkit-tap-highlight-color: transparent;
-      transition: transform 0.15s, box-shadow 0.2s;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
     }
-    .btn-primary:hover  { transform: translateY(-2px); box-shadow: 0 14px 44px rgba(124,58,237,0.5); }
+    .btn-primary:hover { background: var(--purple2); transform: translateY(-2px); box-shadow: 0 10px 40px rgba(124,58,237,0.45); }
     .btn-primary:active { transform: scale(0.97); }
+
     .btn-secondary {
-      display: block; width: 100%;
-      background: transparent; color: #aaa;
-      border: 1px solid rgba(255,255,255,0.15); border-radius: 50px;
-      padding: 17px 32px; font-size: 15px; font-weight: 600;
-      font-family: inherit; cursor: pointer; text-align: center;
+      display: inline-block;
+      background: transparent; color: var(--text);
+      border: 1px solid rgba(255,255,255,0.25); border-radius: 50px;
+      padding: 17px 28px; font-size: 15px; font-weight: 600;
+      font-family: inherit; cursor: pointer; text-decoration: none;
       -webkit-tap-highlight-color: transparent;
-      transition: border-color 0.2s, color 0.2s;
+      transition: border-color 0.2s, background 0.2s;
     }
-    .btn-secondary:hover { border-color: var(--purple2); color: #fff; }
+    .btn-secondary:hover { border-color: var(--purple2); background: rgba(124,58,237,0.08); }
+
     .hero-note { margin-top: 16px; font-size: 12px; color: #333; }
+
+    @media (min-width: 600px) {
+      .hero-content { padding: 0 48px 72px; }
+      .hero-notif-topleft { left: 24px; }
+      .hero-notif-botright { right: 24px; }
+    }
 
     /* ── SECTION SHARED ── */
     .section { padding: 80px 24px; border-top: 1px solid var(--border); }
@@ -256,28 +290,42 @@
 </nav>
 
 <!-- ── HERO ── -->
-<section class="hero">
-  <div class="hero-badge">
-    <div class="live-dot"></div>
-    People earning right now
+<section class="hero" id="hero">
+  <!-- decorative floating cards — pointer-events:none -->
+  <div class="hero-notif hero-notif-topleft">
+    <div class="pulse-dot"></div>
+    <span>New scan · just now 🔥</span>
+  </div>
+  <div class="hero-notif hero-notif-botright">
+    <div class="earn-icon">$</div>
+    <div>
+      <div class="earn-label">Commission Paid</div>
+      <div class="earn-name">Jake · +$25</div>
+    </div>
   </div>
 
-  <h1>
-    Wear It.
-    <span>Get Paid.</span>
-  </h1>
+  <div class="hero-content">
+    <div class="hero-ad-copy">
+      <p>YOUR CODE.</p>
+      <p>THEIR SCAN.</p>
+      <p>YOUR INCOME.</p>
+    </div>
 
-  <p class="hero-sub">
-    THREAD prints your personal QR code on your piece.<br />
-    Someone scans it, they buy — <strong>you earn 20%+.</strong>
-  </p>
+    <h1>
+      Wear It.<br />
+      <span class="accent">Get Paid.</span>
+    </h1>
 
-  <!-- analytics showed "See How It Works" clicked almost as often as "Start Earning" -->
-  <div class="hero-btns">
-    <a href="#calculator" class="btn-primary">See How Much You'd Earn →</a>
-    <a href="#how" class="btn-secondary">How does it work?</a>
+    <p class="hero-tagline">
+      Every THREAD piece has a QR code on the back.<br />
+      Someone scans it. They buy. <strong>You earn 20%+.</strong> No effort.
+    </p>
+
+    <div class="hero-cta-row">
+      <a href="#calculator" class="btn-primary" onclick="window._track?.('cta_click','hero-join')">Start Earning →</a>
+      <a href="#how" class="btn-secondary" onclick="window._track?.('cta_click','hero-how')">See How It Works</a>
+    </div>
   </div>
-  <p class="hero-note">Free to join · no subscription · no selling required</p>
 </section>
 
 <!-- ── HOW IT WORKS ── -->
