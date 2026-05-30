@@ -35,6 +35,7 @@ window.THREAD_CONFIG = {
   podService: 'printful',   // 'apliiq' | 'printful' | 'printify'
 
   // ─── Admin ──────────────────────────────────────────────────────────────────
-  // Password to access /admin.html  — change this to something secure!
-  adminPassword: 'Dtemp5595665!?',
+  // SHA-256 hash of the admin password. Never store the plaintext here.
+  // To change: run `echo -n 'yourpassword' | sha256sum` and paste the result.
+  adminPasswordHash: '6179a4c2031b16c6bf4909694150941d8ebdbc6133b8099956c69b0a94fb59f3',
 };

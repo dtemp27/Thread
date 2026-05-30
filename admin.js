@@ -14,10 +14,11 @@ const ADMIN_KEY = 'thread_admin_authed';
   }
 })();
 
-function checkGate() {
+async function checkGate() {
   const pw  = document.getElementById('gatePassword').value;
   const cfg = window.THREAD_CONFIG;
-  if (pw === (cfg?.adminPassword || 'thread_admin_2024')) {
+  const hash = await sha256(pw);
+  if (hash === (cfg?.adminPasswordHash || '')) {
     sessionStorage.setItem(ADMIN_KEY, '1');
     unlock();
   } else {
@@ -25,6 +26,11 @@ function checkGate() {
     document.getElementById('gatePassword').classList.add('shake');
     setTimeout(() => document.getElementById('gatePassword').classList.remove('shake'), 500);
   }
+}
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 function unlock() {
