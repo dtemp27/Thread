@@ -963,7 +963,7 @@ async function deleteScansByCode(code, name) {
     const cfg = window.THREAD_CONFIG;
     if (!cfg?.supabaseUrl || !window.supabase) { alert('Supabase not connected'); return; }
     const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
-    const { error } = await sb.from('referral_scans').delete().eq('referral_code', code);
+    const { error } = await sb.rpc('delete_scans_by_code', { p_code: code });
     if (error) { alert('Failed: ' + error.message); return; }
     allScans = allScans.filter(s => s.referral_code !== code);
     renderReferrals();

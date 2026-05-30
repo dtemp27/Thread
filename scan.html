@@ -615,12 +615,29 @@ async function fetchWearer(code) {
     const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
     const { data } = await sb
       .from('profiles')
-      .select('name, username')
+      .select('id, name, username')
       .eq('referral_code', code)
       .maybeSingle();
     return data || null;
   } catch (_) {}
   return null;
+}
+
+async function logReferralScan(code, referrerId, city) {
+  if (!code) return;
+  const key = 'scan_logged_' + code;
+  if (sessionStorage.getItem(key)) return;
+  sessionStorage.setItem(key, '1');
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) return;
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    await sb.rpc('log_referral_scan', {
+      p_code:        code,
+      p_referrer_id: referrerId || null,
+      p_city:        city || null,
+    });
+  } catch (_) {}
 }
 
 /* ── Boot ── */
@@ -635,6 +652,9 @@ async function boot() {
 
   const geo    = geoRes.status    === 'fulfilled' ? geoRes.value    : null;
   const wearer = wearerRes.status === 'fulfilled' ? wearerRes.value : null;
+
+  /* Log scan to referral_scans via SECURITY DEFINER RPC (bypasses RLS) */
+  logReferralScan(refCode, wearer?.id || null, geo?.city || null);
 
   /* Populate location */
   const locEl = document.getElementById('locText');
