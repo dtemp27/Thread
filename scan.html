@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>THREAD — You found it.</title>
+  <link rel="icon" href="favicon.ico?v=4" sizes="any" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #080808;
+      --accent:  #6C63FF;
+      --accent2: #a78bfa;
+      --green:   #22c55e;
+      --text:    #f0f0f0;
+      --text2:   #999;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      height: 100%;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    /* ── GRAIN OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.4;
+    }
+
+    /* ────────────────────────────────────────────────
+       PHASE SYSTEM
+    ──────────────────────────────────────────────── */
+    .phase {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 28px 56px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.7s ease, transform 0.7s ease;
+      transform: translateY(12px);
+    }
+    .phase.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    .phase.exit {
+      opacity: 0;
+      transform: translateY(-12px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    /* ────────────────────────────────────────────────
+       PHASE 0 — SCAN
+    ──────────────────────────────────────────────── */
+    .site-logo {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      text-align: center;
+      padding: 20px 0;
+      font-family: 'Space Mono', monospace;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: rgba(255,255,255,0.7);
+      z-index: 100;
+    }
+    .site-logo span { color: var(--accent); }
+
+    .scan-wrap {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      margin-bottom: 48px;
+    }
+
+    /* Corner brackets */
+    .sc-corner {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border-color: var(--accent);
+      border-style: solid;
+    }
+    .sc-tl { top: 0; left: 0;  border-width: 3px 0 0 3px; border-radius: 6px 0 0 0; }
+    .sc-tr { top: 0; right: 0; border-width: 3px 3px 0 0; border-radius: 0 6px 0 0; }
+    .sc-bl { bottom: 0; left: 0;  border-width: 0 0 3px 3px; border-radius: 0 0 0 6px; }
+    .sc-br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 6px 0; }
+
+    /* Outer glow rings */
+    .sc-ring {
+      position: absolute;
+      inset: -14px;
+      border-radius: 18px;
+      border: 1px solid rgba(108,99,255,0.2);
+      animation: ringPulse 2.2s ease-in-out infinite;
+    }
+    .sc-ring-2 {
+      position: absolute;
+      inset: -28px;
+      border-radius: 24px;
+      border: 1px solid rgba(108,99,255,0.1);
+      animation: ringPulse 2.2s ease-in-out infinite 0.4s;
+    }
+    @keyframes ringPulse {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50%       { opacity: 1;   transform: scale(1.03); }
+    }
+
+    /* Sweep line */
+    .sc-sweep {
+      position: absolute;
+      left: 6px; right: 6px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      box-shadow: 0 0 16px 6px rgba(108,99,255,0.5);
+      border-radius: 2px;
+      animation: sweepDown 1.6s cubic-bezier(0.4,0,0.6,1) infinite;
+    }
+    @keyframes sweepDown {
+      0%   { top: 6px;  opacity: 0; }
+      8%   { opacity: 1; }
+      92%  { opacity: 1; }
+      100% { top: calc(100% - 6px); opacity: 0; }
+    }
+
+    /* Dot grid inside frame (fake QR texture) */
+    .sc-dots {
+      position: absolute;
+      inset: 20px;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 5px;
+      opacity: 0.12;
+    }
+    .sc-dot {
+      background: var(--accent2);
+      border-radius: 2px;
+      aspect-ratio: 1;
+    }
+
+    .p0-status {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      color: var(--text2);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+    @keyframes statusCycle {
+      0%, 30%  { content: 'Reading code…'; }
+      35%, 60% { content: 'Connecting…'; }
+      65%, 90% { content: 'Verifying…'; }
+      95%,100% { content: 'Reading code…'; }
+    }
+
+    /* ────────────────────────────────────────────────
+       PHASE 1 — REGISTERED / REVEAL
+    ──────────────────────────────────────────────── */
+    .p1-check {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 24px;
+      animation: checkPop 0.55s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes checkPop {
+      from { transform: scale(0.3); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    .p1-title {
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(30px, 9vw, 46px);
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 16px;
+      text-align: center;
+      letter-spacing: -1px;
+    }
+
+    .p1-loc {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 50px;
+      padding: 7px 16px;
+      font-size: 13px;
+      color: #bbb;
+      margin-bottom: 32px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+    .p1-loc-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+      animation: locPulse 1.8s ease-in-out infinite;
+    }
+    @keyframes locPulse {
+      0%,100% { box-shadow: 0 0 0 0   rgba(34,197,94,0.7); }
+      50%      { box-shadow: 0 0 0 5px rgba(34,197,94,0);   }
+    }
+
+    .p1-card {
+      width: 100%;
+      max-width: 360px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 22px 22px 20px;
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+    .p1-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(108,99,255,0.6), transparent);
+    }
+    .p1-card-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: #444;
+      margin-bottom: 10px;
+    }
+    .p1-wearer {
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+    .p1-wearer-username {
+      color: var(--accent2);
+    }
+    .p1-earn-line {
+      font-size: 14px;
+      color: var(--text2);
+      line-height: 1.65;
+    }
+    .p1-earn-line strong {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .p1-tap {
+      font-size: 14px;
+      color: #fff;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 700;
+      background: rgba(108,99,255,0.15);
+      border: 1px solid rgba(108,99,255,0.4);
+      border-radius: 50px;
+      padding: 12px 24px;
+      animation: tapGlow 2s ease-in-out infinite;
+    }
+    @keyframes tapGlow {
+      0%,100% { box-shadow: 0 0 0 0 rgba(108,99,255,0.4); opacity: 1; }
+      50%      { box-shadow: 0 0 16px 4px rgba(108,99,255,0.25); opacity: 0.8; }
+    }
+
+    /* ────────────────────────────────────────────────
+       PHASE 2 — STORY + CTA
+    ──────────────────────────────────────────────── */
+    .p2-eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 18px;
+    }
+
+    .p2-headline {
+      font-size: clamp(28px, 8vw, 44px);
+      font-weight: 700;
+      line-height: 1.08;
+      letter-spacing: -1px;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .p2-headline em {
+      font-style: normal;
+      color: var(--accent2);
+    }
+
+    .p2-sub {
+      font-size: 15px;
+      color: var(--text2);
+      text-align: center;
+      margin-bottom: 36px;
+      line-height: 1.6;
+      max-width: 320px;
+    }
+
+    .p2-steps {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 36px;
+    }
+    .p2-step {
+      flex: 1;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 16px 8px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .p2-step-icon {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+    .p2-step-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+    .p2-step-sub {
+      font-size: 10px;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    /* Active step highlight */
+    .p2-step.you {
+      border-color: rgba(108,99,255,0.35);
+      background: rgba(108,99,255,0.07);
+    }
+    .p2-step.you::before {
+      content: 'YOU';
+      position: absolute;
+      top: 6px; right: 8px;
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: var(--accent2);
+    }
+
+    .p2-cta-wrap {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .p2-btn-main {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 17px 32px;
+      font-size: 17px;
+      font-weight: 700;
+      font-family: 'Space Grotesk', sans-serif;
+      cursor: pointer;
+      width: 100%;
+      letter-spacing: 0.02em;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 8px 32px rgba(108,99,255,0.35);
+    }
+    .p2-btn-main:hover   { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 12px 40px rgba(108,99,255,0.5); }
+    .p2-btn-main:active  { transform: scale(0.98); }
+
+    .p2-btn-ghost {
+      background: transparent;
+      color: #777;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 50px;
+      padding: 14px 32px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Space Grotesk', sans-serif;
+      cursor: pointer;
+      width: 100%;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .p2-btn-ghost:hover { border-color: var(--accent2); color: #ccc; }
+
+    .p2-note {
+      font-size: 11px;
+      color: #333;
+      text-align: center;
+      margin-top: 6px;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── PROGRESS DOTS ── */
+    .phase-dots {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      z-index: 10;
+    }
+    .pd {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #222;
+      transition: background 0.3s, width 0.3s;
+    }
+    .pd.active { background: var(--accent); width: 20px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- Fixed logo — persists across all phases -->
+<div class="site-logo">THREAD<span>.</span></div>
+
+<!-- ══ PHASE 0: SCANNING ══ -->
+<div class="phase" id="p0">
+  <div class="scan-wrap">
+    <div class="sc-ring"></div>
+    <div class="sc-ring-2"></div>
+    <div class="sc-corner sc-tl"></div>
+    <div class="sc-corner sc-tr"></div>
+    <div class="sc-corner sc-bl"></div>
+    <div class="sc-corner sc-br"></div>
+    <div class="sc-dots" id="scDots"></div>
+    <div class="sc-sweep"></div>
+  </div>
+
+  <div class="p0-status" id="p0Status">Reading code…</div>
+</div>
+
+<!-- ══ PHASE 1: REGISTERED ══ -->
+<div class="phase" id="p1">
+  <div class="p1-check">✓</div>
+  <div class="p1-title">Scan registered.</div>
+  <div class="p1-loc">
+    <span class="p1-loc-dot"></span>
+    <span id="locText">Just now</span>
+  </div>
+  <div class="p1-card">
+    <div class="p1-card-label">This shirt belongs to</div>
+    <div class="p1-wearer" id="wearerDisplay">A THREAD wearer</div>
+    <div class="p1-earn-line" id="wearerLine">
+      They earn <strong>20% commission</strong> every time someone scans their code and buys. That's the deal — you wear it, the world pays you.
+    </div>
+  </div>
+  <div class="p1-tap">Tap anywhere to keep going →</div>
+</div>
+
+<!-- ══ PHASE 2: STORY + CTA ══ -->
+<div class="phase" id="p2">
+  <div class="p2-eyebrow">This is THREAD</div>
+
+  <h1 class="p2-headline">Your clothes can<br /><em>pay you back.</em></h1>
+  <p class="p2-sub">No posting. No selling. Just wear the piece — and earn every time someone does what you just did.</p>
+
+  <div class="p2-steps">
+    <div class="p2-step">
+      <div class="p2-step-icon">👕</div>
+      <div class="p2-step-label">Wear it</div>
+      <div class="p2-step-sub">People see your QR in the wild</div>
+    </div>
+    <div class="p2-step">
+      <div class="p2-step-icon">📲</div>
+      <div class="p2-step-label">They scan</div>
+      <div class="p2-step-sub">Just like you just did</div>
+    </div>
+    <div class="p2-step you">
+      <div class="p2-step-icon">💸</div>
+      <div class="p2-step-label">You earn</div>
+      <div class="p2-step-sub">20%+ per sale. Forever.</div>
+    </div>
+  </div>
+
+  <div class="p2-cta-wrap">
+    <button class="p2-btn-main" id="earnBtn">I want in →</button>
+    <button class="p2-btn-ghost" id="shopBtn">Just browse the store</button>
+  </div>
+  <div class="p2-note">Free to join · Ships in 5–7 days · Your QR code is ready day one</div>
+</div>
+
+<!-- Progress dots -->
+<div class="phase-dots">
+  <div class="pd active" id="dot0"></div>
+  <div class="pd" id="dot1"></div>
+  <div class="pd" id="dot2"></div>
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+/* ── URL params ── */
+const params  = new URLSearchParams(window.location.search);
+const refCode = (params.get('ref') || '').trim();
+const earnUrl = refCode ? `earn.html?ref=${encodeURIComponent(refCode)}` : 'earn.html';
+const shopUrl = refCode ? `index.html?ref=${encodeURIComponent(refCode)}` : 'index.html';
+
+/* ── Dot grid (fake QR texture) ── */
+(function() {
+  const wrap = document.getElementById('scDots');
+  for (let i = 0; i < 64; i++) {
+    const d = document.createElement('div');
+    d.className = 'sc-dot';
+    d.style.opacity = Math.random() < 0.45 ? '1' : '0';
+    wrap.appendChild(d);
+  }
+})();
+
+/* ── Status text cycle ── */
+const statuses = ['Reading code…', 'Connecting…', 'Verifying…', 'Almost there…'];
+let si = 0;
+const statusEl = document.getElementById('p0Status');
+const statusInterval = setInterval(() => {
+  si = (si + 1) % statuses.length;
+  statusEl.textContent = statuses[si];
+}, 900);
+
+/* ── Phase management ── */
+let cur = 0;
+const phaseEls = [
+  document.getElementById('p0'),
+  document.getElementById('p1'),
+  document.getElementById('p2'),
+];
+const dots = [
+  document.getElementById('dot0'),
+  document.getElementById('dot1'),
+  document.getElementById('dot2'),
+];
+
+function goPhase(n) {
+  phaseEls[cur].classList.remove('active');
+  phaseEls[cur].classList.add('exit');
+  setTimeout(() => phaseEls[cur].classList.remove('exit'), 450);
+  cur = n;
+  phaseEls[n].classList.add('active');
+  dots.forEach((d, i) => d.classList.toggle('active', i === n));
+}
+
+/* Tap to advance from phase 1 */
+document.addEventListener('click', function(e) {
+  if (cur === 1 && !e.target.closest('button')) goPhase(2);
+});
+
+/* ── CTAs ── */
+document.getElementById('earnBtn').onclick = function(e) {
+  e.stopPropagation();
+  window.location.href = earnUrl;
+};
+document.getElementById('shopBtn').onclick = function(e) {
+  e.stopPropagation();
+  window.location.href = shopUrl;
+};
+
+/* ── Utility ── */
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function fetchGeo() {
+  try {
+    const cached = sessionStorage.getItem('thread_geo');
+    if (cached) return JSON.parse(cached);
+    const r = await fetch('https://ipapi.co/json/');
+    if (r.ok) {
+      const g = await r.json();
+      sessionStorage.setItem('thread_geo', JSON.stringify(g));
+      return g;
+    }
+  } catch (_) {}
+  return null;
+}
+
+async function fetchWearer(code) {
+  if (!code) return null;
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) return null;
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const { data } = await sb
+      .from('profiles')
+      .select('id, name, username')
+      .eq('referral_code', code)
+      .maybeSingle();
+    return data || null;
+  } catch (_) {}
+  return null;
+}
+
+async function logReferralScan(code, referrerId, city) {
+  if (!code) return;
+  const key = 'scan_logged_' + code;
+  if (sessionStorage.getItem(key)) return;
+  sessionStorage.setItem(key, '1');
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) return;
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    await sb.from('referral_scans').insert({
+      referral_code: code,
+      referrer_id:   referrerId || null,
+      converted:     false,
+      city:          city || null,
+    });
+  } catch (_) {}
+}
+
+/* ── Boot ── */
+async function boot() {
+  goPhase(0);
+
+  /* Fetch in parallel while scan animation plays */
+  const [geoRes, wearerRes] = await Promise.allSettled([
+    fetchGeo(),
+    fetchWearer(refCode),
+  ]);
+
+  const geo    = geoRes.status    === 'fulfilled' ? geoRes.value    : null;
+  const wearer = wearerRes.status === 'fulfilled' ? wearerRes.value : null;
+
+  /* Log scan to referral_scans */
+  logReferralScan(refCode, wearer?.id || null, geo?.city || null);
+
+  /* Populate location */
+  const locEl = document.getElementById('locText');
+  if (geo?.city) {
+    const parts = [geo.city, geo.region].filter(Boolean);
+    locEl.textContent = '📍 ' + parts.join(', ') + ' · Just now';
+  } else {
+    locEl.textContent = '📍 Just now';
+  }
+
+  /* Populate wearer */
+  const wearerEl = document.getElementById('wearerDisplay');
+  const lineEl   = document.getElementById('wearerLine');
+
+  if (wearer?.username) {
+    wearerEl.innerHTML = `<span class="p1-wearer-username">@${wearer.username}</span>`;
+  } else if (wearer?.name) {
+    wearerEl.textContent = wearer.name;
+  }
+  // Line stays as-is (generic copy works for all cases)
+
+  clearInterval(statusInterval);
+  statusEl.textContent = 'Code verified ✓';
+
+  await delay(1800);
+  goPhase(1);
+}
+
+boot();
+
+/* ── Analytics (no owner IP tracking) ── */
+(async function() {
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) return;
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const OWNER_IPS = ['65.130.60.246','187.199.28.205','187.199.69.171'];
+
+    let ip = null, country = null, city = null, region = null;
+    try {
+      const cached = sessionStorage.getItem('thread_geo');
+      const g = cached ? JSON.parse(cached) : null;
+      if (g) { ip = g.ip; country = g.country_name; city = g.city; region = g.region; }
+    } catch(_) {}
+
+    if (OWNER_IPS.includes(ip)) return;
+
+    if (!sessionStorage.getItem('scan_visit_' + refCode)) {
+      sessionStorage.setItem('scan_visit_' + refCode, '1');
+      sb.rpc('log_page_event', {
+        p_event_type: 'visit',
+        p_ip: ip, p_country: country, p_city: city, p_region: region,
+        p_page: 'scan',
+        p_label: refCode || 'no-ref',
+      }).catch(() => {});
+    }
+  } catch(_) {}
+})();
+</script>
+</body>
+</html>
