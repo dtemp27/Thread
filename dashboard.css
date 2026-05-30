@@ -279,12 +279,12 @@ a { color: var(--accent2); text-decoration: none; cursor: pointer; }
 .su-avatar-overlay { position: absolute; inset: 0; border-radius: 50%; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; font-size: 13px; opacity: 0; transition: opacity .2s; }
 .su-avatar-wrap:hover .su-avatar-overlay { opacity: 1; }
 .su-info { overflow: hidden; flex: 1; min-width: 0; }
-.su-info strong { display: block; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.su-info strong { display: block; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
 .su-username-row { display: flex; align-items: center; gap: 4px; margin-top: 1px; }
-.su-username { font-size: 11px; color: #7c3aed; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.su-edit-btn { background: none; border: none; cursor: pointer; font-size: 11px; padding: 0; line-height: 1; opacity: 0.5; transition: opacity .15s; flex-shrink: 0; }
+.su-username { font-size: 11px; color: #a78bfa; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.su-edit-btn { background: none; border: none; cursor: pointer; font-size: 11px; padding: 0; line-height: 1; opacity: 0.6; transition: opacity .15s; flex-shrink: 0; }
 .su-edit-btn:hover { opacity: 1; }
-.su-info span { font-size: 11px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.su-info span { font-size: 11px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
 .signout-btn { width: 100%; padding: 9px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--text2); font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: var(--t); }
 .signout-btn:hover { border-color: var(--red); color: var(--red); }
 
