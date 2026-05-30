@@ -708,7 +708,8 @@ function renderReferrals() {
     <td>${r.convs}</td>
     <td style="font-family:var(--mono);color:#00e676">$${r.earned.toFixed(2)}</td>
     <td style="font-family:var(--mono);color:#ffd54f">$${r.pending.toFixed(2)}</td>
-  </tr>`).join('') : '<tr><td colspan="6" class="ad-empty">No referral data yet</td></tr>';
+    <td><button class="ad-action-btn" style="background:#2a0a0a;border:1px solid #7f1d1d;color:#fca5a5;font-size:11px" onclick="deleteScansByCode('${escapeHtml(r.code)}','${escapeHtml(r.name)}')">🗑 Delete Scans</button></td>
+  </tr>`).join('') : '<tr><td colspan="7" class="ad-empty">No referral data yet</td></tr>';
 
   // Recent scans table
   const scanBody = document.getElementById('recentScansBody');
@@ -953,6 +954,20 @@ async function clearAllScans() {
     allScans = [];
     renderReferrals();
     alert('All referral scans cleared.');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function deleteScansByCode(code, name) {
+  if (!confirm(`Delete all referral scans for "${name}" (${code})? This cannot be undone.`)) return;
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) { alert('Supabase not connected'); return; }
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const { error } = await sb.from('referral_scans').delete().eq('referral_code', code);
+    if (error) { alert('Failed: ' + error.message); return; }
+    allScans = allScans.filter(s => s.referral_code !== code);
+    renderReferrals();
+    alert(`✓ Scans deleted for ${name}`);
   } catch(e) { alert('Error: ' + e.message); }
 }
 
