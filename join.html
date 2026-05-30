@@ -671,9 +671,12 @@ async function showQRModal(username, referralCode) {
     });
   } catch(_) {}
 
+  const displaySize = 200;
+  const renderSize  = displaySize * 4; // render at 4× for crisp retina display
+
   if (window.QRCodeStyling) {
     const qrOpts = {
-      width: 200, height: 200, type: 'canvas',
+      width: renderSize, height: renderSize, type: 'canvas',
       data: refURL, margin: 0,
       qrOptions:          { errorCorrectionLevel: 'H' },
       dotsOptions:         { color: '#1a0533', type: 'dots' },
@@ -683,14 +686,19 @@ async function showQRModal(username, referralCode) {
     };
     if (logoDataUrl) {
       qrOpts.image        = logoDataUrl;
-      qrOpts.imageOptions = { margin: 6, imageSize: 0.25, hideBackgroundDots: true };
+      qrOpts.imageOptions = { margin: 6, imageSize: 0.22, hideBackgroundDots: true };
     }
     const qr = new QRCodeStyling(qrOpts);
     qr.append(frameEl);
+    // Scale canvas down to display size so it's crisp on retina
+    setTimeout(() => {
+      const c = frameEl.querySelector('canvas');
+      if (c) { c.style.width = displaySize + 'px'; c.style.height = displaySize + 'px'; }
+    }, 500);
   } else {
     const img = document.createElement('img');
-    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(refURL) + '&ecc=H&margin=4';
-    img.style.cssText = 'width:220px;height:220px;display:block;border-radius:8px;';
+    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=' + renderSize + 'x' + renderSize + '&data=' + encodeURIComponent(refURL) + '&ecc=H&margin=4';
+    img.style.cssText = 'width:' + displaySize + 'px;height:' + displaySize + 'px;display:block;border-radius:8px;image-rendering:crisp-edges;';
     frameEl.appendChild(img);
   }
 }
