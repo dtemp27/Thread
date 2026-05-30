@@ -1066,6 +1066,29 @@ async function loadAnalytics() {
         .filter(Boolean)
     );
     // Re-render customers so the cart badge updates immediately
+
+    // ── Build IP → customer map for "Who" column ──
+    // Method 1: uid: cart events have explicit user IDs
+    const _ipToUser = {};
+    data.filter(e => (e.page_label || '').startsWith('uid:')).forEach(e => {
+      if (!e.ip_address) return;
+      const uid = (e.page_label.match(/^uid:([^|]+)/) || [])[1];
+      if (!uid) return;
+      const c = allCustomers.find(x => x.id === uid);
+      if (c) _ipToUser[e.ip_address] = c;
+    });
+    // Method 2: funnel/account_created events — match to the profile created closest in time (±5 min)
+    data.filter(e => e.event_type === 'funnel' && e.page_label === 'account_created' && e.ip_address).forEach(e => {
+      if (_ipToUser[e.ip_address]) return; // already matched
+      const t = new Date(e.created_at).getTime();
+      let best = null, bestDiff = Infinity;
+      allCustomers.forEach(c => {
+        if (!c.created_at) return;
+        const diff = Math.abs(new Date(c.created_at).getTime() - t);
+        if (diff < 5 * 60 * 1000 && diff < bestDiff) { bestDiff = diff; best = c; }
+      });
+      if (best) _ipToUser[e.ip_address] = best;
+    });
     renderCustomers();
 
     // Top clicks breakdown
@@ -1125,7 +1148,7 @@ async function loadAnalytics() {
     }
 
     if (!data.length) {
-      body.innerHTML = '<tr><td colspan="6" class="ad-empty">No events yet — visit the site to start tracking</td></tr>';
+      body.innerHTML = '<tr><td colspan="5" class="ad-empty">No events yet — visit the site to start tracking</td></tr>';
       return;
     }
 
@@ -1149,8 +1172,17 @@ async function loadAnalytics() {
              style="padding:1px 6px;background:#2a0a0a;border:1px solid #7f1d1d;border-radius:4px;color:#fca5a5;font-size:10px;cursor:pointer;vertical-align:middle;margin-left:4px"
              title="Delete all events from this IP">🗑</button>`
         : '';
+      const who = ip ? _ipToUser[ip] : null;
+      const whoCell = who
+        ? `<div style="line-height:1.3">
+             <span style="font-weight:700;color:#f0f0f0;font-size:13px">${escapeHtml(who.name || '—')}</span><br>
+             ${who.username ? `<span style="color:#a78bfa;font-size:11px">@${escapeHtml(who.username)}</span>` : ''}
+             ${who.email ? `<span style="color:#555;font-size:11px"> · ${escapeHtml(who.email)}</span>` : ''}
+           </div>`
+        : '<span style="color:#333;font-size:12px">—</span>';
       return `<tr>
         <td>${badge}</td>
+        <td>${whoCell}</td>
         <td>${escapeHtml(location)}${deleteBtn}</td>
         <td>${escapeHtml(e.page || '—')}${label ? `<span style="color:#888;font-size:11px"> · ${escapeHtml(label)}</span>` : ''}</td>
         <td style="color:#888;font-size:12px">${time}</td>
