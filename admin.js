@@ -57,6 +57,7 @@ function updateModeBadge() {
 }
 
 /* ─── Navigation ────────────────────────────────────────────────────────── */
+function closeSidebar() {}
 let currentSection = 'overview';
 
 const SECTION_TITLES = { overview:'Overview', orders:'Orders', customers:'Customers', referrals:'Referrals', dropboxes:'Drop Boxes', analytics:'Analytics', giveaway:'Giveaway', emails:'Emails' };
