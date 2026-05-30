@@ -33,19 +33,28 @@
       height: 100%;
     }
 
+    /* App shell — fixed to viewport, screens are absolute inside it.
+       This avoids the mobile Safari bug where position:fixed + overflow:auto
+       mis-registers touch coordinates against the visible position. */
+    #app {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+    }
+
     a { color: inherit; text-decoration: none; }
     img { display: block; max-width: 100%; }
 
     /* ── PROGRESS BAR ── */
     #progressBar {
-      position: fixed; top: 0; left: 0; height: 3px;
+      position: absolute; top: 0; left: 0; height: 3px;
       background: var(--accent); transition: width 0.4s ease;
       z-index: 99999; width: 0%;
     }
 
     /* ── SCREENS ── */
     .screen {
-      position: fixed; inset: 0;
+      position: absolute; inset: 0;
       opacity: 0; pointer-events: none;
       transition: opacity 0.4s ease, transform 0.4s ease;
       transform: translateX(60px);
@@ -70,8 +79,10 @@
     .lp-logo span { color: var(--accent); }
 
     /* ── HERO ──
-       Background + gradient overlay live entirely in CSS.
-       No child divs covering the hero — nothing to intercept clicks.
+       Image lives in ::before (so we can apply brightness filter to it).
+       Gradient overlay lives in ::after.
+       Neither pseudo-element intercepts pointer events.
+       No child divs covering the hero — nothing to block taps.
     ── */
     .lp-hero {
       position: relative;
@@ -80,19 +91,32 @@
       flex-direction: column;
       justify-content: flex-end;
       overflow: hidden;
-      background:
-        linear-gradient(to bottom,
-          rgba(8,8,8,0.65) 0%,
-          rgba(8,8,8,0.10) 30%,
-          rgba(8,8,8,0.15) 55%,
-          rgba(8,8,8,0.93) 82%,
-          rgba(8,8,8,1.00) 100%),
-        url('ADS/instagram-ad-test.png') center 20% / auto 80% no-repeat,
-        #080808;
+      background: #080808;
+    }
+    .lp-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url('ADS/instagram-ad-test.png') center 20% / auto 80% no-repeat #080808;
+      filter: brightness(0.55);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .lp-hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom,
+        rgba(8,8,8,0.65) 0%,
+        rgba(8,8,8,0.10) 30%,
+        rgba(8,8,8,0.15) 55%,
+        rgba(8,8,8,0.93) 82%,
+        rgba(8,8,8,1.00) 100%);
+      pointer-events: none;
+      z-index: 1;
     }
 
-    /* floating cards are inside the hero but positioned at the top half,
-       well above the CTA row that sits at the bottom */
+    /* floating cards sit above the pseudo-element layers */
     .lp-notif {
       position: absolute;
       backdrop-filter: blur(12px);
@@ -102,6 +126,7 @@
       box-shadow: 0 4px 24px rgba(0,0,0,0.55);
       display: flex; align-items: center;
       pointer-events: none; /* never block clicks */
+      z-index: 2;
     }
 
     @keyframes floatFromTop  { from { opacity:0; transform:translateY(-16px) scale(.92); } to { opacity:1; transform:translateY(0) scale(1); } }
@@ -129,8 +154,8 @@
     .lp-earn-label { font-size: 9px; color: #777; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
     .lp-earn-name  { font-size: 11px; color: #ddd; font-weight: 600; line-height: 1.35; }
 
-    /* hero content — just a normal div in flow, rendered on top by stacking context */
-    .lp-hero-content { position: relative; z-index: 1; padding: 0 24px 52px; max-width: 600px; }
+    /* hero content sits above both pseudo-element layers */
+    .lp-hero-content { position: relative; z-index: 3; padding: 0 24px 52px; max-width: 600px; }
 
     .lp-ad-copy { margin-bottom: 20px; }
     .lp-ad-copy p { font-family: 'Space Mono', monospace; font-size: clamp(11px, 2.8vw, 13px); letter-spacing: 0.12em; line-height: 1.9; color: #ccc; }
@@ -317,6 +342,7 @@
 </head>
 <body>
 
+<div id="app">
 <div id="progressBar"></div>
 
 <!-- ══════════════════════════════════════════════
@@ -582,6 +608,8 @@
 
 </div><!-- #screenPicker -->
 
+
+</div><!-- #app -->
 
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
