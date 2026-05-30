@@ -366,9 +366,19 @@
       <p class="claim-author">— Marcus T., Chicago · 52 scans last month</p>
     </div>
 
+    <div style="display:flex;gap:12px;">
+      <div class="field" style="flex:1">
+        <label>First name</label>
+        <input type="text" id="fFirst" placeholder="Dylan" autocomplete="given-name" />
+      </div>
+      <div class="field" style="flex:1">
+        <label>Last name</label>
+        <input type="text" id="fLast" placeholder="T" autocomplete="family-name" />
+      </div>
+    </div>
     <div class="field">
-      <label>Name <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#2a2a2a">(optional)</span></label>
-      <input type="text" id="fName" placeholder="Alex" autocomplete="given-name" />
+      <label>Username</label>
+      <input type="text" id="fUsername" placeholder="dylant" autocomplete="username" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9_.]/g,'')" />
     </div>
     <div class="field">
       <label>Email</label>
@@ -376,7 +386,7 @@
     </div>
     <div class="field">
       <label>Password</label>
-      <input type="password" id="fPassword" placeholder="Min 7 chars + one symbol  (e.g. !@#$)" autocomplete="new-password" />
+      <input type="password" id="fPassword" placeholder="Min 7 chars + special character" autocomplete="new-password" />
     </div>
 
     <div class="form-error" id="formError"></div>
@@ -423,15 +433,20 @@ function generateReferralCode(name) {
 }
 
 async function doSignup() {
-  const name     = document.getElementById('fName').value.trim();
-  const email    = document.getElementById('fEmail').value.trim();
-  const password = document.getElementById('fPassword').value;
-  const errEl    = document.getElementById('formError');
-  const btn      = document.getElementById('submitBtn');
+  const firstName = document.getElementById('fFirst').value.trim();
+  const lastName  = document.getElementById('fLast').value.trim();
+  const username  = document.getElementById('fUsername').value.trim().toLowerCase();
+  const email     = document.getElementById('fEmail').value.trim();
+  const password  = document.getElementById('fPassword').value;
+  const errEl     = document.getElementById('formError');
+  const btn       = document.getElementById('submitBtn');
   errEl.textContent = '';
 
-  if (!email || !email.includes('@')) { errEl.textContent = 'Enter a valid email address.'; return; }
-  if (password.length < 7)           { errEl.textContent = 'Password must be at least 7 characters.'; return; }
+  const name = (firstName + ' ' + lastName).trim();
+  if (!firstName || name.length < 2)      { errEl.textContent = 'Enter your name.'; return; }
+  if (!username || username.length < 3)   { errEl.textContent = 'Username must be at least 3 characters.'; return; }
+  if (!email || !email.includes('@'))     { errEl.textContent = 'Enter a valid email address.'; return; }
+  if (password.length < 7)               { errEl.textContent = 'Password must be at least 7 characters.'; return; }
   if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) {
     errEl.textContent = 'Password needs at least one special character (e.g. !@#$%).'; return;
   }
@@ -443,10 +458,6 @@ async function doSignup() {
     const cfg = window.THREAD_CONFIG;
     if (!cfg?.supabaseUrl || !window.supabase) throw new Error('Service unavailable. Please try again.');
     const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
-
-    const displayName  = name || email.split('@')[0].replace(/[^a-zA-Z]/g,' ').trim() || 'Wearer';
-    const baseUsername = displayName.toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,10) || 'wearer';
-    const username     = baseUsername + Math.floor(Math.random() * 9000 + 1000);
 
     let referralCode = null;
     try {
