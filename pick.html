@@ -70,17 +70,17 @@
 
     .section-divider { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--purple2); margin-bottom: 20px; padding-top: 8px; border-top: 1px solid var(--border); }
 
-    /* product layout — image left, options right */
-    .prod-layout { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 4px; }
+    /* product image — full width, tall portrait */
+    .prod-layout { margin-bottom: 4px; }
+    .prod-options {}
     .prod-img-wrap {
-      width: 44%; flex-shrink: 0; aspect-ratio: 1; border-radius: 16px; overflow: hidden;
-      background: var(--bg2); border: 1px solid var(--border);
+      width: 100%; aspect-ratio: 3/4; border-radius: 20px; overflow: hidden;
+      background: var(--bg2); border: 1px solid var(--border); margin-bottom: 20px;
       position: relative; cursor: pointer; user-select: none;
     }
-    .prod-options { flex: 1; min-width: 0; }
     .prod-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center; transition: opacity 0.3s; }
     .prod-img.back { opacity: 0; }
-    .prod-img-hint { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); font-size: 9px; font-weight: 600; letter-spacing: 1px; color: rgba(255,255,255,0.3); text-transform: uppercase; pointer-events: none; white-space: nowrap; }
+    .prod-img-hint { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 600; letter-spacing: 1px; color: rgba(255,255,255,0.35); text-transform: uppercase; pointer-events: none; white-space: nowrap; }
 
     /* color swatches */
     .picker-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #444; margin-bottom: 12px; }
@@ -163,39 +163,31 @@
 <!-- TEE section -->
 <div class="product-section visible" id="sec-tee">
   <p class="section-divider">Tee — $55</p>
-  <div class="prod-layout">
-    <div class="prod-img-wrap" id="teeImgWrap">
-      <img class="prod-img front" id="teeImgFront" src="images/tee-jet-black-front.png" alt="Tee front" />
-      <img class="prod-img back"  id="teeImgBack"  src="images/tee-jet-black-back.png"  alt="Tee back" />
-      <span class="prod-img-hint">Tap to flip</span>
-    </div>
-    <div class="prod-options">
-      <p class="picker-label">Color — <span id="teeColorName">Jet Black</span></p>
-      <div class="swatches" id="teeSwatches"></div>
-      <p class="picker-label">Size</p>
-      <div class="sizes" id="teeSizes"></div>
-      <p class="size-guide">Unisex · true to size</p>
-    </div>
+  <div class="prod-img-wrap" id="teeImgWrap">
+    <img class="prod-img front" id="teeImgFront" src="images/tee-jet-black-front.png" alt="Tee front" />
+    <img class="prod-img back"  id="teeImgBack"  src="images/tee-jet-black-back.png"  alt="Tee back" />
+    <span class="prod-img-hint">Tap to flip</span>
   </div>
+  <p class="picker-label">Color — <span id="teeColorName">Jet Black</span></p>
+  <div class="swatches" id="teeSwatches"></div>
+  <p class="picker-label">Size</p>
+  <div class="sizes" id="teeSizes"></div>
+  <p class="size-guide">Unisex fit · runs true to size</p>
 </div>
 
 <!-- HOODIE section -->
 <div class="product-section" id="sec-hoodie">
   <p class="section-divider">Hoodie — $79</p>
-  <div class="prod-layout">
-    <div class="prod-img-wrap" id="hoodieImgWrap">
-      <img class="prod-img front" id="hoodieImgFront" src="hoodie-variants/phantom-black-front.png" alt="Hoodie front" />
-      <img class="prod-img back"  id="hoodieImgBack"  src="hoodie-variants/phantom-black-back.png"  alt="Hoodie back" />
-      <span class="prod-img-hint">Tap to flip</span>
-    </div>
-    <div class="prod-options">
-      <p class="picker-label">Color — <span id="hoodieColorName">Phantom Black</span></p>
-      <div class="swatches" id="hoodieSwatches"></div>
-      <p class="picker-label">Size</p>
-      <div class="sizes" id="hoodieSizes"></div>
-      <p class="size-guide">Oversized · size down</p>
-    </div>
+  <div class="prod-img-wrap" id="hoodieImgWrap">
+    <img class="prod-img front" id="hoodieImgFront" src="hoodie-variants/phantom-black-front.png" alt="Hoodie front" />
+    <img class="prod-img back"  id="hoodieImgBack"  src="hoodie-variants/phantom-black-back.png"  alt="Hoodie back" />
+    <span class="prod-img-hint">Tap to flip</span>
   </div>
+  <p class="picker-label">Color — <span id="hoodieColorName">Phantom Black</span></p>
+  <div class="swatches" id="hoodieSwatches"></div>
+  <p class="picker-label">Size</p>
+  <div class="sizes" id="hoodieSizes"></div>
+  <p class="size-guide">Oversized fit · size down if between sizes</p>
 </div>
 
 <!-- Sticky bottom bar -->
