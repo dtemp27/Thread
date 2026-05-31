@@ -412,7 +412,7 @@ async function drawQR(canvasId, text, size) {
 
   // Render at 4x for crisp high-res display, scaled down via CSS
   const renderSize  = size * 4;
-  const logoDataUrl = await _imgToDataURL(new URL('images/Transparent-Logo.png', window.location.href).href);
+  const logoDataUrl = await _imgToDataURL(new URL('images/Transparent-Logo.webp', window.location.href).href);
 
   if (window.QRCodeStyling) {
     const qrOpts = {
@@ -451,7 +451,7 @@ async function drawQR(canvasId, text, size) {
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
                 width:${logoSize+8}px;height:${logoSize+8}px;background:#fff;border-radius:6px;
                 display:flex;align-items:center;justify-content:center;">
-      <img src="images/Transparent-Logo.png" style="width:${logoSize}px;height:${logoSize}px;display:block;object-fit:contain;" />
+      <img src="images/Transparent-Logo.webp" style="width:${logoSize}px;height:${logoSize}px;display:block;object-fit:contain;" />
     </div>`;
 }
 
@@ -896,7 +896,7 @@ function renderPurchases() {
       ? (TEE_PHOTO_SLUGS[cleanName] || cleanName.toLowerCase().replace(/\s+/g,'-'))
       : (HOODIE_PHOTO_SLUGS[cleanName] || 'phantom-black');
     const imgSrc = isTee
-      ? `images/tee-${slug}-front.png?v=tee-20260517`
+      ? `images/tee-${slug}-front.webp?v=tee-20260517`
       : `hoodie-variants/${slug}-front.png?v=hoodie-20260517`;
     return `
     <div class="purchase-card">
@@ -1180,7 +1180,7 @@ async function downloadQR() {
     const lx = (size - logoSize) / 2, ly = (size - logoSize) / 2;
     try {
       const logo = new Image();
-      await new Promise((resolve, reject) => { logo.onload = resolve; logo.onerror = reject; logo.src = 'images/Transparent-Logo.png'; });
+      await new Promise((resolve, reject) => { logo.onload = resolve; logo.onerror = reject; logo.src = 'images/Transparent-Logo.webp'; });
       ctx.fillStyle = '#fff';
       ctx.fillRect(lx - 4, ly - 4, logoSize + 8, logoSize + 8);
       ctx.drawImage(logo, lx, ly, logoSize, logoSize);

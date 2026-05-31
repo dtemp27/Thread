@@ -614,7 +614,7 @@ async function _buildAuthQR(referralUrl, size) {
           resolve(c.toDataURL('image/png'));
         };
         img.onerror = () => resolve(null);
-        img.src = 'images/Transparent-Logo.png';
+        img.src = 'images/Transparent-Logo.webp';
       });
     } catch(_) {}
 
@@ -655,7 +655,7 @@ async function _buildAuthQR(referralUrl, size) {
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
                 width:${logoSize+8}px;height:${logoSize+8}px;background:#fff;border-radius:6px;
                 display:flex;align-items:center;justify-content:center;">
-      <img src="images/Transparent-Logo.png" width="${logoSize}" height="${logoSize}" style="object-fit:contain;" />
+      <img src="images/Transparent-Logo.webp" width="${logoSize}" height="${logoSize}" style="object-fit:contain;" />
     </div>`;
 }
 

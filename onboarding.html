@@ -234,8 +234,8 @@
       <div class="color-swatches" id="teeSwatches"></div>
 
       <div class="picker-imgs" onclick="handleImgTap(event,'tee')">
-        <img id="teeFront" src="images/tee-jet-black-front.png" class="picker-img picker-front" alt="Tee front" loading="eager" />
-        <img id="teeBack"  src="images/tee-jet-black-back.png"  class="picker-img picker-back"  alt="Tee back"  loading="eager" />
+        <img id="teeFront" src="images/tee-jet-black-front.webp" class="picker-img picker-front" alt="Tee front" loading="eager" />
+        <img id="teeBack"  src="images/tee-jet-black-back.webp"  class="picker-img picker-back"  alt="Tee back"  loading="eager" />
         <div class="flip-hint">Tap to flip</div>
       </div>
 
@@ -267,8 +267,8 @@
       <div class="color-swatches" id="hoodieSwatches"></div>
 
       <div class="picker-imgs" onclick="handleImgTap(event,'hoodie')">
-        <img id="hoodieFront" src="images/phantom-black-front.png" class="picker-img picker-front" alt="Hoodie front" loading="eager" />
-        <img id="hoodieBack"  src="images/phantom-black-back.png"  class="picker-img picker-back"  alt="Hoodie back"  loading="eager" />
+        <img id="hoodieFront" src="images/phantom-black-front.webp" class="picker-img picker-front" alt="Hoodie front" loading="eager" />
+        <img id="hoodieBack"  src="images/phantom-black-back.webp"  class="picker-img picker-back"  alt="Hoodie back"  loading="eager" />
         <div class="flip-hint">Tap to flip</div>
       </div>
 
@@ -357,23 +357,23 @@
    COLOR DATA
 ══════════════════════════════════════════════ */
 const TEE_COLORS = [
-  { name: 'Jet Black',  color: '#111111', front: 'images/tee-jet-black-front.png',   back: 'images/tee-jet-black-back.png'   },
-  { name: 'Clean White', color: '#e8e8e8', front: 'images/tee-clean-white-front.png', back: 'images/tee-clean-white-back.png' },
-  { name: 'Deep Navy',  color: '#1a2744', front: 'images/tee-deep-navy-2.png',        back: 'images/tee-deep-navy-back-2.png'  },
-  { name: 'Raw Stone',  color: '#b5a898', front: 'images/tee-raw-stone-front.png',   back: 'images/tee-raw-stone-back.png'   },
-  { name: 'Slate Grey', color: '#6b7280', front: 'images/tee-slate-grey-2.png',      back: 'images/tee-slate-grey-back-2.png' },
+  { name: 'Jet Black',  color: '#111111', front: 'images/tee-jet-black-front.webp',   back: 'images/tee-jet-black-back.webp'   },
+  { name: 'Clean White', color: '#e8e8e8', front: 'images/tee-clean-white-front.webp', back: 'images/tee-clean-white-back.webp' },
+  { name: 'Deep Navy',  color: '#1a2744', front: 'images/tee-deep-navy-2.webp',        back: 'images/tee-deep-navy-back-2.webp'  },
+  { name: 'Raw Stone',  color: '#b5a898', front: 'images/tee-raw-stone-front.webp',   back: 'images/tee-raw-stone-back.webp'   },
+  { name: 'Slate Grey', color: '#6b7280', front: 'images/tee-slate-grey-2.webp',      back: 'images/tee-slate-grey-back-2.webp' },
 ];
 
 const HOODIE_COLORS = [
-  { name: 'Phantom Black', color: '#1a1a1a', front: 'images/phantom-black-front.png',    back: 'images/phantom-black-back.png'    },
-  { name: 'Bone',          color: '#e0d5c0', front: 'images/bone-front.png',             back: 'images/bone-back.png'             },
-  { name: 'Midnight Navy', color: '#1a2744', front: 'images/midnight-navy-front.png',    back: 'images/midnight-navy-back.png'    },
-  { name: 'Ash Stone',     color: '#9e9e9e', front: 'hoodie-variants/ash-stone-front.png',  back: 'hoodie-variants/ash-stone-back.png'  },
-  { name: 'Silver Mist',   color: '#c0c4cc', front: 'images/silver-mist-front.png',      back: 'images/silver-mist-back.png'      },
-  { name: 'Tawny Dusk',    color: '#b87c5a', front: 'images/tawny-dusk-front.png',      back: 'images/tawny-dusk-back.png'      },
-  { name: 'Ivory Pure',    color: '#f5f5f5', front: 'images/ivory-pure-front.png',       back: 'images/ivory-pure-back.png'       },
-  { name: 'Forest Shadow', color: '#2d4a2d', front: 'images/forest-shadow-front.png',    back: 'images/forest-shadow-back.png'    },
-  { name: 'Ember Crimson', color: '#8b1a1a', front: 'images/ember-crimson-front.png',    back: 'images/ember-crimson-back.png'    },
+  { name: 'Phantom Black', color: '#1a1a1a', front: 'images/phantom-black-front.webp',    back: 'images/phantom-black-back.webp'    },
+  { name: 'Bone',          color: '#e0d5c0', front: 'images/bone-front.webp',             back: 'images/bone-back.webp'             },
+  { name: 'Midnight Navy', color: '#1a2744', front: 'images/midnight-navy-front.webp',    back: 'images/midnight-navy-back.webp'    },
+  { name: 'Ash Stone',     color: '#9e9e9e', front: 'hoodie-variants/ash-stone-front.webp',  back: 'hoodie-variants/ash-stone-back.webp'  },
+  { name: 'Silver Mist',   color: '#c0c4cc', front: 'images/silver-mist-front.webp',      back: 'images/silver-mist-back.webp'      },
+  { name: 'Tawny Dusk',    color: '#b87c5a', front: 'images/tawny-dusk-front.webp',      back: 'images/tawny-dusk-back.webp'      },
+  { name: 'Ivory Pure',    color: '#f5f5f5', front: 'images/ivory-pure-front.webp',       back: 'images/ivory-pure-back.webp'       },
+  { name: 'Forest Shadow', color: '#2d4a2d', front: 'images/forest-shadow-front.webp',    back: 'images/forest-shadow-back.webp'    },
+  { name: 'Ember Crimson', color: '#8b1a1a', front: 'images/ember-crimson-front.webp',    back: 'images/ember-crimson-back.webp'    },
 ];
 
 /* State */

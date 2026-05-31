@@ -603,7 +603,7 @@ const TEE_PHOTO_SLUG = {
   const ver = { hoodie: 'hoodie-20260517', tee: 'tee-20260517' };
   const srcs = [
     ...hoodieSlugs.map(s => `hoodie-variants/${s}-front.png?v=${ver.hoodie}`),
-    ...teeSlugs.map(s    => `images/tee-${s}-front.png?v=${ver.tee}`),
+    ...teeSlugs.map(s    => `images/tee-${s}-front.webp?v=${ver.tee}`),
   ];
   srcs.forEach(src => { const img = new Image(); img.src = src; });
 })();
@@ -619,7 +619,7 @@ function productThumb(item) {
   const ver = isHoodie ? 'hoodie-20260517' : 'tee-20260517';
   const src = isHoodie
     ? `hoodie-variants/${slug}-front.png?v=${ver}`
-    : `images/tee-${slug}-front.png?v=${ver}`;
+    : `images/tee-${slug}-front.webp?v=${ver}`;
   return `<img src="${src}" alt="${name}" style="width:100%;height:100%;object-fit:cover;object-position:center top;background:#0a0a0a;border-radius:8px">`;
 }
 

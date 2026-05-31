@@ -662,7 +662,7 @@ async function showQRModal(username, referralCode) {
   // Load THREAD logo as data URL so it embeds in QR center
   let logoDataUrl = null;
   try {
-    const resp = await fetch('images/Transparent-Logo.png');
+    const resp = await fetch('images/Transparent-Logo.webp');
     const blob = await resp.blob();
     logoDataUrl = await new Promise(resolve => {
       const reader = new FileReader();

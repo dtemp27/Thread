@@ -781,8 +781,8 @@ async function downloadQR(code, name, color) {
   const safeName = (name || code).replace(/[^a-zA-Z0-9_-]/g, '_');
   const label    = isWhite ? 'WHITE' : 'BLACK';
 
-  // Black QR uses Transparent-Logo.png, White QR uses No-background-t-Logo.png
-  const logoFile = isWhite ? 'No-background-t-Logo.png' : 'Transparent-Logo.png';
+  // Black QR uses Transparent-Logo.png, White QR uses No-background-t-Logo.webp
+  const logoFile = isWhite ? 'No-background-t-Logo.webp' : 'Transparent-Logo.webp';
   let logoDataUrl = null;
   try {
     const r = await fetch(`${window.location.origin}/images/${logoFile}`);
