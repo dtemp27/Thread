@@ -348,7 +348,7 @@
       const typeLabel = isHoodie ? 'Oversized Heavyweight' : 'Oversized Tee';
       const slugMap = {'Phantom Black':'phantom-black','Midnight Navy':'midnight-navy','Ember Crimson':'ember-crimson','Forest Shadow':'forest-shadow','Ash Stone':'ash-stone','Ivory Pure':'ivory-pure','Silver Mist':'silver-mist','Bone':'bone','Tawny Dusk':'tawny-dusk','Clean White':'clean-white','Raw Stone':'raw-stone','Jet Black':'jet-black','Deep Navy':'deep-navy','Slate Grey':'slate-grey'};
       const slug = slugMap[item.name] || item.name.toLowerCase().replace(/\s+/g,'-');
-      const imgSrc = isHoodie ? `hoodie-variants/${slug}-front.png?v=hoodie-20260517` : `images/tee-${slug}-2.webp`;
+      const imgSrc = isHoodie ? `hoodie-variants/${slug}-front.webp` : `images/tee-${slug}-2.webp`;
       return `
       <div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
         <img src="${imgSrc}" alt="${item.name}" style="width:54px;height:54px;object-fit:cover;object-position:center top;border-radius:8px;background:#111;flex-shrink:0;">
