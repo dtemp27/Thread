@@ -619,14 +619,16 @@ async function doSignup() {
     const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
     const displayName = name;
 
+    // Always generate a fresh code — never inherit one from a different user's session
     let referralCode = null;
     try {
-      const s = JSON.parse(localStorage.getItem('thread_session')       || 'null');
-      const p = JSON.parse(localStorage.getItem('thread_pending_profile')|| 'null');
-      referralCode = s?.referral_code || s?.referralCode || p?.referralCode || null;
+      // Only reuse if this exact email already has a code in the DB (re-registration)
+      const { data: ep } = await sb.from('profiles').select('referral_code').eq('email', email).maybeSingle();
+      referralCode = ep?.referral_code || null;
+      // Or if there's a pending profile specifically for THIS email
       if (!referralCode) {
-        const { data: ep } = await sb.from('profiles').select('referral_code').eq('email', email).maybeSingle();
-        referralCode = ep?.referral_code || null;
+        const p = JSON.parse(localStorage.getItem('thread_pending_profile') || 'null');
+        if (p?.email === email) referralCode = p.referralCode || null;
       }
     } catch(_) {}
     if (!referralCode) referralCode = generateReferralCode(displayName);
