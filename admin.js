@@ -657,9 +657,14 @@ function renderReferrals() {
   // Group by referrer
   const byReferrer = {};
   allScans.forEach(s => {
-    const key  = s.referral_code || s.referrer_id;
-    const name = referrerLabel(s.referrer_id, s.referral_code);
-    if (!byReferrer[key]) byReferrer[key] = { name, code: s.referral_code, scans: 0, convs: 0, earned: 0, pending: 0 };
+    let code = s.referral_code;
+    if (!code && s.referrer_id) {
+      const cust = allCustomers.find(c => c.id === s.referrer_id || c.user_id === s.referrer_id);
+      if (cust) code = cust.referral_code || cust.referralCode;
+    }
+    const key  = code || s.referrer_id;
+    const name = referrerLabel(s.referrer_id, code);
+    if (!byReferrer[key]) byReferrer[key] = { name, code: code || s.referral_code, scans: 0, convs: 0, earned: 0, pending: 0 };
     byReferrer[key].scans++;
     if (s.converted) {
       byReferrer[key].convs++;
