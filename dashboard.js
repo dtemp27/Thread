@@ -153,7 +153,7 @@ function bootUI() {
 
   /* ─── REFERRAL URL ─── */
   const baseURL = window.location.origin + '/';
-  const refURL  = baseURL + '?ref=' + user.referralCode;
+  const refURL  = baseURL + 'scan.html?ref=' + encodeURIComponent(user.referralCode);
 
   /* ─── INIT STATIC UI ─── */
   renderOwnAvatar();

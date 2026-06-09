@@ -555,7 +555,7 @@ async function handleResetPassword(event) {
 function showSuccessOverlay(name, code) {
   if (!document.getElementById('authSuccessOverlay')) {
     const firstName = (name || 'there').split(' ')[0];
-    const referralUrl = `https://mythread.shop/?ref=${encodeURIComponent(code)}`;
+    const referralUrl = `https://mythread.shop/scan.html?ref=${encodeURIComponent(code)}`;
     const qrSize = 180; // display size in px
 
     const el = document.createElement('div');

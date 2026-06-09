@@ -678,7 +678,7 @@ async function showQRModal(username, referralCode) {
   nameEl.textContent  = username;
   labelEl.textContent = referralCode;
 
-  const refURL = 'https://mythread.shop/?ref=' + referralCode;
+  const refURL = 'https://mythread.shop/scan.html?ref=' + encodeURIComponent(referralCode);
   modal.classList.add('visible');
   document.body.style.overflow = 'hidden';
 
