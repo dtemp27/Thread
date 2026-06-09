@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <title>THREAD. — Wear It. Get Paid.</title>
+  <link rel="icon" href="favicon.ico?v=5" sizes="any" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=5" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --purple:  #7c3aed;
+      --purple2: #a78bfa;
+      --green:   #22c55e;
+      --bg:      #080808;
+      --bg2:     #0f0f18;
+      --bg3:     #13131f;
+      --text:    #f0f0f0;
+      --muted:   #555;
+      --border:  rgba(255,255,255,0.08);
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      height: 54px;
+      background: rgba(8,8,8,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+    .logo b { color: var(--purple2); }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      min-height: 100svh;
+      background: #080808;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url('ADS/joinpic.webp') center 20% / cover no-repeat #080808;
+      filter: brightness(0.45);
+      pointer-events: none;
+    }
+    .hero::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(8,8,8,0.7)  0%,
+        rgba(8,8,8,0.1)  30%,
+        rgba(8,8,8,0.15) 55%,
+        rgba(8,8,8,0.95) 80%,
+        rgba(8,8,8,1)    100%
+      );
+      pointer-events: none;
+    }
+
+    /* floating notification cards */
+    .hero-notif {
+      position: absolute;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: rgba(16,16,16,0.92);
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.55);
+      display: flex; align-items: center;
+      pointer-events: none;
+      z-index: 2;
+    }
+    @keyframes floatFromTop  { from { opacity:0; transform:translateY(-16px) scale(.92); } to { opacity:1; transform:none; } }
+    @keyframes floatFromRight { from { opacity:0; transform:translateX(16px) scale(.92); } to { opacity:1; transform:none; } }
+    @keyframes pulse { 0%,100%{ box-shadow:0 0 0 0 rgba(167,139,250,.4); } 50%{ box-shadow:0 0 0 6px rgba(167,139,250,0); } }
+
+    .hero-notif-topleft {
+      top: 180px; left: 16px;
+      border-radius: 50px; padding: 8px 14px 8px 10px; gap: 8px;
+      animation: floatFromTop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.8s both;
+    }
+    .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--purple2); animation: pulse 2s infinite; flex-shrink: 0; }
+    .hero-notif-topleft span { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; }
+
+    .hero-notif-botright {
+      top: 34%; right: 16px;
+      border-radius: 14px; padding: 10px 14px; gap: 10px;
+      animation: floatFromRight 0.5s cubic-bezier(0.34,1.56,0.64,1) 2s both;
+      max-width: 175px;
+    }
+    .earn-icon  { width: 32px; height: 32px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .earn-label { font-size: 9px; color: #777; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
+    .earn-name  { font-size: 11px; color: #ddd; font-weight: 600; line-height: 1.35; }
+
+    /* hero content */
+    .hero-content {
+      position: relative;
+      z-index: 3;
+      padding: 0 24px 56px;
+      max-width: 600px;
+    }
+    .hero-ad-copy { margin-bottom: 20px; }
+    .hero-ad-copy p { font-family: 'Space Mono', monospace; font-size: clamp(11px, 2.8vw, 13px); letter-spacing: 0.12em; line-height: 1.9; color: #ccc; }
+    .hero-ad-copy p:last-child { color: var(--purple2); font-weight: 700; }
+
+    .hero h1 { font-size: clamp(42px, 11vw, 72px); font-weight: 700; line-height: 1.0; letter-spacing: -1px; margin-bottom: 6px; }
+    .hero h1 .accent { color: var(--purple2); }
+
+    .hero-tagline { font-size: clamp(13px, 3.5vw, 16px); color: #aaa; margin-bottom: 32px; font-weight: 400; letter-spacing: 0.02em; line-height: 1.6; }
+    .hero-tagline strong { color: var(--green); font-weight: 700; }
+
+    .hero-cta-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+
+    .btn-primary {
+      display: inline-block;
+      background: var(--purple); color: #fff;
+      border: none; border-radius: 50px;
+      padding: 18px 36px; font-size: 17px; font-weight: 700;
+      font-family: inherit; cursor: pointer; text-decoration: none;
+      letter-spacing: 0.02em;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-primary:hover { background: var(--purple2); transform: translateY(-2px); box-shadow: 0 10px 40px rgba(124,58,237,0.45); }
+    .btn-primary:active { transform: scale(0.97); }
+
+    .btn-secondary {
+      display: inline-block;
+      background: transparent; color: var(--text);
+      border: 1px solid rgba(255,255,255,0.25); border-radius: 50px;
+      padding: 17px 28px; font-size: 15px; font-weight: 600;
+      font-family: inherit; cursor: pointer; text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--purple2); background: rgba(124,58,237,0.08); }
+
+    .hero-note { margin-top: 16px; font-size: 12px; color: #333; }
+
+    @media (min-width: 600px) {
+      .hero-content { padding: 0 48px 72px; }
+      .hero-notif-topleft { left: 24px; }
+      .hero-notif-botright { right: 24px; }
+    }
+
+    /* ── SECTION SHARED ── */
+    .section { padding: 80px 24px; border-top: 1px solid var(--border); }
+    .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--purple2); margin-bottom: 10px; }
+    .section-title { font-size: clamp(28px, 6vw, 44px); font-weight: 900; letter-spacing: -1px; margin-bottom: 10px; }
+    .section-sub   { font-size: 15px; color: #666; line-height: 1.65; max-width: 420px; margin: 0 auto 52px; }
+
+    /* ── HOW IT WORKS ── */
+    #how { background: var(--bg2); text-align: center; }
+    .steps {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px; max-width: 760px; margin: 0 auto;
+    }
+    .step { background: var(--bg3); border: 1px solid var(--border); border-radius: 20px; padding: 28px 22px; text-align: left; }
+    .step-num { width: 42px; height: 42px; border-radius: 50%; background: rgba(124,58,237,0.14); border: 1px solid rgba(124,58,237,0.3); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: var(--purple2); margin-bottom: 18px; }
+    .step h3 { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+    .step p  { font-size: 13px; color: #555; line-height: 1.6; }
+
+    /* ── CALCULATOR — key engagement element from analytics ── */
+    #calculator { background: var(--bg); text-align: center; }
+    .calc-card {
+      width: 100%; max-width: 520px; margin: 0 auto 36px;
+      background: rgba(124,58,237,0.07);
+      border: 1px solid rgba(124,58,237,0.22);
+      border-radius: 24px; padding: 32px 28px;
+    }
+    .calc-card-title { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .calc-card-sub   { font-size: 13px; color: #555; margin-bottom: 24px; }
+
+    .slider-wrap { position: relative; margin-bottom: 8px; }
+    .earn-slider {
+      width: 100%; -webkit-appearance: none; appearance: none;
+      height: 6px; border-radius: 3px;
+      background: rgba(124,58,237,0.35); outline: none; cursor: pointer;
+    }
+    .earn-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%;
+      background: var(--purple); cursor: pointer;
+      box-shadow: 0 0 0 6px rgba(124,58,237,0.2);
+    }
+    .slider-labels { display: flex; justify-content: space-between; font-size: 11px; color: #333; margin-bottom: 24px; }
+
+    .calc-stats { display: flex; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; margin-bottom: 24px; }
+    .calc-stat  { flex: 1; padding: 14px 6px; text-align: center; border-right: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.25); }
+    .calc-stat:last-child { border-right: none; }
+    .calc-stat-lbl { font-size: 9px; color: #444; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+    .calc-stat-val { font-size: 17px; font-weight: 900; color: #fff; font-family: 'Space Mono', monospace; }
+
+    .calc-result-lbl { font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .calc-result-amt {
+      font-size: 64px; font-weight: 900; color: var(--purple2);
+      line-height: 1; letter-spacing: -2px; margin-bottom: 6px;
+      transition: all 0.2s;
+    }
+    .calc-result-sub { font-size: 13px; color: #444; }
+
+    /* CTA right under calculator — catch them at peak excitement */
+    .calc-cta-note { font-size: 14px; color: #666; text-align: center; max-width: 400px; margin: 0 auto 24px; line-height: 1.6; }
+    .calc-cta-note strong { color: #fff; }
+    .btn-calc-cta {
+      display: block; width: 100%; max-width: 400px; margin: 0 auto;
+      background: var(--purple); color: #fff;
+      border: none; border-radius: 50px;
+      padding: 20px 32px; font-size: 17px; font-weight: 800;
+      font-family: inherit; cursor: pointer; text-align: center;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-calc-cta:hover  { transform: translateY(-2px); box-shadow: 0 14px 44px rgba(124,58,237,0.5); }
+    .btn-calc-cta:active { transform: scale(0.97); }
+
+    /* ── SOCIAL PROOF ── */
+    #proof { background: var(--bg2); text-align: center; }
+    .quote-wrap { max-width: 500px; margin: 0 auto 52px; background: rgba(124,58,237,0.07); border: 1px solid rgba(124,58,237,0.2); border-radius: 20px; padding: 32px; }
+    .quote-text   { font-size: 17px; color: #ddd; line-height: 1.7; font-style: italic; margin-bottom: 14px; }
+    .quote-author { font-size: 12px; color: var(--purple2); font-weight: 700; letter-spacing: 0.05em; }
+    .proof-stats  { display: flex; justify-content: center; gap: 48px; flex-wrap: wrap; }
+    .ps-val { font-size: 34px; font-weight: 900; color: #fff; letter-spacing: -1px; }
+    .ps-val b { color: var(--purple2); }
+    .ps-lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* ── CLAIM — email capture BEFORE price reveal ── */
+    #claim { background: var(--bg); text-align: center; }
+    .claim-inner { max-width: 480px; margin: 0 auto; text-align: left; }
+
+    .claim-card {
+      background: rgba(124,58,237,0.06);
+      border: 1px solid rgba(124,58,237,0.18);
+      border-radius: 20px; padding: 32px; margin-bottom: 28px;
+    }
+    .claim-quote { font-size: 14px; color: #ccc; line-height: 1.7; font-style: italic; margin-bottom: 10px; }
+    .claim-author { font-size: 11px; color: var(--purple2); font-weight: 700; }
+
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #444; margin-bottom: 8px; }
+    .field input {
+      width: 100%; padding: 16px 18px;
+      background: var(--bg3); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px; color: #fff; font-size: 16px; font-family: inherit;
+      outline: none; transition: border-color 0.2s; -webkit-appearance: none;
+    }
+    .field input:focus { border-color: var(--purple); }
+    .field input::placeholder { color: #2a2a2a; }
+
+    .form-error { font-size: 13px; color: #f87171; min-height: 18px; margin-bottom: 10px; }
+    .form-terms { font-size: 12px; color: #333; margin-bottom: 20px; line-height: 1.5; }
+    .form-terms a { color: #444; text-decoration: underline; }
+
+    .btn-claim {
+      display: block; width: 100%;
+      background: var(--purple); color: #fff;
+      border: none; border-radius: 50px;
+      padding: 20px; font-size: 17px; font-weight: 800;
+      font-family: inherit; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+    }
+    .btn-claim:hover  { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(124,58,237,0.5); }
+    .btn-claim:active { transform: scale(0.97); }
+    .btn-claim:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .signin-link { text-align: center; font-size: 13px; color: #333; margin-top: 14px; }
+    .signin-link a { color: var(--purple2); cursor: pointer; font-weight: 600; }
+
+    /* ── FOOTER ── */
+    footer { padding: 28px 24px; text-align: center; border-top: 1px solid var(--border); font-size: 12px; color: #282828; }
+    footer a { color: #333; margin: 0 10px; }
+
+    /* ── QR POPUP MODAL ── */
+    .qr-modal {
+      position: fixed; inset: 0; z-index: 2000;
+      background: rgba(8,8,8,0.98);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 32px 28px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.45s ease;
+    }
+    .qr-modal.visible { opacity: 1; pointer-events: auto; }
+    @keyframes qrPop { from { opacity:0; transform: scale(0.85) translateY(20px); } to { opacity:1; transform: none; } }
+    .qr-modal-inner {
+      display: flex; flex-direction: column; align-items: center;
+      max-width: 360px; width: 100%; text-align: center;
+    }
+    .qr-modal-eyebrow {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--green); margin-bottom: 10px;
+    }
+    .qr-modal-title {
+      font-size: clamp(24px, 6vw, 34px); font-weight: 900; line-height: 1.1;
+      letter-spacing: -1px; margin-bottom: 8px;
+    }
+    .qr-modal-title span { color: var(--purple2); }
+    .qr-modal-sub {
+      font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 28px; max-width: 300px;
+    }
+    .qr-frame {
+      background: #fff; border-radius: 20px; padding: 8px;
+      box-shadow: 0 0 0 1px rgba(124,58,237,0.3), 0 20px 60px rgba(124,58,237,0.2);
+      margin-bottom: 12px;
+      animation: qrPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;
+    }
+    .qr-code-label {
+      font-family: 'Space Mono', monospace; font-size: 11px; color: #444;
+      letter-spacing: 0.1em; margin-bottom: 28px;
+    }
+    .qr-modal-btns { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+    .btn-qr-primary {
+      display: block; width: 100%; background: var(--purple); color: #fff;
+      border: none; border-radius: 50px; padding: 18px; font-size: 17px; font-weight: 800;
+      font-family: inherit; cursor: pointer; text-decoration: none; text-align: center;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-qr-primary:active { transform: scale(0.97); }
+    .btn-qr-secondary {
+      display: block; width: 100%; background: transparent; color: #777;
+      border: 1px solid rgba(255,255,255,0.12); border-radius: 50px; padding: 16px;
+      font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer;
+      text-decoration: none; text-align: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">THREAD<b>.</b></div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero" id="hero">
+  <!-- decorative floating cards — pointer-events:none -->
+  <div class="hero-notif hero-notif-topleft">
+    <div class="pulse-dot"></div>
+    <span>New scan · just now 🔥</span>
+  </div>
+  <div class="hero-notif hero-notif-botright">
+    <div class="earn-icon">$</div>
+    <div>
+      <div class="earn-label">Commission Paid</div>
+      <div class="earn-name">Jake · +$25</div>
+    </div>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-ad-copy">
+      <p>YOUR CODE.</p>
+      <p>THEIR SCAN.</p>
+      <p>YOUR INCOME.</p>
+    </div>
+
+    <h1>
+      Wear It.<br />
+      <span class="accent">Get Paid.</span>
+    </h1>
+
+    <p class="hero-tagline">
+      Every THREAD piece has a QR code on the back.<br />
+      Someone scans it. They buy. <strong>You earn 20%+.</strong> No effort.
+    </p>
+
+    <div class="hero-cta-row">
+      <a href="#calculator" class="btn-primary" onclick="window._track?.('cta_click','hero-join')">Start Earning →</a>
+      <a href="#how" class="btn-secondary" onclick="window._track?.('cta_click','hero-how')">See How It Works</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="section" id="how">
+  <div style="text-align:center">
+    <p class="section-label">Simple as it gets</p>
+    <h2 class="section-title">Three steps. Passive income.</h2>
+    <p class="section-sub">No selling, no posting, no effort required.</p>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>Get Your Piece</h3>
+      <p>Your THREAD tee or hoodie comes with a unique QR code printed on it, linked to your account.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>People Scan It</h3>
+      <p>Someone spots your shirt, scans the QR on their phone, and lands on the THREAD store.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>You Earn 20%+</h3>
+      <p>Every sale through your code sends commission straight to your account. Automatically.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── EARNINGS CALCULATOR — primary engagement hook from analytics ── -->
+<section class="section" id="calculator">
+  <div style="text-align:center">
+    <p class="section-label">Your potential</p>
+    <h2 class="section-title">How much could you earn?</h2>
+    <p class="section-sub">Drag the slider. See your monthly number.</p>
+  </div>
+
+  <div class="calc-card">
+    <div class="calc-card-title">Calculate Your Earnings</div>
+    <div class="calc-card-sub">How many people scan your QR code per week?</div>
+
+    <div class="slider-wrap">
+      <input type="range" id="earnSlider" min="1" max="50" value="10" class="earn-slider" oninput="updateCalc()" />
+    </div>
+    <div class="slider-labels"><span>1/week</span><span>10</span><span>25</span><span>50/week</span></div>
+
+    <div class="calc-stats">
+      <div class="calc-stat">
+        <div class="calc-stat-lbl">Scans/wk</div>
+        <div class="calc-stat-val" id="calcScans">10</div>
+      </div>
+      <div class="calc-stat">
+        <div class="calc-stat-lbl">Conversion</div>
+        <div class="calc-stat-val">~18%</div>
+      </div>
+      <div class="calc-stat">
+        <div class="calc-stat-lbl">Commission</div>
+        <div class="calc-stat-val" id="calcPct">20%</div>
+      </div>
+    </div>
+
+    <div class="calc-result-lbl">Your monthly earnings</div>
+    <div class="calc-result-amt" id="calcAmt">$144</div>
+    <div class="calc-result-sub" id="calcSub">~3.6 purchases / month</div>
+  </div>
+
+  <!-- Catch them right after the calculator shows them their potential number -->
+  <p class="calc-cta-note">
+    That's <strong id="calcCtaAmt">$144/mo</strong> just for wearing a shirt.<br />
+    Create your free account and lock in your earnings code.
+  </p>
+  <a href="#claim" class="btn-calc-cta">Claim This Earning Potential →</a>
+</section>
+
+<!-- ── SOCIAL PROOF ── -->
+<section class="section" id="proof">
+  <div class="quote-wrap">
+    <p class="quote-text">"Got $60 in my first week just wearing my hoodie to the gym. Didn't post anything, didn't sell a thing."</p>
+    <p class="quote-author">— Jasmine L., Houston · 38 scans last month</p>
+  </div>
+  <div class="proof-stats">
+    <div>
+      <div class="ps-val"><b>20</b>%</div>
+      <div class="ps-lbl">Per sale, every time</div>
+    </div>
+    <div>
+      <div class="ps-val">$<b>0</b></div>
+      <div class="ps-lbl">No hidden fees ever</div>
+    </div>
+    <div>
+      <div class="ps-val"><b>5–7</b></div>
+      <div class="ps-lbl">Days to ship</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CLAIM — email capture BEFORE showing product price ── -->
+<section class="section" id="claim">
+  <div style="text-align:center;margin-bottom:40px;">
+    <p class="section-label">Your QR code awaits</p>
+    <h2 class="section-title">Create your account.<br/>Get your QR.</h2>
+    <p class="section-sub" style="margin-bottom:0">Your personal QR code is generated the moment you sign up — <strong style="color:#fff">unique to you, forever.</strong></p>
+  </div>
+
+  <div class="claim-inner">
+    <div class="claim-card">
+      <p class="claim-quote">"I was skeptical but I made $120 my second month without doing anything different. The QR on the hoodie does all the work."</p>
+      <p class="claim-author">— Marcus T., Chicago · 52 scans last month</p>
+    </div>
+
+    <div style="display:flex;gap:12px;">
+      <div class="field" style="flex:1">
+        <label>First name</label>
+        <input type="text" id="fFirst" placeholder="Jordan" required autocomplete="given-name" />
+      </div>
+      <div class="field" style="flex:1">
+        <label>Last name</label>
+        <input type="text" id="fLast" placeholder="Williams" required autocomplete="family-name" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="fUsername" placeholder="jordan.t" autocomplete="username" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9_.]/g,'')" />
+    </div>
+    <div class="field">
+      <label>Date of Birth</label>
+      <input type="date" id="fDob" required autocomplete="bday" />
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="fEmail" placeholder="you@email.com" autocomplete="email" />
+    </div>
+    <div class="field">
+      <label>Phone Number <span style="font-size:11px;color:#888;font-weight:400">Optional — required for payouts</span></label>
+      <input type="tel" id="fPhone" placeholder="+1 (555) 000-0000" autocomplete="tel" />
+    </div>
+    <div class="field">
+      <label>Instagram <span style="font-size:11px;color:#888;font-weight:400">📸 Optional</span></label>
+      <input type="text" id="fInstagram" placeholder="@yourhandle" maxlength="30" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="fPassword" placeholder="Min 7 chars + special character" autocomplete="new-password" />
+    </div>
+
+    <div class="form-error" id="formError"></div>
+    <p class="form-terms">By joining you agree to our <a href="terms.html" target="_blank">Terms of Service</a>. No subscription fees, ever.</p>
+
+    <button class="btn-claim" id="submitBtn" onclick="doSignup()">Create Free Account →</button>
+    <p class="signin-link">Already have an account? <a onclick="switchToSignin()">Sign in instead</a></p>
+  </div>
+</section>
+
+<footer>
+  <a href="terms.html">Terms</a>
+  <a href="privacy.html">Privacy</a>
+  <a href="mailto:support@mythread.shop">Contact</a>
+  <br /><br />© 2026 THREAD. All rights reserved.
+</footer>
+
+<!-- ── QR POPUP MODAL ── -->
+<div class="qr-modal" id="qrModal">
+  <div class="qr-modal-inner">
+    <p class="qr-modal-eyebrow">✦ Your QR code is ready</p>
+    <h2 class="qr-modal-title">This is yours,<br/><span id="qrModalName">you</span>.</h2>
+    <p class="qr-modal-sub">Every time someone scans this on your piece and buys, the commission goes straight to you. No effort.</p>
+    <div class="qr-frame" id="qrFrame"></div>
+    <p class="qr-code-label" id="qrCodeLabel"></p>
+    <div class="qr-modal-btns">
+      <a href="pick.html" class="btn-qr-primary">Get My First Piece →</a>
+      <a href="thread-details.html" class="btn-qr-secondary">More Info</a>
+    </div>
+  </div>
+</div>
+
+<script src="config.js?v=5"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+<script>
+
+/* ── EARNINGS CALCULATOR ── */
+function updateCalc() {
+  const scans   = parseInt(document.getElementById('earnSlider').value, 10);
+  const monthly = scans * 0.18 * 4.33;
+  let pct, label;
+  if      (monthly <= 10) { pct = 0.20; label = '20%'; }
+  else if (monthly <= 25) { pct = 0.25; label = '25%'; }
+  else                    { pct = 0.30; label = '30%'; }
+  const earned = Math.round(monthly * 80 * pct / 5) * 5;
+  document.getElementById('calcScans').textContent   = scans;
+  document.getElementById('calcPct').textContent     = label;
+  document.getElementById('calcAmt').textContent     = '$' + earned.toLocaleString();
+  document.getElementById('calcSub').textContent     = '~' + monthly.toFixed(1) + ' purchases / month';
+  document.getElementById('calcCtaAmt').textContent  = '$' + earned.toLocaleString() + '/mo';
+  window._track?.('calc_interact', 'earn_slider');
+}
+updateCalc();
+
+/* ── SIGN UP ── */
+function generateReferralCode(name) {
+  const base = (name || 'USER').toUpperCase().replace(/[^A-Z]/g,'').slice(0,4).padEnd(4,'X');
+  return base + Math.random().toString(36).substring(2,6).toUpperCase();
+}
+
+async function doSignup() {
+  const firstName = document.getElementById('fFirst').value.trim();
+  const lastName  = document.getElementById('fLast').value.trim();
+  const username  = document.getElementById('fUsername').value.trim().toLowerCase();
+  const dob       = document.getElementById('fDob').value;
+  const email     = document.getElementById('fEmail').value.trim();
+  const phone     = document.getElementById('fPhone').value.trim();
+  const instagram = (document.getElementById('fInstagram').value || '').trim().replace(/^@+/, '');
+  const password  = document.getElementById('fPassword').value;
+  const errEl     = document.getElementById('formError');
+  const btn       = document.getElementById('submitBtn');
+  errEl.textContent = '';
+
+  const name = (firstName + ' ' + lastName).trim();
+  if (!firstName)                         { errEl.textContent = 'Enter your first name.'; return; }
+  if (!lastName)                          { errEl.textContent = 'Enter your last name.'; return; }
+  if (!username || username.length < 3)   { errEl.textContent = 'Username must be at least 3 characters.'; return; }
+  if (!dob)                               { errEl.textContent = 'Enter your date of birth.'; return; }
+  const _age = (() => { const t = new Date(), b = new Date(dob); let a = t.getFullYear()-b.getFullYear(); if(t.getMonth()-b.getMonth()<0||(t.getMonth()-b.getMonth()===0&&t.getDate()<b.getDate()))a--; return a; })();
+  if (_age < 13)                          { errEl.textContent = 'You must be at least 13 years old to join.'; return; }
+  if (!email || !email.includes('@'))     { errEl.textContent = 'Enter a valid email address.'; return; }
+  if (phone && !/^\+?[\d\s\-(). ]{7,20}$/.test(phone)) { errEl.textContent = 'Enter a valid phone number.'; return; }
+  if (password.length < 7)               { errEl.textContent = 'Password must be at least 7 characters.'; return; }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) {
+    errEl.textContent = 'Password needs at least one special character (e.g. !@#$%).'; return;
+  }
+
+  window._track?.('funnel', 'signup_submitted');
+  btn.disabled = true; btn.textContent = 'Creating your account…';
+
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) throw new Error('Service unavailable. Please try again.');
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const displayName = name;
+
+    let referralCode = null;
+    try {
+      const s = JSON.parse(localStorage.getItem('thread_session')       || 'null');
+      const p = JSON.parse(localStorage.getItem('thread_pending_profile')|| 'null');
+      referralCode = s?.referral_code || s?.referralCode || p?.referralCode || null;
+      if (!referralCode) {
+        const { data: ep } = await sb.from('profiles').select('referral_code').eq('email', email).maybeSingle();
+        referralCode = ep?.referral_code || null;
+      }
+    } catch(_) {}
+    if (!referralCode) referralCode = generateReferralCode(displayName);
+    const referredBy = (localStorage.getItem('thread_ref') || '').trim() || null;
+
+    const { data, error } = await sb.auth.signUp({
+      email, password,
+      options: { data: { name: displayName, username }, emailRedirectTo: 'https://mythread.shop/checkout.html' }
+    });
+    if (error) throw new Error(error.message);
+
+    localStorage.setItem('thread_pending_profile', JSON.stringify({ name: displayName, username, dob, email, referralCode, referredBy }));
+
+    if (data.user) {
+      const { error: ue } = await sb.from('profiles').upsert(
+        { id: data.user.id, email, name: displayName, username,
+          first_name: firstName, last_name: lastName,
+          date_of_birth: dob, phone: phone || null, instagram: instagram || null,
+          referral_code: referralCode, referred_by: referredBy },
+        { onConflict: 'id' }
+      );
+      if (!ue) localStorage.removeItem('thread_pending_profile');
+      try { await sb.auth.signInWithPassword({ email, password }); } catch(_) {}
+      localStorage.setItem('thread_session', JSON.stringify({
+        id: data.user.id, email, name: displayName, username,
+        referralCode, referral_code: referralCode,
+        avatar: displayName.slice(0,2).toUpperCase(),
+        stats: { totalScans:0, conversions:0, pendingEarnings:0, totalEarned:0, scanHistory:[] },
+        purchases: []
+      }));
+    }
+
+    window._track?.('funnel', 'account_created');
+    btn.textContent = 'Account created!';
+    showQRModal(username, referralCode);
+
+  } catch(e) {
+    errEl.textContent = e.message || 'Something went wrong. Please try again.';
+    btn.disabled = false; btn.textContent = 'Create Free Account →';
+  }
+}
+
+async function showQRModal(username, referralCode) {
+  const modal   = document.getElementById('qrModal');
+  const nameEl  = document.getElementById('qrModalName');
+  const labelEl = document.getElementById('qrCodeLabel');
+  const frameEl = document.getElementById('qrFrame');
+
+  nameEl.textContent  = username;
+  labelEl.textContent = referralCode;
+
+  const refURL = 'https://mythread.shop/?ref=' + referralCode;
+  modal.classList.add('visible');
+  document.body.style.overflow = 'hidden';
+
+  // Load THREAD logo as data URL so it embeds in QR center
+  let logoDataUrl = null;
+  try {
+    const resp = await fetch('images/Transparent-Logo.webp');
+    const blob = await resp.blob();
+    logoDataUrl = await new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.readAsDataURL(blob);
+    });
+  } catch(_) {}
+
+  const displaySize = 200;
+  const renderSize  = displaySize * 4; // render at 4× for crisp retina display
+
+  if (window.QRCodeStyling) {
+    const qrOpts = {
+      width: renderSize, height: renderSize, type: 'canvas',
+      data: refURL, margin: 0,
+      qrOptions:          { errorCorrectionLevel: 'H' },
+      dotsOptions:         { color: '#1a0533', type: 'dots' },
+      cornersSquareOptions:{ color: '#1a0533', type: 'extra-rounded' },
+      cornersDotOptions:   { color: '#7c3aed', type: 'dot' },
+      backgroundOptions:   { color: '#ffffff' },
+    };
+    if (logoDataUrl) {
+      qrOpts.image        = logoDataUrl;
+      qrOpts.imageOptions = { margin: 6, imageSize: 0.22, hideBackgroundDots: true };
+    }
+    const qr = new QRCodeStyling(qrOpts);
+    qr.append(frameEl);
+    // Scale canvas down to display size so it's crisp on retina
+    setTimeout(() => {
+      const c = frameEl.querySelector('canvas');
+      if (c) { c.style.width = displaySize + 'px'; c.style.height = displaySize + 'px'; }
+    }, 500);
+  } else {
+    const img = document.createElement('img');
+    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=' + renderSize + 'x' + renderSize + '&data=' + encodeURIComponent(refURL) + '&ecc=H&margin=4';
+    img.style.cssText = 'width:' + displaySize + 'px;height:' + displaySize + 'px;display:block;border-radius:8px;image-rendering:crisp-edges;';
+    frameEl.appendChild(img);
+  }
+}
+
+function switchToSignin() {
+  const btn   = document.getElementById('submitBtn');
+  const errEl = document.getElementById('formError');
+  errEl.textContent = '';
+  btn.textContent = 'Sign In →';
+  btn.onclick = doSignin;
+  document.querySelector('.signin-link').innerHTML = 'New here? <a onclick="location.reload()">Create an account</a>';
+}
+
+async function doSignin() {
+  const email    = document.getElementById('fEmail').value.trim();
+  const password = document.getElementById('fPassword').value;
+  const errEl    = document.getElementById('formError');
+  const btn      = document.getElementById('submitBtn');
+  if (!email || !password) { errEl.textContent = 'Enter your email and password.'; return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  errEl.textContent = '';
+  try {
+    const cfg = window.THREAD_CONFIG;
+    const sb  = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) throw new Error(error.message);
+    if (data.user) {
+      const { data: p } = await sb.from('profiles').select('name,username,referral_code').eq('id', data.user.id).single();
+      localStorage.setItem('thread_session', JSON.stringify({
+        id: data.user.id, email, name: p?.name || email, username: p?.username || '',
+        referralCode: p?.referral_code || '', referral_code: p?.referral_code || '',
+        avatar: (p?.name || email).slice(0,2).toUpperCase(),
+        stats: { totalScans:0, conversions:0, pendingEarnings:0, totalEarned:0, scanHistory:[] },
+        purchases: []
+      }));
+    }
+    window._track?.('funnel', 'signin_success');
+    window.location.href = 'checkout.html';
+  } catch(e) {
+    errEl.textContent = e.message || 'Could not sign in. Check your email and password.';
+    btn.disabled = false; btn.textContent = 'Sign In →';
+  }
+}
+
+/* ── ANALYTICS ── */
+(async function() {
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) return;
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    let ip = null, country = null, city = null, region = null;
+    const OWNER_IPS = ['65.130.60.246','187.199.28.205','187.199.69.171'];
+
+    window._track = async (type, label) => {
+      const k = 'jt_'+type+'_'+label;
+      if (sessionStorage.getItem(k)) return;
+      sessionStorage.setItem(k,'1');
+      try { await sb.rpc('log_page_event', { p_event_type:type, p_ip:ip, p_country:country, p_city:city, p_region:region, p_page:'join', p_label:label }); } catch(_) {}
+    };
+
+    try {
+      const cached = sessionStorage.getItem('thread_geo');
+      const g = cached ? JSON.parse(cached) : null;
+      if (g) { ip=g.ip; country=g.country_name; city=g.city; region=g.region; }
+      else {
+        const r = await fetch('https://ipapi.co/json/');
+        if (r.ok) { const d=await r.json(); sessionStorage.setItem('thread_geo',JSON.stringify(d)); ip=d.ip; country=d.country_name; city=d.city; region=d.region; }
+      }
+    } catch(_) {}
+
+    if (OWNER_IPS.includes(ip)) { window._track=null; return; }
+    window._track('visit','join');
+
+    [[15000,'15s+'],[30000,'30s+'],[60000,'1m+'],[180000,'3m+'],[300000,'5m+']].forEach(([d,l]) =>
+      setTimeout(() => window._track?.('time_on_page', l), d)
+    );
+
+    const fired = new Set();
+    window.addEventListener('scroll', () => {
+      const pct = Math.round(window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100);
+      [25,50,75,90].forEach(m => { if(pct>=m && !fired.has(m)){ fired.add(m); window._track?.('scroll_depth', m+'%'); } });
+    }, { passive: true });
+
+    document.querySelector('a[href="#calculator"]').addEventListener('click', () => window._track?.('cta_click','hero-join'));
+    document.querySelector('a[href="#how"]').addEventListener('click',        () => window._track?.('cta_click','hero-how'));
+    document.querySelector('a[href="#claim"]').addEventListener('click',      () => window._track?.('cta_click','calc-join'));
+
+  } catch(_) {}
+})();
+
+</script>
+</body>
+</html>
