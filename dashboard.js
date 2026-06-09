@@ -1078,6 +1078,10 @@ function loadPayoutMethod() {
   const input = document.getElementById('payoutHandleInput');
   if (input && handle) input.value = handle;
 
+  // Pre-fill phone
+  const phoneInput = document.getElementById('payoutPhone');
+  if (phoneInput && user.phone) phoneInput.value = user.phone;
+
   // Show saved badge
   const badge = document.getElementById('payoutSavedBadge');
   if (badge && handle) badge.style.display = 'inline-flex';
@@ -1087,6 +1091,9 @@ async function savePayoutMethod() {
   if (!_selectedPayoutMethod) { showToast('Select a payout method first', 'error'); return; }
   const handle = (document.getElementById('payoutHandleInput')?.value || '').trim();
   if (!handle) { showToast('Enter your payout details', 'error'); return; }
+  const phone = (document.getElementById('payoutPhone')?.value || '').trim();
+  if (!phone) { showToast('Phone number is required for payout verification', 'error'); return; }
+  if (!/^\+?[\d\s\-(). ]{7,20}$/.test(phone)) { showToast('Please enter a valid phone number', 'error'); return; }
 
   try {
     const sb = getSB();
@@ -1094,6 +1101,7 @@ async function savePayoutMethod() {
       const { error } = await sb.from('profiles').update({
         payout_method: _selectedPayoutMethod,
         payout_handle: handle,
+        phone,
       }).eq('id', user.id);
       if (error) throw new Error(error.message);
     }

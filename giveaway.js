@@ -127,10 +127,13 @@
      NEW ACCOUNT SUBMIT
   ═══════════════════════════════════════════════════════════════════════ */
   document.getElementById('gwFormNew')?.addEventListener('submit', async () => {
-    const name      = (document.getElementById('gwName')?.value      || '').trim();
+    const firstName = (document.getElementById('gwFirstName')?.value  || '').trim();
+    const lastName  = (document.getElementById('gwLastName')?.value   || '').trim();
+    const name      = `${firstName} ${lastName}`.trim();
     const username  = (document.getElementById('gwUsername')?.value   || '').trim().toLowerCase();
     const instagram = (document.getElementById('gwInstagram')?.value  || '').trim().replace(/^@+/, '');
     const dob       = (document.getElementById('gwDob')?.value        || '').trim();
+    const phone     = (document.getElementById('gwPhone')?.value      || '').trim();
     const email     = (document.getElementById('gwEmail')?.value      || '').trim().toLowerCase();
     const password  = (document.getElementById('gwPassword')?.value   || '');
     const confirm   = (document.getElementById('gwConfirm')?.value    || '');
@@ -139,11 +142,13 @@
     setError('');
 
     if (!selectedPrize)                                            return setError('Please tap a prize to select what you want.');
-    if (!name)                                                     return setError('Please enter your full name.');
-    if (!username || username.length < 2)                         return setError('Username must be at least 2 characters.');
+    if (!firstName)                                               return setError('Please enter your first name.');
+    if (!lastName)                                                return setError('Please enter your last name.');
+    if (!username || username.length < 3)                         return setError('Username must be at least 3 characters.');
     if (!/^[a-z0-9_]+$/.test(username))                           return setError('Username: letters, numbers, underscores only.');
     if (!instagram)                                               return setError('Please enter your Instagram handle.');
     if (!dob)                                                     return setError('Please enter your date of birth.');
+    if (phone && !/^\+?[\d\s\-(). ]{7,20}$/.test(phone))         return setError('Please enter a valid phone number.');
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))    return setError('Please enter a valid email address.');
     if (password.length < 7)                                      return setError('Password must be at least 7 characters.');
     if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) return setError('Password needs at least one special character.');
@@ -184,7 +189,7 @@
       localStorage.setItem('thread_pending_profile', JSON.stringify({ name, username, dob, email, referralCode, referredBy }));
 
       if (authData.user) {
-        const profileData = { id: authData.user.id, email, name, username, referral_code: referralCode, referred_by: referredBy, date_of_birth: dob };
+        const profileData = { id: authData.user.id, email, name, username, first_name: firstName, last_name: lastName, referral_code: referralCode, referred_by: referredBy, date_of_birth: dob, phone: phone || null, instagram: instagram || null };
         const { error: upsertErr } = await sb.from('profiles').upsert(profileData, { onConflict: 'id' });
         if (!upsertErr) localStorage.removeItem('thread_pending_profile');
 

@@ -46,7 +46,10 @@ let _pendingSignup = null;
     const sb = getSB();
     if (sb) {
       const { data } = await sb.auth.getUser();
-      if (data?.user) window.location.href = 'dashboard.html';
+      if (data?.user) {
+        const _fromEarnCheck = new URLSearchParams(window.location.search).get('from') === 'earn';
+        window.location.href = _fromEarnCheck ? 'catalog.html' : 'dashboard.html';
+      }
     }
   } catch(e) {}
 })();
@@ -224,21 +227,27 @@ async function handleSignUp(event) {
     return;
   }
 
-  const name     = document.getElementById('signupName').value.trim();
-  const dob      = document.getElementById('signupDob').value;
-  const email    = document.getElementById('signupEmail').value.trim().toLowerCase();
-  const password = document.getElementById('signupPassword').value;
-  const confirm  = document.getElementById('signupConfirm').value;
-  const terms    = document.getElementById('agreeTerms').checked;
+  const firstName = document.getElementById('signupFirstName').value.trim();
+  const lastName  = document.getElementById('signupLastName').value.trim();
+  const name      = `${firstName} ${lastName}`;
+  const dob       = document.getElementById('signupDob').value;
+  const phone     = document.getElementById('signupPhone').value.trim();
+  const instagram = (document.getElementById('signupInstagram')?.value || '').trim().replace(/^@+/, '');
+  const email     = document.getElementById('signupEmail').value.trim().toLowerCase();
+  const password  = document.getElementById('signupPassword').value;
+  const confirm   = document.getElementById('signupConfirm').value;
+  const terms     = document.getElementById('agreeTerms').checked;
 
   const username = document.getElementById('signupUsername').value.trim().toLowerCase().replace(/^@/, '');
 
-  if (!name)     { showFormError('signupError', 'Please enter your full name.'); return; }
+  if (!firstName) { showFormError('signupError', 'Please enter your first name.'); return; }
+  if (!lastName)  { showFormError('signupError', 'Please enter your last name.'); return; }
   if (!username) { showFormError('signupError', 'Please choose a username.'); return; }
   if (username.length < 3) { showFormError('signupError', 'Username must be at least 3 characters.'); return; }
   if (username.length > 20) { showFormError('signupError', 'Username must be 20 characters or less.'); return; }
   if (!/^[a-z0-9_]+$/.test(username)) { showFormError('signupError', 'Username can only contain letters, numbers, and underscores.'); return; }
   if (!dob)      { showFormError('signupError', 'Please enter your date of birth.'); return; }
+  if (phone && !/^\+?[\d\s\-(). ]{7,20}$/.test(phone)) { showFormError('signupError', 'Please enter a valid phone number.'); return; }
 
   const age = calculateAge(dob);
   if (age < 13)  { showFormError('signupError', 'You must be at least 13 years old to create an account.'); return; }
@@ -250,14 +259,14 @@ async function handleSignUp(event) {
   if (!terms)    { showFormError('signupError', 'You must agree to the terms to continue.'); return; }
 
   if (age < 18) {
-    showParentalConsentModal({ name, username, dob, email, password });
+    showParentalConsentModal({ name, firstName, lastName, username, dob, phone, instagram, email, password });
     return;
   }
 
-  await completeSignUp({ name, username, dob, email, password });
+  await completeSignUp({ name, firstName, lastName, username, dob, phone, instagram, email, password });
 }
 
-async function completeSignUp({ name, username, dob, email, password, parentEmail = null }) {
+async function completeSignUp({ name, firstName, lastName, username, dob, phone, instagram, email, password, parentEmail = null }) {
   setLoading('signup', true);
   try {
     const sb = getSB();
@@ -291,9 +300,13 @@ async function completeSignUp({ name, username, dob, email, password, parentEmai
     if (data.user) {
       const profileData = {
         id: data.user.id, email, name, username,
+        first_name:    firstName  || null,
+        last_name:     lastName   || null,
         referral_code: referralCode,
         referred_by:   referredBy,
         date_of_birth: dob,
+        phone:         phone      || null,
+        instagram:     instagram  || null,
       };
       if (parentEmail) { profileData.parent_email = parentEmail; profileData.is_minor = true; }
 
@@ -469,7 +482,7 @@ async function handleSignIn(event) {
     const _params   = new URLSearchParams(window.location.search);
     const _next     = _params.get('next');
     const _fromEarn = _params.get('from') === 'earn';
-    window.location.href = _next || (_fromEarn ? 'index.html?welcome=1' : 'dashboard.html');
+    window.location.href = _next || (_fromEarn ? 'catalog.html' : 'dashboard.html');
 
   } catch(e) {
     setLoading('signin', false);
@@ -576,9 +589,14 @@ function showSuccessOverlay(name, code) {
           <div id="successBar" style="height:100%;background:linear-gradient(90deg,#6C63FF,#a78bfa);
                width:0%;transition:width 3.2s linear;border-radius:8px"></div>
         </div>
-        <p style="color:#555;font-size:12px;line-height:1.5;">
-          📬 Check your email — click the link to verify and start shopping.
+        <p style="color:#555;font-size:12px;line-height:1.5;margin-bottom:16px;">
+          📬 Check your email — click the link to verify your account.
         </p>
+        <a href="catalog.html" style="display:block;width:100%;padding:14px;background:#7c3aed;color:#fff;
+          border-radius:12px;font-size:15px;font-weight:700;text-decoration:none;
+          text-align:center;box-sizing:border-box;">
+          Pick Your Piece →
+        </a>
       </div>`;
     document.body.appendChild(el);
     setTimeout(() => { const bar = document.getElementById('successBar'); if (bar) bar.style.width = '100%'; }, 60);
@@ -586,11 +604,8 @@ function showSuccessOverlay(name, code) {
     // Render QR — uses QRCodeStyling with the IDENTICAL config as dashboard.js drawQR()
     _buildAuthQR(referralUrl, qrSize);
   }
-  // Always send to verify.html — works the same whether they signed up from
-  // the main site or the /earn page. The email verification callback handles
-  // the redirect to the shop for everyone.
   setTimeout(() => {
-    window.location.href = 'verify.html';
+    window.location.href = 'catalog.html';
   }, 3200);
 }
 

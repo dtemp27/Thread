@@ -492,11 +492,11 @@
     <div style="display:flex;gap:12px;">
       <div class="field" style="flex:1">
         <label>First name</label>
-        <input type="text" id="fFirst" placeholder="Jordan" autocomplete="given-name" />
+        <input type="text" id="fFirst" placeholder="Jordan" required autocomplete="given-name" />
       </div>
       <div class="field" style="flex:1">
         <label>Last name</label>
-        <input type="text" id="fLast" placeholder="T" autocomplete="family-name" />
+        <input type="text" id="fLast" placeholder="Williams" required autocomplete="family-name" />
       </div>
     </div>
     <div class="field">
@@ -504,8 +504,20 @@
       <input type="text" id="fUsername" placeholder="jordan.t" autocomplete="username" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9_.]/g,'')" />
     </div>
     <div class="field">
+      <label>Date of Birth</label>
+      <input type="date" id="fDob" required autocomplete="bday" />
+    </div>
+    <div class="field">
       <label>Email</label>
       <input type="email" id="fEmail" placeholder="you@email.com" autocomplete="email" />
+    </div>
+    <div class="field">
+      <label>Phone Number <span style="font-size:11px;color:#888;font-weight:400">Optional — required for payouts</span></label>
+      <input type="tel" id="fPhone" placeholder="+1 (555) 000-0000" autocomplete="tel" />
+    </div>
+    <div class="field">
+      <label>Instagram <span style="font-size:11px;color:#888;font-weight:400">📸 Optional</span></label>
+      <input type="text" id="fInstagram" placeholder="@yourhandle" maxlength="30" autocomplete="off" />
     </div>
     <div class="field">
       <label>Password</label>
@@ -575,16 +587,24 @@ async function doSignup() {
   const firstName = document.getElementById('fFirst').value.trim();
   const lastName  = document.getElementById('fLast').value.trim();
   const username  = document.getElementById('fUsername').value.trim().toLowerCase();
+  const dob       = document.getElementById('fDob').value;
   const email     = document.getElementById('fEmail').value.trim();
+  const phone     = document.getElementById('fPhone').value.trim();
+  const instagram = (document.getElementById('fInstagram').value || '').trim().replace(/^@+/, '');
   const password  = document.getElementById('fPassword').value;
   const errEl     = document.getElementById('formError');
   const btn       = document.getElementById('submitBtn');
   errEl.textContent = '';
 
   const name = (firstName + ' ' + lastName).trim();
-  if (!firstName || name.length < 2)      { errEl.textContent = 'Enter your name.'; return; }
+  if (!firstName)                         { errEl.textContent = 'Enter your first name.'; return; }
+  if (!lastName)                          { errEl.textContent = 'Enter your last name.'; return; }
   if (!username || username.length < 3)   { errEl.textContent = 'Username must be at least 3 characters.'; return; }
+  if (!dob)                               { errEl.textContent = 'Enter your date of birth.'; return; }
+  const _age = (() => { const t = new Date(), b = new Date(dob); let a = t.getFullYear()-b.getFullYear(); if(t.getMonth()-b.getMonth()<0||(t.getMonth()-b.getMonth()===0&&t.getDate()<b.getDate()))a--; return a; })();
+  if (_age < 13)                          { errEl.textContent = 'You must be at least 13 years old to join.'; return; }
   if (!email || !email.includes('@'))     { errEl.textContent = 'Enter a valid email address.'; return; }
+  if (phone && !/^\+?[\d\s\-(). ]{7,20}$/.test(phone)) { errEl.textContent = 'Enter a valid phone number.'; return; }
   if (password.length < 7)               { errEl.textContent = 'Password must be at least 7 characters.'; return; }
   if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) {
     errEl.textContent = 'Password needs at least one special character (e.g. !@#$%).'; return;
@@ -618,11 +638,14 @@ async function doSignup() {
     });
     if (error) throw new Error(error.message);
 
-    localStorage.setItem('thread_pending_profile', JSON.stringify({ name: displayName, username, email, referralCode, referredBy }));
+    localStorage.setItem('thread_pending_profile', JSON.stringify({ name: displayName, username, dob, email, referralCode, referredBy }));
 
     if (data.user) {
       const { error: ue } = await sb.from('profiles').upsert(
-        { id: data.user.id, email, name: displayName, username, referral_code: referralCode, referred_by: referredBy },
+        { id: data.user.id, email, name: displayName, username,
+          first_name: firstName, last_name: lastName,
+          date_of_birth: dob, phone: phone || null, instagram: instagram || null,
+          referral_code: referralCode, referred_by: referredBy },
         { onConflict: 'id' }
       );
       if (!ue) localStorage.removeItem('thread_pending_profile');
