@@ -142,17 +142,25 @@ create index if not exists idx_scans_referral_code    on public.referral_scans(r
 
 
 -- ─── HELPER FUNCTION: auto-create profile after signup ───────────────────────
--- This trigger fires after a user signs up via Supabase Auth and creates a
--- minimal profile row. The app overwrites it with the full name + referral code.
+-- This trigger fires after a user signs up via Supabase Auth and creates the
+-- full profile row using data from auth metadata (stored by the app at signup).
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer as $$
 begin
-  insert into public.profiles (id, email, name, referral_code)
+  insert into public.profiles (id, email, name, referral_code, username, first_name, last_name, phone, instagram)
   values (
     new.id,
     new.email,
-    coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
-    upper(substring(md5(new.id::text), 1, 8))  -- temp code; overwritten by app
+    coalesce(nullif(new.raw_user_meta_data->>'name', ''), split_part(new.email, '@', 1)),
+    coalesce(
+      nullif(new.raw_user_meta_data->>'referral_code', ''),
+      upper(substring(md5(new.id::text), 1, 8))
+    ),
+    nullif(new.raw_user_meta_data->>'username', ''),
+    nullif(new.raw_user_meta_data->>'first_name', ''),
+    nullif(new.raw_user_meta_data->>'last_name', ''),
+    nullif(new.raw_user_meta_data->>'phone', ''),
+    nullif(new.raw_user_meta_data->>'instagram', '')
   )
   on conflict (id) do nothing;
   return new;
