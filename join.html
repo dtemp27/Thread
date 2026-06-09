@@ -640,6 +640,9 @@ async function doSignup() {
     }
 
     const { data, error } = await sb.auth.signUp({
+      email, password,
+      options: { data: { name: displayName, username }, emailRedirectTo: 'https://mythread.shop/checkout.html' }
+    });
     if (error) throw new Error(error.message);
 
     localStorage.setItem('thread_pending_profile', JSON.stringify({ name: displayName, username, dob, email, referralCode, referredBy }));
