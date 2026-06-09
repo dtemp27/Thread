@@ -46,7 +46,10 @@ let _pendingSignup = null;
     const sb = getSB();
     if (sb) {
       const { data } = await sb.auth.getUser();
-      if (data?.user) window.location.href = 'dashboard.html';
+      if (data?.user) {
+        const _fromEarnCheck = new URLSearchParams(window.location.search).get('from') === 'earn';
+        window.location.href = _fromEarnCheck ? 'catalog.html' : 'dashboard.html';
+      }
     }
   } catch(e) {}
 })();
@@ -479,7 +482,7 @@ async function handleSignIn(event) {
     const _params   = new URLSearchParams(window.location.search);
     const _next     = _params.get('next');
     const _fromEarn = _params.get('from') === 'earn';
-    window.location.href = _next || (_fromEarn ? 'index.html?welcome=1' : 'dashboard.html');
+    window.location.href = _next || (_fromEarn ? 'catalog.html' : 'dashboard.html');
 
   } catch(e) {
     setLoading('signin', false);
@@ -586,9 +589,14 @@ function showSuccessOverlay(name, code) {
           <div id="successBar" style="height:100%;background:linear-gradient(90deg,#6C63FF,#a78bfa);
                width:0%;transition:width 3.2s linear;border-radius:8px"></div>
         </div>
-        <p style="color:#555;font-size:12px;line-height:1.5;">
-          📬 Check your email — click the link to verify and start shopping.
+        <p style="color:#555;font-size:12px;line-height:1.5;margin-bottom:16px;">
+          📬 Check your email — click the link to verify your account.
         </p>
+        <a href="catalog.html" style="display:block;width:100%;padding:14px;background:#7c3aed;color:#fff;
+          border-radius:12px;font-size:15px;font-weight:700;text-decoration:none;
+          text-align:center;box-sizing:border-box;">
+          Pick Your Piece →
+        </a>
       </div>`;
     document.body.appendChild(el);
     setTimeout(() => { const bar = document.getElementById('successBar'); if (bar) bar.style.width = '100%'; }, 60);
@@ -596,11 +604,8 @@ function showSuccessOverlay(name, code) {
     // Render QR — uses QRCodeStyling with the IDENTICAL config as dashboard.js drawQR()
     _buildAuthQR(referralUrl, qrSize);
   }
-  // Always send to verify.html — works the same whether they signed up from
-  // the main site or the /earn page. The email verification callback handles
-  // the redirect to the shop for everyone.
   setTimeout(() => {
-    window.location.href = 'verify.html';
+    window.location.href = 'catalog.html';
   }, 3200);
 }
 
