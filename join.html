@@ -641,7 +641,7 @@ async function doSignup() {
 
     const { data, error } = await sb.auth.signUp({
       email, password,
-      options: { data: { name: displayName, username, first_name: firstName || null, last_name: lastName || null, phone: phone || null, instagram: instagram || null, dob: dob || null }, emailRedirectTo: 'https://mythread.shop/checkout.html' }
+      options: { data: { name: displayName, username, first_name: firstName || null, last_name: lastName || null, phone: phone || null, instagram: instagram || null, dob: dob || null, referral_code: referralCode }, emailRedirectTo: 'https://mythread.shop/checkout.html' }
     });
     if (error) throw new Error(error.message);
 

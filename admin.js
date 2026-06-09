@@ -547,20 +547,23 @@ function renderCustomers() {
          THEN u.raw_user_meta_data->>'username'
          ELSE p.username
        END,
-       name       = COALESCE(NULLIF(p.name,''),        NULLIF(u.raw_user_meta_data->>'name',''),        p.name),
-       first_name = COALESCE(NULLIF(p.first_name,''),  NULLIF(u.raw_user_meta_data->>'first_name',''),  p.first_name),
-       last_name  = COALESCE(NULLIF(p.last_name,''),   NULLIF(u.raw_user_meta_data->>'last_name',''),   p.last_name),
-       phone      = COALESCE(NULLIF(p.phone,''),       NULLIF(u.raw_user_meta_data->>'phone',''),       p.phone),
-       instagram  = COALESCE(NULLIF(p.instagram,''),   NULLIF(u.raw_user_meta_data->>'instagram',''),   p.instagram)
+       name          = COALESCE(NULLIF(p.name,''),         NULLIF(u.raw_user_meta_data->>'name',''),         p.name),
+       first_name    = COALESCE(NULLIF(p.first_name,''),   NULLIF(u.raw_user_meta_data->>'first_name',''),   p.first_name),
+       last_name     = COALESCE(NULLIF(p.last_name,''),    NULLIF(u.raw_user_meta_data->>'last_name',''),    p.last_name),
+       phone         = COALESCE(NULLIF(p.phone,''),        NULLIF(u.raw_user_meta_data->>'phone',''),        p.phone),
+       instagram     = COALESCE(NULLIF(p.instagram,''),    NULLIF(u.raw_user_meta_data->>'instagram',''),    p.instagram),
+       -- referral_code: only fill if missing — never overwrite an existing code
+       referral_code = COALESCE(NULLIF(p.referral_code,''), NULLIF(u.raw_user_meta_data->>'referral_code',''), p.referral_code)
      FROM auth.users u
      WHERE p.id = u.id
        AND (
-         ((p.username   IS NULL OR p.username   = '') AND (u.raw_user_meta_data->>'username'   IS NOT NULL AND u.raw_user_meta_data->>'username'   != '')) OR
-         ((p.name       IS NULL OR p.name       = '') AND (u.raw_user_meta_data->>'name'       IS NOT NULL AND u.raw_user_meta_data->>'name'       != '')) OR
-         ((p.first_name IS NULL OR p.first_name = '') AND (u.raw_user_meta_data->>'first_name' IS NOT NULL AND u.raw_user_meta_data->>'first_name' != '')) OR
-         ((p.last_name  IS NULL OR p.last_name  = '') AND (u.raw_user_meta_data->>'last_name'  IS NOT NULL AND u.raw_user_meta_data->>'last_name'  != '')) OR
-         ((p.phone      IS NULL OR p.phone      = '') AND (u.raw_user_meta_data->>'phone'      IS NOT NULL AND u.raw_user_meta_data->>'phone'      != '')) OR
-         ((p.instagram  IS NULL OR p.instagram  = '') AND (u.raw_user_meta_data->>'instagram'  IS NOT NULL AND u.raw_user_meta_data->>'instagram'  != ''))
+         ((p.username      IS NULL OR p.username      = '') AND (u.raw_user_meta_data->>'username'      IS NOT NULL AND u.raw_user_meta_data->>'username'      != '')) OR
+         ((p.name          IS NULL OR p.name          = '') AND (u.raw_user_meta_data->>'name'          IS NOT NULL AND u.raw_user_meta_data->>'name'          != '')) OR
+         ((p.first_name    IS NULL OR p.first_name    = '') AND (u.raw_user_meta_data->>'first_name'    IS NOT NULL AND u.raw_user_meta_data->>'first_name'    != '')) OR
+         ((p.last_name     IS NULL OR p.last_name     = '') AND (u.raw_user_meta_data->>'last_name'     IS NOT NULL AND u.raw_user_meta_data->>'last_name'     != '')) OR
+         ((p.phone         IS NULL OR p.phone         = '') AND (u.raw_user_meta_data->>'phone'         IS NOT NULL AND u.raw_user_meta_data->>'phone'         != '')) OR
+         ((p.instagram     IS NULL OR p.instagram     = '') AND (u.raw_user_meta_data->>'instagram'     IS NOT NULL AND u.raw_user_meta_data->>'instagram'     != '')) OR
+         ((p.referral_code IS NULL OR p.referral_code = '') AND (u.raw_user_meta_data->>'referral_code' IS NOT NULL AND u.raw_user_meta_data->>'referral_code' != ''))
        );
      GET DIAGNOSTICS updated_count = ROW_COUNT;
      RETURN json_build_object('updated', updated_count);

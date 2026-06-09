@@ -296,7 +296,7 @@ async function completeSignUp({ name, firstName, lastName, username, dob, phone,
     const { data, error } = await sb.auth.signUp({
       email, password,
       options: {
-        data: { name, username, first_name: firstName || null, last_name: lastName || null, phone: phone || null, instagram: instagram || null, dob: dob || null },
+        data: { name, username, first_name: firstName || null, last_name: lastName || null, phone: phone || null, instagram: instagram || null, dob: dob || null, referral_code: referralCode },
         emailRedirectTo: 'https://mythread.shop/auth.html',
       }
     });
