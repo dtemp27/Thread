@@ -28,13 +28,27 @@
       const cached = sessionStorage.getItem('thread_geo');
       const geo = cached ? JSON.parse(cached) : null;
       if (geo) {
-        ip = geo.ip || null; country = geo.country_name || null; city = geo.city || null;
+        ip = geo.ip || null; country = geo.country_name || geo.country || null; city = geo.city || null; region = geo.region || null;
       } else {
-        const r = await fetch('https://ipapi.co/json/');
-        if (r.ok) {
-          const g = await r.json();
+        // Primary: ipapi.co
+        let g = null;
+        try {
+          const r = await fetch('https://ipapi.co/json/');
+          if (r.ok) { g = await r.json(); }
+        } catch(_) {}
+        // Fallback: ip-api.com (45 req/min free, no key needed)
+        if (!g?.city) {
+          try {
+            const r2 = await fetch('https://ip-api.com/json/?fields=status,country,regionName,city,query');
+            if (r2.ok) {
+              const d = await r2.json();
+              if (d.status === 'success') g = { ip: d.query, country_name: d.country, city: d.city, region: d.regionName };
+            }
+          } catch(_) {}
+        }
+        if (g) {
           sessionStorage.setItem('thread_geo', JSON.stringify(g));
-          ip = g.ip || null; country = g.country_name || null; city = g.city || null;
+          ip = g.ip || g.query || null; country = g.country_name || g.country || null; city = g.city || null; region = g.region || g.regionName || null;
         }
       }
     } catch(_) {}

@@ -675,7 +675,7 @@
         const OWNER_IPS = ['65.130.60.246', '187.199.28.205', '187.199.69.171'];
 
         // let so _threadTrackRaw can close over them and pick up values after geo resolves
-        let ip = null, country = null, city = null;
+        let ip = null, country = null, city = null, region = null;
 
         // Expose raw tracker immediately — before the geo fetch — so any cart event
         // fired quickly is never dropped (same fix as app.js on the home page).
@@ -688,14 +688,12 @@
           const cached = sessionStorage.getItem('thread_geo');
           const geo = cached ? JSON.parse(cached) : null;
           if (geo) {
-            ip = geo.ip || null; country = geo.country_name || null; city = geo.city || null;
+            ip = geo.ip || null; country = geo.country_name || null; city = geo.city || null; region = geo.region || null;
           } else {
-            const r = await fetch('https://ipapi.co/json/');
-            if (r.ok) {
-              const g = await r.json();
-              sessionStorage.setItem('thread_geo', JSON.stringify(g));
-              ip = g.ip || null; country = g.country_name || null; city = g.city || null;
-            }
+            let _g = null;
+            try { const r = await fetch('https://ipapi.co/json/'); if (r.ok) _g = await r.json(); } catch(_) {}
+            if (!_g?.city) { try { const r2 = await fetch('https://ip-api.com/json/?fields=status,country,regionName,city,query'); if (r2.ok) { const d=await r2.json(); if (d.status==='success') _g={ip:d.query,country_name:d.country,city:d.city,region:d.regionName}; } } catch(_) {} }
+            if (_g) { sessionStorage.setItem('thread_geo', JSON.stringify(_g)); ip=_g.ip||null; country=_g.country_name||null; city=_g.city||null; region=_g.region||null; }
           }
         } catch(_) {}
 

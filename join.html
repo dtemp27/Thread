@@ -787,8 +787,10 @@ async function doSignin() {
       const g = cached ? JSON.parse(cached) : null;
       if (g) { ip=g.ip; country=g.country_name; city=g.city; region=g.region; }
       else {
-        const r = await fetch('https://ipapi.co/json/');
-        if (r.ok) { const d=await r.json(); sessionStorage.setItem('thread_geo',JSON.stringify(d)); ip=d.ip; country=d.country_name; city=d.city; region=d.region; }
+        let _g=null;
+        try { const r=await fetch('https://ipapi.co/json/'); if(r.ok) _g=await r.json(); } catch(_){}
+        if (!_g?.city) { try { const r2=await fetch('https://ip-api.com/json/?fields=status,country,regionName,city,query'); if(r2.ok){const d=await r2.json();if(d.status==='success')_g={ip:d.query,country_name:d.country,city:d.city,region:d.regionName};} } catch(_){} }
+        if (_g) { sessionStorage.setItem('thread_geo',JSON.stringify(_g)); ip=_g.ip||null; country=_g.country_name||null; city=_g.city||null; region=_g.region||null; }
       }
     } catch(_) {}
 

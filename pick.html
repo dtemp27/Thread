@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pick Your Piece — THREAD</title>
+  <link rel="icon" href="favicon.ico?v=5" sizes="any" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=5" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --purple:  #7c3aed;
+      --purple2: #a78bfa;
+      --green:   #22c55e;
+      --bg:      #080808;
+      --bg2:     #0f0f18;
+      --bg3:     #13131f;
+      --text:    #f0f0f0;
+      --border:  rgba(255,255,255,0.08);
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; -webkit-font-smoothing: antialiased; padding-bottom: 100px; }
+    a { color: inherit; text-decoration: none; }
+
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      height: 54px; background: rgba(8,8,8,0.95);
+      backdrop-filter: blur(16px); border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .logo { font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+    .logo b { color: var(--purple2); }
+    .nav-back {
+      position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+      font-size: 14px; font-weight: 600; color: #555; cursor: pointer;
+      -webkit-tap-highlight-color: transparent; padding: 8px 4px;
+    }
+    .nav-back:hover { color: #fff; }
+
+    /* ── PAGE HEADER ── */
+    .page-header { padding: 40px 24px 28px; text-align: center; }
+    .page-header h1 { font-size: clamp(26px, 6vw, 40px); font-weight: 900; letter-spacing: -1px; margin-bottom: 8px; }
+    .page-header p { font-size: 14px; color: #555; }
+
+    /* ── PRODUCT TYPE TABS ── */
+    .type-tabs {
+      display: flex; gap: 10px; padding: 0 24px 32px;
+      justify-content: center;
+    }
+    .type-tab {
+      flex: 1; max-width: 120px;
+      padding: 14px 8px; border-radius: 16px; cursor: pointer;
+      border: 2px solid var(--border); background: var(--bg2);
+      text-align: center; transition: border-color 0.2s, background 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .type-tab.active { border-color: var(--purple); background: rgba(124,58,237,0.12); }
+    .type-tab-icon { font-size: 22px; margin-bottom: 4px; }
+    .type-tab-name { font-size: 13px; font-weight: 700; }
+    .type-tab-price { font-size: 11px; color: #555; margin-top: 2px; }
+    .type-tab.active .type-tab-price { color: var(--purple2); }
+
+    /* ── PRODUCT SECTION ── */
+    .product-section { padding: 0 24px 32px; max-width: 520px; margin: 0 auto; display: none; }
+    .product-section.visible { display: block; }
+
+    .section-divider { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--purple2); margin-bottom: 20px; padding-top: 8px; border-top: 1px solid var(--border); }
+
+    /* product image — full width, tall portrait */
+    .prod-layout { margin-bottom: 4px; }
+    .prod-options {}
+    .prod-img-wrap {
+      width: 100%; height: 210px; border-radius: 20px; overflow: hidden;
+      background: var(--bg2); border: 1px solid var(--border); margin-bottom: 20px;
+      position: relative; cursor: pointer; user-select: none;
+    }
+    .prod-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center; transition: opacity 0.3s; }
+    .prod-img.back { opacity: 0; }
+    .prod-img-hint { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 600; letter-spacing: 1px; color: rgba(255,255,255,0.35); text-transform: uppercase; pointer-events: none; white-space: nowrap; }
+
+    /* color swatches */
+    .picker-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #444; margin-bottom: 12px; }
+    .picker-label span { color: #fff; font-weight: 800; text-transform: none; letter-spacing: 0; }
+    .swatches { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
+    .swatch {
+      width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+      border: 2px solid transparent; transition: transform 0.15s, border-color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .swatch:hover { transform: scale(1.15); }
+    .swatch.selected { border-color: var(--purple2); box-shadow: 0 0 0 3px rgba(124,58,237,0.3); transform: scale(1.1); }
+
+    /* sizes */
+    .sizes { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+    .size-btn {
+      min-width: 52px; padding: 10px 12px; border-radius: 10px; cursor: pointer;
+      border: 1px solid var(--border); background: var(--bg2);
+      font-size: 13px; font-weight: 700; color: #666; text-align: center;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .size-btn:hover { border-color: rgba(124,58,237,0.4); color: #aaa; }
+    .size-btn.selected { border-color: var(--purple); background: rgba(124,58,237,0.15); color: #fff; }
+    .size-guide { font-size: 11px; color: #333; margin-bottom: 32px; }
+
+    /* ── STICKY BOTTOM BAR ── */
+    .bottom-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+      padding: 16px 24px 28px;
+      background: linear-gradient(to top, rgba(8,8,8,1) 70%, rgba(8,8,8,0));
+    }
+    .bottom-bar-inner { max-width: 520px; margin: 0 auto; }
+    .order-preview { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; min-height: 18px; }
+    .order-preview-items { font-size: 12px; color: #444; }
+    .order-preview-total { font-size: 15px; font-weight: 800; color: #fff; }
+    .btn-continue {
+      display: block; width: 100%; background: var(--purple); color: #fff;
+      border: none; border-radius: 50px; padding: 19px;
+      font-size: 17px; font-weight: 800; font-family: inherit; cursor: pointer;
+      text-align: center; -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+    }
+    .btn-continue:active { transform: scale(0.97); }
+    .btn-continue:disabled { opacity: 0.35; cursor: not-allowed; }
+    .form-error { font-size: 13px; color: #f87171; text-align: center; min-height: 18px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-back" onclick="history.back()">← Back</span>
+  <div class="logo">THREAD<b>.</b></div>
+</nav>
+
+<div class="page-header">
+  <h1>Pick your piece</h1>
+  <p>Choose your style, color, and size. Your QR code ships with it.</p>
+</div>
+
+<!-- Product type selector -->
+<div class="type-tabs">
+  <div class="type-tab active" id="tab-tee" onclick="setType('tee')">
+    <div class="type-tab-icon">👕</div>
+    <div class="type-tab-name">Tee</div>
+    <div class="type-tab-price">$55</div>
+  </div>
+  <div class="type-tab" id="tab-hoodie" onclick="setType('hoodie')">
+    <div class="type-tab-icon">🧥</div>
+    <div class="type-tab-name">Hoodie</div>
+    <div class="type-tab-price">$79</div>
+  </div>
+  <div class="type-tab" id="tab-both" onclick="setType('both')">
+    <div class="type-tab-icon">✦</div>
+    <div class="type-tab-name">Both</div>
+    <div class="type-tab-price">$134</div>
+  </div>
+</div>
+
+<!-- TEE section -->
+<div class="product-section visible" id="sec-tee">
+  <p class="section-divider">Tee — $55</p>
+  <div class="prod-img-wrap" id="teeImgWrap">
+    <img class="prod-img front" id="teeImgFront" src="images/tee-jet-black-front.webp" alt="Tee front" />
+    <img class="prod-img back"  id="teeImgBack"  src="images/tee-jet-black-back.webp"  alt="Tee back" />
+    <span class="prod-img-hint">Tap to flip</span>
+  </div>
+  <p class="picker-label">Color — <span id="teeColorName">Jet Black</span></p>
+  <div class="swatches" id="teeSwatches"></div>
+  <p class="picker-label">Size</p>
+  <div class="sizes" id="teeSizes"></div>
+  <p class="size-guide">Unisex fit · runs true to size</p>
+</div>
+
+<!-- HOODIE section -->
+<div class="product-section" id="sec-hoodie">
+  <p class="section-divider">Hoodie — $79</p>
+  <div class="prod-img-wrap" id="hoodieImgWrap">
+    <img class="prod-img front" id="hoodieImgFront" src="hoodie-variants/phantom-black-front.webp" alt="Hoodie front" />
+    <img class="prod-img back"  id="hoodieImgBack"  src="hoodie-variants/phantom-black-back.webp"  alt="Hoodie back" />
+    <span class="prod-img-hint">Tap to flip</span>
+  </div>
+  <p class="picker-label">Color — <span id="hoodieColorName">Phantom Black</span></p>
+  <div class="swatches" id="hoodieSwatches"></div>
+  <p class="picker-label">Size</p>
+  <div class="sizes" id="hoodieSizes"></div>
+  <p class="size-guide">Oversized fit · size down if between sizes</p>
+</div>
+
+<!-- Sticky bottom bar -->
+<div class="bottom-bar">
+  <div class="bottom-bar-inner">
+    <div class="order-preview">
+      <span class="order-preview-items" id="previewItems">Select your size to continue</span>
+      <span class="order-preview-total" id="previewTotal"></span>
+    </div>
+    <button class="btn-continue" id="continueBtn" disabled onclick="goToCheckout()">Continue to Checkout →</button>
+    <div class="form-error" id="pickError"></div>
+  </div>
+</div>
+
+<script src="config.js?v=5"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const TEE_COLORS = [
+  { name: 'Jet Black',   hex: '#111111', front: 'images/tee-jet-black-front.webp',    back: 'images/tee-jet-black-back.webp' },
+  { name: 'Clean White', hex: '#e8e8e8', front: 'images/tee-clean-white-front.webp',  back: 'images/tee-clean-white-back.webp' },
+  { name: 'Deep Navy',   hex: '#1a2744', front: 'images/tee-deep-navy-2.webp',         back: 'images/tee-deep-navy-back-2.webp' },
+  { name: 'Raw Stone',   hex: '#b5a898', front: 'images/tee-raw-stone-front.webp',    back: 'images/tee-raw-stone-back.webp' },
+  { name: 'Slate Grey',  hex: '#6b7280', front: 'images/tee-slate-grey-2.webp',       back: 'images/tee-slate-grey-back-2.webp' },
+];
+const HOODIE_COLORS = [
+  { name: 'Phantom Black', hex: '#1a1a1a', front: 'hoodie-variants/phantom-black-front.webp', back: 'hoodie-variants/phantom-black-back.webp' },
+  { name: 'Bone',          hex: '#e0d5c0', front: 'hoodie-variants/bone-front.webp',          back: 'hoodie-variants/bone-back.webp' },
+  { name: 'Midnight Navy', hex: '#1a2744', front: 'hoodie-variants/midnight-navy-front.webp', back: 'hoodie-variants/midnight-navy-back.webp' },
+  { name: 'Ash Stone',     hex: '#9e9e9e', front: 'hoodie-variants/ash-stone-front.webp',     back: 'hoodie-variants/ash-stone-back.webp' },
+  { name: 'Silver Mist',   hex: '#c0c4cc', front: 'hoodie-variants/silver-mist-front.webp',   back: 'hoodie-variants/silver-mist-back.webp' },
+  { name: 'Tawny Dusk',    hex: '#b87c5a', front: 'hoodie-variants/tawny-dusk-front.webp',    back: 'hoodie-variants/tawny-dusk-back.webp' },
+  { name: 'Ivory Pure',    hex: '#f5f5f5', front: 'hoodie-variants/ivory-pure-front.webp',    back: 'hoodie-variants/ivory-pure-back.webp' },
+  { name: 'Forest Shadow', hex: '#2d4a2d', front: 'hoodie-variants/forest-shadow-front.webp', back: 'hoodie-variants/forest-shadow-back.webp' },
+  { name: 'Ember Crimson', hex: '#8b1a1a', front: 'hoodie-variants/ember-crimson-front.webp', back: 'hoodie-variants/ember-crimson-back.webp' },
+];
+const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+let currentType = 'tee';
+let teeColorIdx = 0, teeSize = null;
+let hoodieColorIdx = 0, hoodieSize = null;
+
+function setType(type) {
+  currentType = type;
+  ['tee','hoodie','both'].forEach(t => document.getElementById('tab-'+t).classList.toggle('active', t === type));
+  document.getElementById('sec-tee').classList.toggle('visible', type === 'tee' || type === 'both');
+  document.getElementById('sec-hoodie').classList.toggle('visible', type === 'hoodie' || type === 'both');
+  updatePreview();
+}
+
+function buildSwatches(colors, containerId, colorIdxRef, setColorFn) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  colors.forEach((c, i) => {
+    const s = document.createElement('div');
+    s.className = 'swatch' + (i === 0 ? ' selected' : '');
+    s.style.background = c.hex;
+    if (c.hex === '#e8e8e8' || c.hex === '#f5f5f5' || c.hex === '#e0d5c0') {
+      s.style.border = '2px solid rgba(255,255,255,0.15)';
+    }
+    s.title = c.name;
+    s.addEventListener('click', () => setColorFn(i));
+    el.appendChild(s);
+  });
+}
+
+function buildSizes(containerId, sizeRef, setFn) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  SIZES.forEach(sz => {
+    const b = document.createElement('div');
+    b.className = 'size-btn';
+    b.textContent = sz;
+    b.addEventListener('click', () => setFn(sz));
+    el.appendChild(b);
+  });
+}
+
+function setTeeColor(idx) {
+  teeColorIdx = idx;
+  document.querySelectorAll('#teeSwatches .swatch').forEach((s,i) => s.classList.toggle('selected', i === idx));
+  document.getElementById('teeColorName').textContent = TEE_COLORS[idx].name;
+  document.getElementById('teeImgFront').src = TEE_COLORS[idx].front;
+  document.getElementById('teeImgBack').src  = TEE_COLORS[idx].back;
+}
+
+function setHoodieColor(idx) {
+  hoodieColorIdx = idx;
+  document.querySelectorAll('#hoodieSwatches .swatch').forEach((s,i) => s.classList.toggle('selected', i === idx));
+  document.getElementById('hoodieColorName').textContent = HOODIE_COLORS[idx].name;
+  document.getElementById('hoodieImgFront').src = HOODIE_COLORS[idx].front;
+  document.getElementById('hoodieImgBack').src  = HOODIE_COLORS[idx].back;
+}
+
+function setTeeSize(sz) {
+  teeSize = sz;
+  document.querySelectorAll('#teeSizes .size-btn').forEach(b => b.classList.toggle('selected', b.textContent === sz));
+  updatePreview();
+}
+
+function setHoodieSize(sz) {
+  hoodieSize = sz;
+  document.querySelectorAll('#hoodieSizes .size-btn').forEach(b => b.classList.toggle('selected', b.textContent === sz));
+  updatePreview();
+}
+
+function updatePreview() {
+  const btn      = document.getElementById('continueBtn');
+  const preview  = document.getElementById('previewItems');
+  const totalEl  = document.getElementById('previewTotal');
+  let total = 0, parts = [], ready = true;
+
+  if (currentType === 'tee' || currentType === 'both') {
+    if (teeSize) { parts.push(TEE_COLORS[teeColorIdx].name + ' Tee · ' + teeSize); total += 55; }
+    else ready = false;
+  }
+  if (currentType === 'hoodie' || currentType === 'both') {
+    if (hoodieSize) { parts.push(HOODIE_COLORS[hoodieColorIdx].name + ' Hoodie · ' + hoodieSize); total += 79; }
+    else ready = false;
+  }
+
+  if (parts.length) {
+    preview.textContent = parts.join(' + ');
+    totalEl.textContent = '$' + total;
+  } else {
+    preview.textContent = 'Select your size to continue';
+    totalEl.textContent = '';
+  }
+
+  btn.disabled = !ready;
+}
+
+function goToCheckout() {
+  const items = [];
+  if (currentType === 'tee' || currentType === 'both') {
+    items.push({ name: TEE_COLORS[teeColorIdx].name + ' Tee', price: 55, size: teeSize, type: 'tee', qty: 1 });
+  }
+  if (currentType === 'hoodie' || currentType === 'both') {
+    items.push({ name: HOODIE_COLORS[hoodieColorIdx].name + ' Hoodie', price: 79, size: hoodieSize, type: 'hoodie', qty: 1 });
+  }
+  const subtotal = items.reduce((s,i) => s + i.price, 0);
+  const shipping = items.length >= 2 ? 0 : 10;
+  localStorage.setItem('thread_checkout', JSON.stringify({ items, subtotal, shipping, total: subtotal + shipping, discount: 0 }));
+  window.location.href = 'checkout.html';
+}
+
+// Tap to toggle front/back
+function setupFlip(wrapId, frontId, backId) {
+  const wrap  = document.getElementById(wrapId);
+  const front = document.getElementById(frontId);
+  const back  = document.getElementById(backId);
+  const hint  = wrap.querySelector('.prod-img-hint');
+  let flipped = false;
+  wrap.addEventListener('click', () => {
+    flipped = !flipped;
+    front.style.opacity = flipped ? '0' : '1';
+    back.style.opacity  = flipped ? '1' : '0';
+    if (hint) hint.textContent = flipped ? 'Tap for front' : 'Tap to flip';
+  });
+}
+setupFlip('teeImgWrap',    'teeImgFront',    'teeImgBack');
+setupFlip('hoodieImgWrap', 'hoodieImgFront', 'hoodieImgBack');
+
+// Build all pickers
+buildSwatches(TEE_COLORS,    'teeSwatches',    teeColorIdx,    setTeeColor);
+buildSwatches(HOODIE_COLORS, 'hoodieSwatches', hoodieColorIdx, setHoodieColor);
+buildSizes('teeSizes',    teeSize,    setTeeSize);
+buildSizes('hoodieSizes', hoodieSize, setHoodieSize);
+updatePreview();
+
+/* ── ANALYTICS ── */
+(async function() {
+  try {
+    const cfg = window.THREAD_CONFIG;
+    if (!cfg?.supabaseUrl || !window.supabase) return;
+    const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    let ip = null, country = null, city = null, region = null;
+    const OWNER_IPS = ['65.130.60.246','187.199.28.205','187.199.69.171'];
+
+    window._track = async (type, label) => {
+      const k = 'jt_'+type+'_'+label;
+      if (sessionStorage.getItem(k)) return;
+      sessionStorage.setItem(k,'1');
+      try { await sb.rpc('log_page_event', { p_event_type:type, p_ip:ip, p_country:country, p_city:city, p_region:region, p_page:'pick', p_label:label }); } catch(_) {}
+    };
+
+    try {
+      const cached = sessionStorage.getItem('thread_geo');
+      const g = cached ? JSON.parse(cached) : null;
+      if (g) { ip=g.ip; country=g.country_name; city=g.city; region=g.region; }
+      else {
+        let _g=null;
+        try { const r=await fetch('https://ipapi.co/json/'); if(r.ok) _g=await r.json(); } catch(_){}
+        if (!_g?.city) { try { const r2=await fetch('https://ip-api.com/json/?fields=status,country,regionName,city,query'); if(r2.ok){const d=await r2.json();if(d.status==='success')_g={ip:d.query,country_name:d.country,city:d.city,region:d.regionName};} } catch(_){} }
+        if (_g) { sessionStorage.setItem('thread_geo',JSON.stringify(_g)); ip=_g.ip||null; country=_g.country_name||null; city=_g.city||null; region=_g.region||null; }
+      }
+    } catch(_) {}
+
+    if (OWNER_IPS.includes(ip)) { window._track=null; return; }
+    window._track('visit','pick');
+    [[15000,'15s+'],[30000,'30s+'],[60000,'1m+']].forEach(([d,l]) =>
+      setTimeout(() => window._track?.('time_on_page', l), d)
+    );
+  } catch(_) {}
+})();
+</script>
+</body>
+</html>
