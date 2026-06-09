@@ -244,8 +244,7 @@ async function handleSignUp(event) {
   if (username.length > 20) { showFormError('signupError', 'Username must be 20 characters or less.'); return; }
   if (!/^[a-z0-9_]+$/.test(username)) { showFormError('signupError', 'Username can only contain letters, numbers, and underscores.'); return; }
   if (!dob)      { showFormError('signupError', 'Please enter your date of birth.'); return; }
-  if (!phone)    { showFormError('signupError', 'Please enter your phone number.'); return; }
-  if (!/^\+?[\d\s\-(). ]{7,20}$/.test(phone)) { showFormError('signupError', 'Please enter a valid phone number.'); return; }
+  if (phone && !/^\+?[\d\s\-(). ]{7,20}$/.test(phone)) { showFormError('signupError', 'Please enter a valid phone number.'); return; }
 
   const age = calculateAge(dob);
   if (age < 13)  { showFormError('signupError', 'You must be at least 13 years old to create an account.'); return; }

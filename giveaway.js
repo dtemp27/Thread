@@ -148,7 +148,7 @@
     if (!/^[a-z0-9_]+$/.test(username))                           return setError('Username: letters, numbers, underscores only.');
     if (!instagram)                                               return setError('Please enter your Instagram handle.');
     if (!dob)                                                     return setError('Please enter your date of birth.');
-    if (!phone || !/^\+?[\d\s\-(). ]{7,20}$/.test(phone))        return setError('Please enter a valid phone number.');
+    if (phone && !/^\+?[\d\s\-(). ]{7,20}$/.test(phone))         return setError('Please enter a valid phone number.');
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))    return setError('Please enter a valid email address.');
     if (password.length < 7)                                      return setError('Password must be at least 7 characters.');
     if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) return setError('Password needs at least one special character.');
