@@ -523,36 +523,35 @@ function renderCustomers() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   SYNC USERNAMES
+   SYNC PROFILE DATA
    Calls a SECURITY DEFINER RPC that reads raw_user_meta_data from
-   auth.users and backfills username into profiles for any row that is
-   missing it.  Requires the following function to exist in Supabase:
+   auth.users and backfills missing profile fields (username, name,
+   first_name, last_name, phone, instagram).
 
-   CREATE OR REPLACE FUNCTION sync_usernames_from_metadata()
+   Run this once in Supabase SQL Editor to create/update the function:
+
+   CREATE OR REPLACE FUNCTION sync_profile_data_from_metadata()
    RETURNS json LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-   DECLARE updated_count integer;
+   DECLARE updated_count integer := 0;
    BEGIN
      UPDATE profiles p
-       SET username = sub.meta_username
-       FROM (
-         SELECT DISTINCT ON (meta_username)
-           u.id,
-           (u.raw_user_meta_data->>'username') AS meta_username
-         FROM auth.users u
-         JOIN profiles p2 ON p2.id = u.id
-         WHERE (p2.username IS NULL OR p2.username = '')
-           AND (u.raw_user_meta_data->>'username') IS NOT NULL
-           AND (u.raw_user_meta_data->>'username') != ''
-         ORDER BY meta_username, u.created_at ASC
-       ) sub
-       WHERE p.id = sub.id
-         AND NOT EXISTS (
-           SELECT 1 FROM profiles p3
-           WHERE p3.username = sub.meta_username
-             AND p3.id != sub.id
-             AND p3.username IS NOT NULL
-             AND p3.username != ''
-         );
+     SET
+       username   = COALESCE(NULLIF(p.username,''),   NULLIF(u.raw_user_meta_data->>'username',''),   p.username),
+       name       = COALESCE(NULLIF(p.name,''),        NULLIF(u.raw_user_meta_data->>'name',''),        p.name),
+       first_name = COALESCE(NULLIF(p.first_name,''),  NULLIF(u.raw_user_meta_data->>'first_name',''),  p.first_name),
+       last_name  = COALESCE(NULLIF(p.last_name,''),   NULLIF(u.raw_user_meta_data->>'last_name',''),   p.last_name),
+       phone      = COALESCE(NULLIF(p.phone,''),       NULLIF(u.raw_user_meta_data->>'phone',''),       p.phone),
+       instagram  = COALESCE(NULLIF(p.instagram,''),   NULLIF(u.raw_user_meta_data->>'instagram',''),   p.instagram)
+     FROM auth.users u
+     WHERE p.id = u.id
+       AND (
+         (p.username   IS NULL OR p.username   = '') AND (u.raw_user_meta_data->>'username'   IS NOT NULL AND u.raw_user_meta_data->>'username'   != '') OR
+         (p.name       IS NULL OR p.name       = '') AND (u.raw_user_meta_data->>'name'       IS NOT NULL AND u.raw_user_meta_data->>'name'       != '') OR
+         (p.first_name IS NULL OR p.first_name = '') AND (u.raw_user_meta_data->>'first_name' IS NOT NULL AND u.raw_user_meta_data->>'first_name' != '') OR
+         (p.last_name  IS NULL OR p.last_name  = '') AND (u.raw_user_meta_data->>'last_name'  IS NOT NULL AND u.raw_user_meta_data->>'last_name'  != '') OR
+         (p.phone      IS NULL OR p.phone      = '') AND (u.raw_user_meta_data->>'phone'      IS NOT NULL AND u.raw_user_meta_data->>'phone'      != '') OR
+         (p.instagram  IS NULL OR p.instagram  = '') AND (u.raw_user_meta_data->>'instagram'  IS NOT NULL AND u.raw_user_meta_data->>'instagram'  != '')
+       );
      GET DIAGNOSTICS updated_count = ROW_COUNT;
      RETURN json_build_object('updated', updated_count);
    END; $$;
@@ -565,26 +564,24 @@ async function syncMissingUsernames() {
     if (!cfg?.supabaseUrl || !window.supabase) { alert('Supabase not connected'); return; }
     const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
 
-    const { data, error } = await sb.rpc('sync_usernames_from_metadata');
+    const { data, error } = await sb.rpc('sync_profile_data_from_metadata');
     if (error) {
-      // Guide the user if the function doesn't exist yet
       alert(
         'Sync failed: ' + error.message + '\n\n' +
-        'You need to create the sync_usernames_from_metadata() function in Supabase first.\n' +
-        'Go to Supabase → SQL Editor → New Query, then paste the SQL from the comment at the top of syncMissingUsernames in admin.js.'
+        'Create the sync_profile_data_from_metadata() function in Supabase first.\n' +
+        'Go to Supabase → SQL Editor and run the SQL in the comment above syncMissingUsernames() in admin.js.'
       );
       return;
     }
 
     const count = typeof data === 'object' ? (data?.updated ?? 0) : (data ?? 0);
-    alert(`✓ Synced ${count} username${count !== 1 ? 's' : ''} from auth metadata into profiles.`);
-    // Reload customers so the table reflects the updated data
+    alert(`✓ Synced ${count} profile${count !== 1 ? 's' : ''} — filled in missing username, name, phone, and instagram from signup data.`);
     allCustomers = await DB.customers.getAll();
     renderCustomers();
   } catch(e) {
     alert('Error: ' + e.message);
   } finally {
-    if (btn) { btn.textContent = '🔄 Sync Usernames'; btn.disabled = false; }
+    if (btn) { btn.textContent = '🔄 Sync Profile Data'; btn.disabled = false; }
   }
 }
 

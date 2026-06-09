@@ -296,9 +296,7 @@ async function completeSignUp({ name, firstName, lastName, username, dob, phone,
     const { data, error } = await sb.auth.signUp({
       email, password,
       options: {
-        data: { name, username },
-        // After the user clicks the verification link, Supabase redirects here.
-        // auth.js detects type=signup and forwards them to the home page → shop section.
+        data: { name, username, first_name: firstName || null, last_name: lastName || null, phone: phone || null, instagram: instagram || null, dob: dob || null },
         emailRedirectTo: 'https://mythread.shop/auth.html',
       }
     });
