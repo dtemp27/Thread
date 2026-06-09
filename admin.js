@@ -657,7 +657,7 @@ function renderReferrals() {
   // Group by referrer
   const byReferrer = {};
   allScans.forEach(s => {
-    const key  = s.referrer_id || s.referral_code;
+    const key  = s.referral_code || s.referrer_id;
     const name = referrerLabel(s.referrer_id, s.referral_code);
     if (!byReferrer[key]) byReferrer[key] = { name, code: s.referral_code, scans: 0, convs: 0, earned: 0, pending: 0 };
     byReferrer[key].scans++;
