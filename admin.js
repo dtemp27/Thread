@@ -654,7 +654,7 @@ function renderReferrals() {
     return map[raw] || raw;
   }
 
-  // Group by referrer
+  // Group by referrer — normalize key to referral_code, falling back to referrer_id
   const byReferrer = {};
   allScans.forEach(s => {
     let code = s.referral_code;
@@ -662,9 +662,13 @@ function renderReferrals() {
       const cust = allCustomers.find(c => c.id === s.referrer_id || c.user_id === s.referrer_id);
       if (cust) code = cust.referral_code || cust.referralCode;
     }
-    const key  = code || s.referrer_id;
+    const key  = (code || s.referrer_id || '').trim().toUpperCase();
     const name = referrerLabel(s.referrer_id, code);
     if (!byReferrer[key]) byReferrer[key] = { name, code: code || s.referral_code, scans: 0, convs: 0, earned: 0, pending: 0 };
+    // Prefer the real full name over a raw code/id as label
+    if (byReferrer[key].name === byReferrer[key].code && name !== byReferrer[key].code) {
+      byReferrer[key].name = name;
+    }
     byReferrer[key].scans++;
     if (s.converted) {
       byReferrer[key].convs++;
