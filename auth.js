@@ -101,10 +101,20 @@ let _pendingSignup = null;
                   referral_code: pending.referralCode,
                   referred_by:   pending.referredBy    || null,
                   date_of_birth: pending.dob           || null,
+                  first_name:    pending.firstName     || null,
+                  last_name:     pending.lastName      || null,
+                  phone:         pending.phone         || null,
+                  instagram:     pending.instagram     || null,
                 };
                 if (pending.parentEmail) { pd.parent_email = pending.parentEmail; pd.is_minor = true; }
                 const { error: pendErr } = await sb.from('profiles').upsert(pd, { onConflict: 'id' });
-                if (!pendErr) localStorage.removeItem('thread_pending_profile');
+                if (!pendErr) {
+                  localStorage.removeItem('thread_pending_profile');
+                } else {
+                  const corePd = { id: pd.id, email: pd.email, name: pd.name, username: pd.username, referral_code: pd.referral_code, referred_by: pd.referred_by };
+                  const { error: corePdErr } = await sb.from('profiles').upsert(corePd, { onConflict: 'id' });
+                  if (!corePdErr) localStorage.removeItem('thread_pending_profile');
+                }
               }
             } catch(_) {}
 
@@ -294,7 +304,7 @@ async function completeSignUp({ name, firstName, lastName, username, dob, phone,
     });
     if (error) throw new Error(error.message);
 
-    const pendingProfile = { name, username, dob, email, referralCode, referredBy, parentEmail };
+    const pendingProfile = { name, firstName, lastName, username, dob, phone, instagram, email, referralCode, referredBy, parentEmail };
     localStorage.setItem('thread_pending_profile', JSON.stringify(pendingProfile));
 
     if (data.user) {
@@ -317,10 +327,13 @@ async function completeSignUp({ name, firstName, lastName, username, dob, phone,
       const { error: upsertErr } = await sb.from('profiles').upsert(profileData, { onConflict: 'id' });
       if (!upsertErr) {
         localStorage.removeItem('thread_pending_profile');
+      } else {
+        // Extended columns may not exist yet — fall back to core fields so username always saves.
+        const coreProfile = { id: data.user.id, email, name, username, referral_code: referralCode, referred_by: referredBy };
+        const { error: coreErr } = await sb.from('profiles').upsert(coreProfile, { onConflict: 'id' });
+        if (!coreErr) localStorage.removeItem('thread_pending_profile');
+        // If even core upsert fails, thread_pending_profile stays for the verification callback.
       }
-      // If upsertErr, thread_pending_profile stays in localStorage so the
-      // verification callback (type=signup / code) can upsert it once the user
-      // has a real confirmed session.
 
       // Try to sign in immediately (works when email confirmation is disabled).
       try {
@@ -463,18 +476,28 @@ async function handleSignIn(event) {
     try {
       const pending = JSON.parse(localStorage.getItem('thread_pending_profile') || 'null');
       if (pending && data.user && pending.email === email) {
-        const profileData = {
+        const siPd = {
           id: data.user.id,
           email: pending.email,
           name: pending.name,
           username: pending.username || null,
           referral_code: pending.referralCode,
           referred_by: pending.referredBy,
-          date_of_birth: pending.dob,
+          date_of_birth: pending.dob      || null,
+          first_name:    pending.firstName || null,
+          last_name:     pending.lastName  || null,
+          phone:         pending.phone     || null,
+          instagram:     pending.instagram || null,
         };
-        if (pending.parentEmail) { profileData.parent_email = pending.parentEmail; profileData.is_minor = true; }
-        await sb.from('profiles').upsert(profileData, { onConflict: 'id' });
-        localStorage.removeItem('thread_pending_profile');
+        if (pending.parentEmail) { siPd.parent_email = pending.parentEmail; siPd.is_minor = true; }
+        const { error: siErr } = await sb.from('profiles').upsert(siPd, { onConflict: 'id' });
+        if (!siErr) {
+          localStorage.removeItem('thread_pending_profile');
+        } else {
+          const siCore = { id: siPd.id, email: siPd.email, name: siPd.name, username: siPd.username, referral_code: siPd.referral_code, referred_by: siPd.referred_by };
+          const { error: siCoreErr } = await sb.from('profiles').upsert(siCore, { onConflict: 'id' });
+          if (!siCoreErr) localStorage.removeItem('thread_pending_profile');
+        }
       }
     } catch(_) {}
 
