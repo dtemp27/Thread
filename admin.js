@@ -434,9 +434,11 @@ function renderCustomers() {
   let filtered = allCustomers;
   if (search) {
     filtered = filtered.filter(c =>
-      (c.name     || '').toLowerCase().includes(search) ||
-      (c.email    || '').toLowerCase().includes(search) ||
-      (c.username || '').toLowerCase().includes(search)
+      (c.name      || '').toLowerCase().includes(search) ||
+      (c.email     || '').toLowerCase().includes(search) ||
+      (c.username  || '').toLowerCase().includes(search) ||
+      (c.phone     || '').toLowerCase().includes(search) ||
+      (c.instagram || '').toLowerCase().includes(search)
     );
   }
 
@@ -485,7 +487,9 @@ function renderCustomers() {
       ? `<span style="font-weight:600">${referrer.name || '—'}</span><br><span style="font-size:11px;color:#888">${referrer.email || ''}</span>`
       : (c.referred_by ? `<code style="font-size:11px">${c.referred_by}</code>` : '<span style="color:#555">—</span>');
     const code = c.referral_code || c.referralCode || '';
-    const username = c.username ? `<span style="color:#a78bfa;font-weight:600">@${escapeHtml(c.username)}</span>` : '<span style="color:#444">—</span>';
+    const username  = c.username  ? `<span style="color:#a78bfa;font-weight:600">@${escapeHtml(c.username)}</span>` : '<span style="color:#444">—</span>';
+    const phone     = c.phone     ? `<span style="font-size:12px;color:#e2e8f0">${escapeHtml(c.phone)}</span>` : '<span style="color:#444">—</span>';
+    const instagram = c.instagram ? `<a href="https://instagram.com/${escapeHtml(c.instagram)}" target="_blank" style="color:#e879f9;text-decoration:none;font-size:12px">@${escapeHtml(c.instagram)}</a>` : '<span style="color:#444">—</span>';
     const qrBtn = code
       ? `<button class="ad-action-btn" style="background:#111;color:#fff;margin-right:4px" onclick="downloadQR('${escapeHtml(code)}','${escapeHtml(c.name || code)}','black')">⬛ Black</button><button class="ad-action-btn" style="background:#3a3a3a;color:#aaa;border:1px solid #555" onclick="downloadQR('${escapeHtml(code)}','${escapeHtml(c.name || code)}','white')">⬜ White</button>`
       : '<span style="color:#555">—</span>';
@@ -500,6 +504,8 @@ function renderCustomers() {
       <td><strong>${c.name || '—'}</strong></td>
       <td>${c.email || '—'}</td>
       <td>${username}</td>
+      <td>${phone}</td>
+      <td>${instagram}</td>
       <td>${referredBy}</td>
       <td><code style="font-size:11px">${code || '—'}</code></td>
       <td>${customerOrders.length}</td>
@@ -513,7 +519,7 @@ function renderCustomers() {
         <button class="ad-action-btn" style="background:#dc2626;color:#fff;font-size:11px;font-weight:700;display:block" onclick="confirmDeleteUser('${escapeHtml(c.id || '')}','${escapeHtml(c.email || '')}','${escapeHtml(c.name || '')}')">💀 Delete User</button>
       </td>
     </tr>`;
-  }).join('') : '<tr><td colspan="11" class="ad-empty">No customers</td></tr>';
+  }).join('') : '<tr><td colspan="13" class="ad-empty">No customers</td></tr>';
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
