@@ -17,8 +17,17 @@ create table if not exists public.profiles (
 );
 
 -- Add the column to existing tables that pre-date this migration
-alter table public.profiles add column if not exists referred_by text;
+alter table public.profiles add column if not exists referred_by    text;
+alter table public.profiles add column if not exists username       text;
+alter table public.profiles add column if not exists first_name     text;
+alter table public.profiles add column if not exists last_name      text;
+alter table public.profiles add column if not exists date_of_birth  date;
+alter table public.profiles add column if not exists phone          text;
+alter table public.profiles add column if not exists instagram      text;
+alter table public.profiles add column if not exists parent_email   text;
+alter table public.profiles add column if not exists is_minor       boolean default false;
 create index if not exists idx_profiles_referred_by on public.profiles(referred_by);
+create index if not exists idx_profiles_username    on public.profiles(username);
 
 alter table public.profiles enable row level security;
 

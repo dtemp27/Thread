@@ -224,21 +224,28 @@ async function handleSignUp(event) {
     return;
   }
 
-  const name     = document.getElementById('signupName').value.trim();
-  const dob      = document.getElementById('signupDob').value;
-  const email    = document.getElementById('signupEmail').value.trim().toLowerCase();
-  const password = document.getElementById('signupPassword').value;
-  const confirm  = document.getElementById('signupConfirm').value;
-  const terms    = document.getElementById('agreeTerms').checked;
+  const firstName = document.getElementById('signupFirstName').value.trim();
+  const lastName  = document.getElementById('signupLastName').value.trim();
+  const name      = `${firstName} ${lastName}`;
+  const dob       = document.getElementById('signupDob').value;
+  const phone     = document.getElementById('signupPhone').value.trim();
+  const instagram = (document.getElementById('signupInstagram')?.value || '').trim().replace(/^@+/, '');
+  const email     = document.getElementById('signupEmail').value.trim().toLowerCase();
+  const password  = document.getElementById('signupPassword').value;
+  const confirm   = document.getElementById('signupConfirm').value;
+  const terms     = document.getElementById('agreeTerms').checked;
 
   const username = document.getElementById('signupUsername').value.trim().toLowerCase().replace(/^@/, '');
 
-  if (!name)     { showFormError('signupError', 'Please enter your full name.'); return; }
+  if (!firstName) { showFormError('signupError', 'Please enter your first name.'); return; }
+  if (!lastName)  { showFormError('signupError', 'Please enter your last name.'); return; }
   if (!username) { showFormError('signupError', 'Please choose a username.'); return; }
   if (username.length < 3) { showFormError('signupError', 'Username must be at least 3 characters.'); return; }
   if (username.length > 20) { showFormError('signupError', 'Username must be 20 characters or less.'); return; }
   if (!/^[a-z0-9_]+$/.test(username)) { showFormError('signupError', 'Username can only contain letters, numbers, and underscores.'); return; }
   if (!dob)      { showFormError('signupError', 'Please enter your date of birth.'); return; }
+  if (!phone)    { showFormError('signupError', 'Please enter your phone number.'); return; }
+  if (!/^\+?[\d\s\-(). ]{7,20}$/.test(phone)) { showFormError('signupError', 'Please enter a valid phone number.'); return; }
 
   const age = calculateAge(dob);
   if (age < 13)  { showFormError('signupError', 'You must be at least 13 years old to create an account.'); return; }
@@ -250,14 +257,14 @@ async function handleSignUp(event) {
   if (!terms)    { showFormError('signupError', 'You must agree to the terms to continue.'); return; }
 
   if (age < 18) {
-    showParentalConsentModal({ name, username, dob, email, password });
+    showParentalConsentModal({ name, firstName, lastName, username, dob, phone, instagram, email, password });
     return;
   }
 
-  await completeSignUp({ name, username, dob, email, password });
+  await completeSignUp({ name, firstName, lastName, username, dob, phone, instagram, email, password });
 }
 
-async function completeSignUp({ name, username, dob, email, password, parentEmail = null }) {
+async function completeSignUp({ name, firstName, lastName, username, dob, phone, instagram, email, password, parentEmail = null }) {
   setLoading('signup', true);
   try {
     const sb = getSB();
@@ -291,9 +298,13 @@ async function completeSignUp({ name, username, dob, email, password, parentEmai
     if (data.user) {
       const profileData = {
         id: data.user.id, email, name, username,
+        first_name:    firstName  || null,
+        last_name:     lastName   || null,
         referral_code: referralCode,
         referred_by:   referredBy,
         date_of_birth: dob,
+        phone:         phone      || null,
+        instagram:     instagram  || null,
       };
       if (parentEmail) { profileData.parent_email = parentEmail; profileData.is_minor = true; }
 

@@ -161,9 +161,16 @@
 
             <div class="gw-input-row">
               <div class="gw-field">
-                <label class="gw-label">Full Name</label>
-                <input type="text" id="gwName" placeholder="Jordan Williams" required autocomplete="name" />
+                <label class="gw-label">First Name</label>
+                <input type="text" id="gwFirstName" placeholder="Jordan" required autocomplete="given-name" />
               </div>
+              <div class="gw-field">
+                <label class="gw-label">Last Name</label>
+                <input type="text" id="gwLastName" placeholder="Williams" required autocomplete="family-name" />
+              </div>
+            </div>
+
+            <div class="gw-input-row">
               <div class="gw-field">
                 <label class="gw-label">Username <span class="gw-public">🌐 Public</span></label>
                 <div class="gw-prefix-wrap">
@@ -171,6 +178,10 @@
                   <input type="text" id="gwUsername" placeholder="jordanw" required autocomplete="username" maxlength="20" class="gw-has-prefix" />
                 </div>
                 <p class="gw-hint">Letters, numbers, underscores only.</p>
+              </div>
+              <div class="gw-field">
+                <label class="gw-label">Date of Birth</label>
+                <input type="date" id="gwDob" required autocomplete="bday" />
               </div>
             </div>
 
@@ -184,8 +195,8 @@
                 <p class="gw-hint">How we'll reach the winner.</p>
               </div>
               <div class="gw-field">
-                <label class="gw-label">Date of Birth</label>
-                <input type="date" id="gwDob" required autocomplete="bday" />
+                <label class="gw-label">Phone Number</label>
+                <input type="tel" id="gwPhone" placeholder="+1 (555) 000-0000" required autocomplete="tel" />
               </div>
             </div>
 
