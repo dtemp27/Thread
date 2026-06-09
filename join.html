@@ -632,10 +632,14 @@ async function doSignup() {
     if (!referralCode) referralCode = generateReferralCode(displayName);
     const referredBy = (localStorage.getItem('thread_ref') || '').trim() || null;
 
+    const { data: usernameAvail } = await sb.rpc('check_username_available', { p_username: username });
+    if (usernameAvail === false) {
+      btn.disabled = false; btn.textContent = 'Create Free Account →';
+      errEl.textContent = 'That username is already taken — please choose another.';
+      return;
+    }
+
     const { data, error } = await sb.auth.signUp({
-      email, password,
-      options: { data: { name: displayName, username }, emailRedirectTo: 'https://mythread.shop/checkout.html' }
-    });
     if (error) throw new Error(error.message);
 
     localStorage.setItem('thread_pending_profile', JSON.stringify({ name: displayName, username, dob, email, referralCode, referredBy }));

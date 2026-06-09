@@ -27,7 +27,8 @@ alter table public.profiles add column if not exists instagram      text;
 alter table public.profiles add column if not exists parent_email   text;
 alter table public.profiles add column if not exists is_minor       boolean default false;
 create index if not exists idx_profiles_referred_by on public.profiles(referred_by);
-create index if not exists idx_profiles_username    on public.profiles(username);
+-- Use a unique partial index so NULLs are allowed (users without a username yet don't conflict)
+create unique index if not exists idx_profiles_username_unique on public.profiles(username) where username is not null;
 
 alter table public.profiles enable row level security;
 
