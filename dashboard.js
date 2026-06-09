@@ -64,6 +64,17 @@ let _sb  = null;
             purchases:    []
           };
 
+          // Sync localStorage so it always matches the DB (fixes stale codes from failed upserts)
+          try {
+            const ls = JSON.parse(localStorage.getItem('thread_session') || '{}');
+            if (profile.referral_code) { ls.referralCode = profile.referral_code; ls.referral_code = profile.referral_code; }
+            if (profile.name)     ls.name     = profile.name;
+            if (profile.username) ls.username = profile.username;
+            ls.id    = profile.id;
+            ls.email = profile.email;
+            localStorage.setItem('thread_session', JSON.stringify(ls));
+          } catch(_) {}
+
           /* load referral scans */
           const { data: scans } = await _sb.from('referral_scans')
             .select('*').eq('referrer_id', data.user.id)

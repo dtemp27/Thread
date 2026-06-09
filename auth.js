@@ -328,11 +328,17 @@ async function completeSignUp({ name, firstName, lastName, username, dob, phone,
       if (!upsertErr) {
         localStorage.removeItem('thread_pending_profile');
       } else {
-        // Extended columns may not exist yet — fall back to core fields so username always saves.
+        // Extended columns may not exist — fall back to core fields.
         const coreProfile = { id: data.user.id, email, name, username, referral_code: referralCode, referred_by: referredBy };
         const { error: coreErr } = await sb.from('profiles').upsert(coreProfile, { onConflict: 'id' });
-        if (!coreErr) localStorage.removeItem('thread_pending_profile');
-        // If even core upsert fails, thread_pending_profile stays for the verification callback.
+        if (!coreErr) {
+          localStorage.removeItem('thread_pending_profile');
+        } else {
+          // Last resort: username column may also be missing — save without it.
+          const minProfile = { id: data.user.id, email, name, referral_code: referralCode, referred_by: referredBy };
+          const { error: minErr } = await sb.from('profiles').upsert(minProfile, { onConflict: 'id' });
+          if (!minErr) localStorage.removeItem('thread_pending_profile');
+        }
       }
 
       // Try to sign in immediately (works when email confirmation is disabled).
