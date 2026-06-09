@@ -536,7 +536,17 @@ function renderCustomers() {
    BEGIN
      UPDATE profiles p
      SET
-       username   = COALESCE(NULLIF(p.username,''),   NULLIF(u.raw_user_meta_data->>'username',''),   p.username),
+       -- username: only fill if blank AND the value isn't already taken by another row
+       username   = CASE
+         WHEN (p.username IS NULL OR p.username = '')
+           AND (u.raw_user_meta_data->>'username' IS NOT NULL AND u.raw_user_meta_data->>'username' != '')
+           AND NOT EXISTS (
+             SELECT 1 FROM profiles p2
+             WHERE p2.username = u.raw_user_meta_data->>'username' AND p2.id != p.id
+           )
+         THEN u.raw_user_meta_data->>'username'
+         ELSE p.username
+       END,
        name       = COALESCE(NULLIF(p.name,''),        NULLIF(u.raw_user_meta_data->>'name',''),        p.name),
        first_name = COALESCE(NULLIF(p.first_name,''),  NULLIF(u.raw_user_meta_data->>'first_name',''),  p.first_name),
        last_name  = COALESCE(NULLIF(p.last_name,''),   NULLIF(u.raw_user_meta_data->>'last_name',''),   p.last_name),
@@ -545,12 +555,12 @@ function renderCustomers() {
      FROM auth.users u
      WHERE p.id = u.id
        AND (
-         (p.username   IS NULL OR p.username   = '') AND (u.raw_user_meta_data->>'username'   IS NOT NULL AND u.raw_user_meta_data->>'username'   != '') OR
-         (p.name       IS NULL OR p.name       = '') AND (u.raw_user_meta_data->>'name'       IS NOT NULL AND u.raw_user_meta_data->>'name'       != '') OR
-         (p.first_name IS NULL OR p.first_name = '') AND (u.raw_user_meta_data->>'first_name' IS NOT NULL AND u.raw_user_meta_data->>'first_name' != '') OR
-         (p.last_name  IS NULL OR p.last_name  = '') AND (u.raw_user_meta_data->>'last_name'  IS NOT NULL AND u.raw_user_meta_data->>'last_name'  != '') OR
-         (p.phone      IS NULL OR p.phone      = '') AND (u.raw_user_meta_data->>'phone'      IS NOT NULL AND u.raw_user_meta_data->>'phone'      != '') OR
-         (p.instagram  IS NULL OR p.instagram  = '') AND (u.raw_user_meta_data->>'instagram'  IS NOT NULL AND u.raw_user_meta_data->>'instagram'  != '')
+         ((p.username   IS NULL OR p.username   = '') AND (u.raw_user_meta_data->>'username'   IS NOT NULL AND u.raw_user_meta_data->>'username'   != '')) OR
+         ((p.name       IS NULL OR p.name       = '') AND (u.raw_user_meta_data->>'name'       IS NOT NULL AND u.raw_user_meta_data->>'name'       != '')) OR
+         ((p.first_name IS NULL OR p.first_name = '') AND (u.raw_user_meta_data->>'first_name' IS NOT NULL AND u.raw_user_meta_data->>'first_name' != '')) OR
+         ((p.last_name  IS NULL OR p.last_name  = '') AND (u.raw_user_meta_data->>'last_name'  IS NOT NULL AND u.raw_user_meta_data->>'last_name'  != '')) OR
+         ((p.phone      IS NULL OR p.phone      = '') AND (u.raw_user_meta_data->>'phone'      IS NOT NULL AND u.raw_user_meta_data->>'phone'      != '')) OR
+         ((p.instagram  IS NULL OR p.instagram  = '') AND (u.raw_user_meta_data->>'instagram'  IS NOT NULL AND u.raw_user_meta_data->>'instagram'  != ''))
        );
      GET DIAGNOSTICS updated_count = ROW_COUNT;
      RETURN json_build_object('updated', updated_count);
@@ -566,10 +576,12 @@ async function syncMissingUsernames() {
 
     const { data, error } = await sb.rpc('sync_profile_data_from_metadata');
     if (error) {
+      const isNoFunction = error.message?.includes('does not exist') || error.message?.includes('function');
       alert(
         'Sync failed: ' + error.message + '\n\n' +
-        'Create the sync_profile_data_from_metadata() function in Supabase first.\n' +
-        'Go to Supabase → SQL Editor and run the SQL in the comment above syncMissingUsernames() in admin.js.'
+        (isNoFunction
+          ? 'Go to Supabase → SQL Editor and run the CREATE OR REPLACE FUNCTION SQL in the comment above syncMissingUsernames() in admin.js.'
+          : 'Check Supabase logs for details.')
       );
       return;
     }
