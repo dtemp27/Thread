@@ -553,6 +553,7 @@ async function handleResetPassword(event) {
 
 /* ─── SUCCESS OVERLAY ────────────────────────────────────────────────────── */
 function showSuccessOverlay(name, code) {
+  try { snaptr('track','SIGN_UP'); } catch(_) {}
   if (!document.getElementById('authSuccessOverlay')) {
     const firstName = (name || 'there').split(' ')[0];
     const referralUrl = `https://mythread.shop/?ref=${encodeURIComponent(code)}`;

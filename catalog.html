@@ -86,6 +86,9 @@
     .btn-cart { width:100%; padding:12px; border-radius:50px; background:#fff; color:#111; font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700; border:none; cursor:pointer; transition:var(--transition); }
     .btn-cart:hover { background:var(--accent); color:#fff; }
   </style>
+  <!-- Snap Pixel -->
+  <script type='text/javascript'>(function(e,t,n){if(e.snaptr)return;var a=e.snaptr=function(){a.handleRequest?a.handleRequest.apply(a,arguments):a.queue.push(arguments)};a.queue=[];var s='script';r=t.createElement(s);r.async=!0;r.src=n;var u=t.getElementsByTagName(s)[0];u.parentNode.insertBefore(r,u);})(window,document,'https://sc-static.net/scevent.min.js');snaptr('init','857fc695-5027-4a38-b6c0-45ac9a1e1960');snaptr('track','PAGE_VIEW');</script>
+  <!-- End Snap Pixel -->
 </head>
 <body>
 
@@ -439,6 +442,7 @@
     else { cart.items.push({name, price:parseFloat(price), qty:1, size, type}); }
     saveCart(cart);
     renderCartDrawer();
+    try { snaptr('track','ADD_CART',{price:parseFloat(price),currency:'USD',item_ids:[name],number_items:1}); } catch(_) {}
 
     // Track add-to-cart event
     (async function() {
