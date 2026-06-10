@@ -23,6 +23,11 @@ if (!isStripeReturn && (!checkoutData || !checkoutData.items?.length)) {
   window.location.href = 'index.html';
 }
 
+// Snap Pixel: START_CHECKOUT
+if (!isStripeReturn) {
+  try { snaptr('track','START_CHECKOUT'); } catch(_) {}
+}
+
 // No login gate — guests and signed-in users can both checkout.
 
 /* ─── Product photo thumbnail ─────────────────────────────────────────────── */
@@ -598,6 +603,7 @@ async function showSuccess(orderId, refResult) {
   document.getElementById('confirmStep').classList.add('active');
   const overlay = document.getElementById('coSuccessOverlay');
   overlay.style.display = 'flex';
+  try { snaptr('track','PURCHASE',{price:checkoutData?.total||0,currency:'USD',transaction_id:orderId}); } catch(_) {}
   document.getElementById('successOrderId').textContent = orderId;
 
   // Show ordered items with sizes in the confirmation card
