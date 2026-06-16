@@ -644,6 +644,7 @@ function hoodieThumb(name) { return productThumb({name, type:'hoodie'}); }
 function miniHoodieSVG(name) { return hoodieThumb(name); }
 
 function calcShipping(cart) {
+  if (cart.freeShipping) return 0;
   const totalItems = (cart.items || []).reduce((s, i) => s + (i.qty || 1), 0);
   return totalItems >= 2 ? 0 : 10;
 }
@@ -731,10 +732,10 @@ function renderCartDrawer() {
     shipEl.textContent = shipping === 0 ? 'FREE' : '$' + shipping.toFixed(2);
     shipEl.className   = shipping === 0 ? 'cd-free' : '';
   }
-  if (nudgeEl) nudgeEl.style.display = (totalItems === 1) ? 'block' : 'none';
+  if (nudgeEl) nudgeEl.style.display = (totalItems === 1 && !cart.freeShipping) ? 'block' : 'none';
 
   // write to checkout storage
-  localStorage.setItem('thread_checkout', JSON.stringify({ items: cart.items, subtotal, discount, shipping, total, promoCode: cart.promoCode || null, ref: localStorage.getItem('thread_ref') }));
+  localStorage.setItem('thread_checkout', JSON.stringify({ items: cart.items, subtotal, discount, shipping, total, promoCode: cart.promoCode || null, freeShipping: cart.freeShipping || false, ref: localStorage.getItem('thread_ref') }));
 }
 
 function addToCart(name, price, size = 'M', type = 'hoodie') {
@@ -801,24 +802,73 @@ function changeCartSize(idx, newSize) {
 
 function applyPromo() {
   const code = document.getElementById('promoInput')?.value.trim().toUpperCase();
+  if (!code) return;
   const cart = getCart();
+  let discount = 0;
+  let label = '';
+  cart.freeShipping = false;
 
-  if (code === 'BOGOEGG') {
-    // Easter egg — buy a hoodie, get a tee 50% off
+  if (code === 'WEARFREE') {
+    const teeItem = cart.items.find(i => (i.type || 'hoodie') === 'tee');
+    if (!teeItem) { showStoreToast('Add a t-shirt to your cart to use WEARFREE', 'error'); return; }
+    discount = parseFloat(teeItem.price.toFixed(2));
+    label = '1 tee FREE + free shipping applied!';
+    cart.freeShipping = true;
+
+  } else if (code === 'VIVINT') {
+    const hoodie = cart.items.find(i => (i.type || 'hoodie') !== 'tee');
+    const tee    = cart.items.find(i => (i.type || 'hoodie') === 'tee');
+    if (!hoodie || !tee) { showStoreToast('Add a hoodie + tee to use VIVINT', 'error'); return; }
+    discount = parseFloat((hoodie.price + tee.price).toFixed(2));
+    label = 'Hoodie + tee FREE!';
+
+  } else if (code === 'DTEMPER') {
+    const teeItem = cart.items.find(i => (i.type || 'hoodie') === 'tee');
+    if (!teeItem) { showStoreToast('Add a t-shirt to use DTEMPER', 'error'); return; }
+    discount = parseFloat((teeItem.price * 0.9).toFixed(2));
+    label = '90% off your tee!';
+
+  } else if (code === 'BOGOEGG') {
     const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
     const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
-    if (!hasTee || !hasHoodie) {
-      showStoreToast('Add a hoodie + tee to use BOGOEGG', 'error'); return;
-    }
-    const teeItem  = cart.items.find(i => (i.type || 'hoodie') === 'tee');
-    const discount = parseFloat((teeItem.price * 0.5).toFixed(2));
-    cart.promoCode = code;
-    cart.discount  = discount;
-    saveCart(cart); renderCartDrawer();
-    showStoreToast(`🥚 BOGOEGG applied — tee is 50% off!`);
+    if (!hasTee || !hasHoodie) { showStoreToast('Add a hoodie + tee to use BOGOEGG', 'error'); return; }
+    const teeItem = cart.items.find(i => (i.type || 'hoodie') === 'tee');
+    discount = parseFloat((teeItem.price * 0.5).toFixed(2));
+    label = '🥚 BOGOEGG applied — tee 50% off!';
+
+  } else if (code === 'BIGBIRD') {
+    const subtotal = cart.items.reduce((s, i) => s + i.price * i.qty, 0);
+    if (subtotal >= 150) discount = 60;
+    else if (subtotal >= 120) discount = 50;
+    else if (subtotal >= 100) discount = 40;
+    else if (subtotal >= 80)  discount = 35;
+    else discount = 28;
+    label = `$${discount} off with BIGBIRD!`;
+
+  } else if (code === 'THREAD10') {
+    discount = 10; label = '$10 off!';
+  } else if (code === 'WEAR20') {
+    discount = 20; label = '$20 off!';
+  } else if (code === 'FIRST15') {
+    discount = 15; label = '$15 off!';
+  } else if (code === 'SCAN25') {
+    discount = 25; label = '$25 off!';
   } else {
-    showStoreToast('Invalid promo code', 'error');
+    showStoreToast('Invalid promo code', 'error'); return;
   }
+
+  cart.promoCode = code;
+  cart.discount  = discount;
+  saveCart(cart); renderCartDrawer();
+  showStoreToast(label);
+}
+
+function removeCartPromo() {
+  const cart = getCart();
+  cart.promoCode    = null;
+  cart.discount     = 0;
+  cart.freeShipping = false;
+  saveCart(cart); renderCartDrawer();
 }
 
 // iOS Safari ignores overflow:hidden on body — pin it with position:fixed instead,
