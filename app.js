@@ -630,6 +630,7 @@ function hoodieThumb(name) { return productThumb({name, type:'hoodie'}); }
 function miniHoodieSVG(name) { return hoodieThumb(name); }
 
 function calcShipping(cart) {
+  if (cart.freeShipping) return 0;
   const totalItems = (cart.items || []).reduce((s, i) => s + (i.qty || 1), 0);
   return totalItems >= 2 ? 0 : 10;
 }
@@ -717,10 +718,10 @@ function renderCartDrawer() {
     shipEl.textContent = shipping === 0 ? 'FREE' : '$' + shipping.toFixed(2);
     shipEl.className   = shipping === 0 ? 'cd-free' : '';
   }
-  if (nudgeEl) nudgeEl.style.display = (totalItems === 1) ? 'block' : 'none';
+  if (nudgeEl) nudgeEl.style.display = (totalItems === 1 && !cart.freeShipping) ? 'block' : 'none';
 
   // write to checkout storage
-  localStorage.setItem('thread_checkout', JSON.stringify({ items: cart.items, subtotal, discount, shipping, total, promoCode: cart.promoCode || null, ref: localStorage.getItem('thread_ref') }));
+  localStorage.setItem('thread_checkout', JSON.stringify({ items: cart.items, subtotal, discount, shipping, total, promoCode: cart.promoCode || null, freeShipping: cart.freeShipping || false, ref: localStorage.getItem('thread_ref') }));
 }
 
 function addToCart(name, price, size = 'M', type = 'hoodie') {
@@ -790,9 +791,42 @@ async function applyPromo() {
   const code  = input?.value.trim().toUpperCase();
   if (!code) return;
   const cart = getCart();
+  cart.freeShipping = false;
+
+  // Cart-specific hardcoded codes (require inspecting cart contents)
+  if (code === 'WEARFREE') {
+    const teeItem = cart.items.find(i => (i.type || 'hoodie') === 'tee');
+    if (!teeItem) { showStoreToast('Add a t-shirt to your cart to use WEARFREE', 'error'); return; }
+    cart.promoCode = code;
+    cart.discount  = parseFloat(teeItem.price.toFixed(2));
+    cart.freeShipping = true;
+    saveCart(cart); renderCartDrawer();
+    showStoreToast('1 tee FREE + free shipping applied!');
+    return;
+  }
+
+  if (code === 'VIVINT') {
+    const hoodie = cart.items.find(i => (i.type || 'hoodie') !== 'tee');
+    const tee    = cart.items.find(i => (i.type || 'hoodie') === 'tee');
+    if (!hoodie || !tee) { showStoreToast('Add a hoodie + tee to use VIVINT', 'error'); return; }
+    cart.promoCode = code;
+    cart.discount  = parseFloat((hoodie.price + tee.price).toFixed(2));
+    saveCart(cart); renderCartDrawer();
+    showStoreToast('Hoodie + tee FREE!');
+    return;
+  }
+
+  if (code === 'DTEMPER') {
+    const teeItem = cart.items.find(i => (i.type || 'hoodie') === 'tee');
+    if (!teeItem) { showStoreToast('Add a t-shirt to use DTEMPER', 'error'); return; }
+    cart.promoCode = code;
+    cart.discount  = parseFloat((teeItem.price * 0.9).toFixed(2));
+    saveCart(cart); renderCartDrawer();
+    showStoreToast('90% off your tee!');
+    return;
+  }
 
   if (code === 'BOGOEGG') {
-    // Easter egg — buy a hoodie, get a tee 50% off
     const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
     const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
     if (!hasTee || !hasHoodie) {
@@ -865,6 +899,14 @@ async function applyPromo() {
   }
 
   showStoreToast('Invalid promo code', 'error');
+}
+
+function removeCartPromo() {
+  const cart = getCart();
+  cart.promoCode    = null;
+  cart.discount     = 0;
+  cart.freeShipping = false;
+  saveCart(cart); renderCartDrawer();
 }
 
 // iOS Safari ignores overflow:hidden on body — pin it with position:fixed instead,
