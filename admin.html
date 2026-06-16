@@ -77,6 +77,10 @@
           Emails
           <span class="ad-badge" id="emailsBadge" style="background:#7c3aed;display:none">0</span>
         </button>
+        <button class="ad-nav-item" data-section="promos" onclick="showSection('promos');closeSidebar()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          Promo Codes
+        </button>
       </nav>
       <div class="ad-sidebar-foot">
         <div class="ad-mode-badge" id="adModeBadge">LOCAL MODE</div>
@@ -537,6 +541,26 @@
           </div>
         </div>
 
+      </section>
+
+      <!-- PROMO CODES -->
+      <section id="sec-promos" class="ad-section" style="display:none">
+        <div class="ad-card">
+          <div class="ad-card-head">
+            <h2>Promo Codes</h2>
+          </div>
+          <div class="ad-table-wrap">
+            <table class="ad-table">
+              <thead><tr>
+                <th>Code</th>
+                <th>Discount</th>
+                <th>Notes</th>
+                <th>Status</th>
+              </tr></thead>
+              <tbody id="promosTableBody"></tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
     </main>

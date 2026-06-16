@@ -138,7 +138,13 @@ async function applyCheckoutPromo() {
   let discount = 0;
   let label = '';
 
-  if (code === 'VIVINT') {
+  if (code === 'WEARFREE') {
+    // Free tee
+    const teeItem = items.find(i => (i.type || 'hoodie') === 'tee');
+    if (!teeItem) { setMsg('Add a t-shirt to your cart to use WEARFREE.', 'error'); return; }
+    discount = parseFloat(teeItem.price.toFixed(2));
+    label    = '1 tee FREE 🎉';
+  } else if (code === 'VIVINT') {
     // 1 free hoodie + 1 free tee
     const hasTee    = items.some(i => (i.type || 'hoodie') === 'tee');
     const hasHoodie = items.some(i => (i.type || 'hoodie') !== 'tee');
