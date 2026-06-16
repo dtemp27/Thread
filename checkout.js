@@ -69,7 +69,7 @@ function calcCheckoutShipping() {
 function recalcCheckout() {
   const subtotal = checkoutData.items.reduce((s, i) => s + i.price * i.qty, 0);
   const discount = checkoutData.discount || 0;
-  const shipping = calcCheckoutShipping();
+  const shipping = checkoutData.freeShipping ? 0 : calcCheckoutShipping();
   const total    = Math.max(0, subtotal - discount) + shipping;
   checkoutData.subtotal = subtotal;
   checkoutData.shipping = shipping;
@@ -139,11 +139,12 @@ async function applyCheckoutPromo() {
   let label = '';
 
   if (code === 'WEARFREE') {
-    // Free tee
+    // Free tee + free shipping
     const teeItem = items.find(i => (i.type || 'hoodie') === 'tee');
     if (!teeItem) { setMsg('Add a t-shirt to your cart to use WEARFREE.', 'error'); return; }
     discount = parseFloat(teeItem.price.toFixed(2));
-    label    = '1 tee FREE 🎉';
+    label    = '1 tee FREE + free shipping 🎉';
+    checkoutData.freeShipping = true;
   } else if (code === 'VIVINT') {
     // 1 free hoodie + 1 free tee
     const hasTee    = items.some(i => (i.type || 'hoodie') === 'tee');
@@ -222,8 +223,9 @@ async function applyCheckoutPromo() {
 }
 
 function removeCheckoutPromo() {
-  checkoutData.discount  = 0;
-  checkoutData.promoCode = null;
+  checkoutData.discount     = 0;
+  checkoutData.promoCode    = null;
+  checkoutData.freeShipping = false;
   recalcCheckout();
   renderSummary();
   // Clear message + input so it looks like nothing was ever entered

@@ -1531,7 +1531,7 @@ function renderPromos() {
   if (!tbody) return;
 
   const ALL_PROMOS = [
-    { code: 'WEARFREE',  discount: '1 tee FREE (100% off a tee)',            notes: 'Options trading advisor reward',  active: true  },
+    { code: 'WEARFREE',  discount: '1 tee FREE + free shipping',              notes: 'Options trading advisor reward',  active: true  },
     { code: 'VIVINT',    discount: '1 hoodie + 1 tee FREE',                  notes: 'Partner code',                    active: true  },
     { code: 'DTEMPER',   discount: '90% off a tee',                          notes: 'Owner code',                      active: true  },
     { code: 'BOGOEGG',   discount: '50% off a tee (with hoodie in cart)',     notes: 'Easter egg',                      active: true  },
