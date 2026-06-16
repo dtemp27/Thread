@@ -59,7 +59,7 @@ function updateModeBadge() {
 /* ─── Navigation ────────────────────────────────────────────────────────── */
 let currentSection = 'overview';
 
-const SECTION_TITLES = { overview:'Overview', orders:'Orders', customers:'Customers', referrals:'Referrals', dropboxes:'Drop Boxes', analytics:'Analytics', giveaway:'Giveaway', emails:'Emails' };
+const SECTION_TITLES = { overview:'Overview', orders:'Orders', customers:'Customers', referrals:'Referrals', dropboxes:'Drop Boxes', analytics:'Analytics', giveaway:'Giveaway', emails:'Emails', promos:'Promo Codes' };
 
 function showSection(name) {
   document.querySelectorAll('.ad-section').forEach(s => s.style.display = 'none');
@@ -104,6 +104,7 @@ async function loadAllData() {
   safe(loadTrackedQRs,  'loadTrackedQRs');
   safe(loadGiveaway,    'loadGiveaway');
   safe(loadEmailStats,  'loadEmailStats');
+  safe(renderPromos,    'renderPromos');
   const savedSection = sessionStorage.getItem('thread_admin_section') || 'overview';
   safe(() => showSection(savedSection), 'showSection');
 
@@ -1522,4 +1523,36 @@ async function sendRecoveryEmails() {
   } finally {
     if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = '✉ Send Recovery Emails'; }
   }
+}
+
+/* ─── Promo Codes ────────────────────────────────────────────────────────── */
+function renderPromos() {
+  const tbody = document.getElementById('promosTableBody');
+  if (!tbody) return;
+
+  const ALL_PROMOS = [
+    { code: 'WEARFREE',  discount: '1 tee FREE (100% off a tee)',            notes: 'Options trading advisor reward',  active: true  },
+    { code: 'VIVINT',    discount: '1 hoodie + 1 tee FREE',                  notes: 'Partner code',                    active: true  },
+    { code: 'DTEMPER',   discount: '90% off a tee',                          notes: 'Owner code',                      active: true  },
+    { code: 'BOGOEGG',   discount: '50% off a tee (with hoodie in cart)',     notes: 'Easter egg',                      active: true  },
+    { code: 'BIGBIRD',   discount: '$28–$60 off depending on cart',           notes: 'Bundle code',                     active: true  },
+    { code: 'THREAD10',  discount: '$10 off',                                 notes: 'General promo',                   active: true  },
+    { code: 'WEAR20',    discount: '$20 off',                                 notes: 'General promo',                   active: true  },
+    { code: 'FIRST15',   discount: '$15 off',                                 notes: 'General promo',                   active: true  },
+    { code: 'SCAN25',    discount: '$25 off',                                 notes: 'General promo',                   active: true  },
+  ];
+
+  tbody.innerHTML = ALL_PROMOS.map(p => `
+    <tr>
+      <td><span style="font-family:monospace;font-size:13px;font-weight:700;color:#a78bfa">${p.code}</span></td>
+      <td style="font-size:13px">${p.discount}</td>
+      <td style="font-size:12px;color:#666">${p.notes}</td>
+      <td><span style="display:inline-block;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700;
+        background:${p.active ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.06)'};
+        color:${p.active ? '#22c55e' : '#555'};
+        border:1px solid ${p.active ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.08)'}">
+        ${p.active ? 'Active' : 'Inactive'}
+      </span></td>
+    </tr>
+  `).join('');
 }
