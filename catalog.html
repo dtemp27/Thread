@@ -480,6 +480,7 @@
     localStorage.setItem('thread_checkout', JSON.stringify({
       items: cart.items, subtotal, discount, total,
       promoCode: cart.promoCode || '',
+      freeShipping: cart.freeShipping || false,
       ref: localStorage.getItem('thread_ref') || ''
     }));
     window.location.href = 'checkout.html';
@@ -511,8 +512,15 @@
     const promos = { 'THREAD10': 10, 'WEAR20': 20, 'FIRST15': 15, 'SCAN25': 25 };
     let discount = 0;
     let msg = '';
+    cart.freeShipping = false;
 
-    if (code === 'VIVINT') {
+    if (code === 'WEARFREE') {
+      const teeItem = cart.items.find(i => (i.type || 'hoodie') === 'tee');
+      if (!teeItem) { showCatalogToast('Add a t-shirt to your cart to use WEARFREE', true); return; }
+      discount = parseFloat(teeItem.price.toFixed(2));
+      cart.freeShipping = true;
+      msg = '1 tee FREE + free shipping 🎉';
+    } else if (code === 'VIVINT') {
       const hasTee    = cart.items.some(i => (i.type || 'hoodie') === 'tee');
       const hasHoodie = cart.items.some(i => (i.type || 'hoodie') !== 'tee');
       if (!hasTee || !hasHoodie) { showCatalogToast('Add a hoodie + tee to use VIVINT', true); return; }
